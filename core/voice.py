@@ -3,6 +3,7 @@ import sys
 import pyttsx3
 import speech_recognition as sr
 import re
+import time
 
 # Initialize engine globally to avoid re-initialization issues
 engine = pyttsx3.init()
@@ -14,6 +15,11 @@ WAKE_WORDS = [
     "jarwis",      # Common misspelling
     "jaarvis",     # Common variation
 ]
+
+# Global state for continuous listening
+continuous_mode = False
+last_command_time = 0
+CONTINUOUS_TIMEOUT = 30  # 30 seconds of inactivity exits continuous mode
 
 def detect_wake_word(text):
     """
@@ -40,6 +46,16 @@ def detect_wake_word(text):
             return True, command
     
     return False, text
+
+def is_exit_command(text):
+    """Check if user wants to exit continuous mode"""
+    exit_commands = [
+        "stop listening", "band karo", "bas", "enough", 
+        "exit", "quit", "sleep", "so jao", "chup raho",
+        "stop", "band", "ruk jao"
+    ]
+    text_lower = text.lower().strip()
+    return any(cmd in text_lower for cmd in exit_commands)
 
 # Set voice to deep male voice with Hindi support (cross-platform)
 def set_deep_male_voice():
@@ -136,13 +152,28 @@ def speak(text):
 
 def listen():
     """
-    Listen for voice input with wake word detection
-    Supports both Hindi and English
-    Returns: command text (without wake word) or "none"
+    Listen for voice input with continuous mode support
+    - First time: Requires wake word "Jarvis"
+    - After wake word: Enters continuous mode for 30 seconds
+    - In continuous mode: No wake word needed
+    - Exit continuous mode: Say "stop listening" or wait 30 seconds
+    
+    Returns: command text or "none"
     """
+    global continuous_mode, last_command_time
+    
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        print("Listening...")
+        # Check if continuous mode timed out
+        if continuous_mode and (time.time() - last_command_time) > CONTINUOUS_TIMEOUT:
+            continuous_mode = False
+            print("⏰ Continuous mode timed out. Say 'Jarvis' to activate again.")
+        
+        if continuous_mode:
+            print("🎤 Listening (continuous mode - no wake word needed)...")
+        else:
+            print("Listening...")
+        
         r.pause_threshold = 0.8
         r.adjust_for_ambient_noise(source, duration=1)
         try:
@@ -173,25 +204,57 @@ def listen():
             if not recognized_text:
                 return "none"
             
+            # Check for exit command in continuous mode
+            if continuous_mode and is_exit_command(recognized_text):
+                continuous_mode = False
+                print("✅ Exiting continuous mode. Say 'Jarvis' to activate again.")
+                speak("Continuous mode deactivated.")
+                return "none"
+            
             # Check for wake word
             has_wake_word, command = detect_wake_word(recognized_text)
             
-            if has_wake_word:
-                if command:
-                    print(f"✅ Command detected: {command}")
+            if continuous_mode:
+                # In continuous mode, accept any command
+                last_command_time = time.time()
+                
+                # If wake word is present, remove it
+                if has_wake_word and command:
+                    print(f"✅ Command: {command}")
                     return command.lower()
                 else:
-                    # Wake word detected but no command
-                    print("💡 Wake word detected. Waiting for command...")
-                    return "none"
+                    # No wake word, but in continuous mode - accept full text
+                    print(f"✅ Command: {recognized_text}")
+                    return recognized_text.lower()
+            
             else:
-                # No wake word detected
-                print(f"Ignored (no wake word): {recognized_text}")
-                print("💡 Tip: Say 'Jarvis' pehle, phir command")
-                return "none"
+                # Not in continuous mode - require wake word
+                if has_wake_word:
+                    # Activate continuous mode
+                    continuous_mode = True
+                    last_command_time = time.time()
+                    
+                    if command:
+                        print(f"✅ Continuous mode activated! Command: {command}")
+                        print("💡 Ab aap bina 'Jarvis' bole commands de sakte ho (30 sec tak)")
+                        return command.lower()
+                    else:
+                        # Wake word detected but no command
+                        print("✅ Continuous mode activated! Waiting for command...")
+                        print("💡 Ab aap bina 'Jarvis' bole commands de sakte ho (30 sec tak)")
+                        speak("Continuous mode activated. I'm listening.")
+                        return "none"
+                else:
+                    # No wake word detected
+                    print(f"Ignored (no wake word): {recognized_text}")
+                    print("💡 Tip: Say 'Jarvis' pehle, phir command")
+                    return "none"
             
         except sr.WaitTimeoutError:
-            print("Timeout: No voice detected")
+            if continuous_mode:
+                print("Timeout in continuous mode...")
+            else:
+                print("Timeout: No voice detected")
             return "none"
         except sr.UnknownValueError:
             print("Could not understand")
@@ -199,3 +262,10 @@ def listen():
         except Exception as e:
             print(f"Error: {e}")
             return "none"
+
+def reset_continuous_mode():
+    """Reset continuous mode (useful for testing or manual reset)"""
+    global continuous_mode, last_command_time
+    continuous_mode = False
+    last_command_time = 0
+    print("✅ Continuous mode reset")

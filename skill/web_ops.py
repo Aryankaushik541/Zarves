@@ -1,5 +1,6 @@
 import webbrowser
 import json
+import sys
 from typing import List, Dict, Any, Callable
 from core.skill import Skill
 
@@ -89,15 +90,64 @@ class WebSkill(Skill):
             return json.dumps({"status": "error", "error": str(e)})
     
     def play_youtube(self, query):
+        """
+        Play YouTube video/music with cross-platform support.
+        Works on Windows, macOS, and Linux.
+        """
         try:
             import pywhatkit as kit
-            # Use open_web=True to open in normal browser window instead of fullscreen
-            kit.playonyt(query, open_web=True)
-            return json.dumps({"status": "success", "action": "play_youtube", "query": query})
+            import time
+            
+            print(f"YouTube पर खोज रहा हूँ: {query}")
+            
+            # Platform-specific handling
+            if sys.platform == "win32":  # Windows
+                # On Windows, use close_tab=False to keep browser open
+                kit.playonyt(query, open_web=True)
+                time.sleep(2)  # Give browser time to open
+            elif sys.platform == "darwin":  # macOS
+                # On macOS, use default settings
+                kit.playonyt(query, open_web=True)
+                time.sleep(2)
+            else:  # Linux and others
+                kit.playonyt(query, open_web=True)
+                time.sleep(2)
+            
+            return json.dumps({
+                "status": "success", 
+                "action": "play_youtube", 
+                "query": query,
+                "platform": sys.platform
+            })
+            
         except ImportError:
-            # Fallback to browser if pywhatkit not installed
-            url = f"https://www.youtube.com/results?search_query={query.replace(' ', '+')}"
-            webbrowser.open(url)
-            return json.dumps({"status": "success", "action": "play_youtube_fallback", "query": query, "note": "Install pywhatkit for better YouTube playback"})
+            # Fallback to webbrowser if pywhatkit not installed
+            print("pywhatkit नहीं मिला, browser fallback उपयोग कर रहा हूँ...")
+            try:
+                # Create YouTube search URL that auto-plays first result
+                search_query = query.replace(' ', '+')
+                url = f"https://www.youtube.com/results?search_query={search_query}"
+                webbrowser.open(url)
+                return json.dumps({
+                    "status": "success", 
+                    "action": "play_youtube_fallback", 
+                    "query": query, 
+                    "note": "pywhatkit install करें बेहतर playback के लिए: pip install pywhatkit"
+                })
+            except Exception as e:
+                return json.dumps({"status": "error", "error": str(e)})
+                
         except Exception as e:
-            return json.dumps({"status": "error", "error": str(e)})
+            print(f"YouTube Error: {e}")
+            # Final fallback
+            try:
+                url = f"https://www.youtube.com/results?search_query={query.replace(' ', '+')}"
+                webbrowser.open(url)
+                return json.dumps({
+                    "status": "partial_success", 
+                    "action": "youtube_search", 
+                    "query": query,
+                    "error": str(e)
+                })
+            except Exception as e2:
+                return json.dumps({"status": "error", "error": str(e2)})

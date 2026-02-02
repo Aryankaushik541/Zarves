@@ -43,13 +43,31 @@ class WebSkill(Skill):
                         "required": ["url"] 
                     }
                 }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "play_youtube",
+                    "description": "Play a song or video on YouTube",
+                    "parameters": { 
+                        "type": "object", 
+                        "properties": { 
+                            "query": {
+                                "type": "string",
+                                "description": "The song name or video to play on YouTube"
+                            } 
+                        }, 
+                        "required": ["query"] 
+                    }
+                }
             }
         ]
 
     def get_functions(self) -> Dict[str, Callable]:
         return {
             "google_search": self.google_search,
-            "open_website": self.open_website
+            "open_website": self.open_website,
+            "play_youtube": self.play_youtube
         }
 
     def google_search(self, search_term):
@@ -67,5 +85,18 @@ class WebSkill(Skill):
                 url = 'https://' + url
             webbrowser.open(url)
             return json.dumps({"status": "success", "action": "open_website", "url": url})
+        except Exception as e:
+            return json.dumps({"status": "error", "error": str(e)})
+    
+    def play_youtube(self, query):
+        try:
+            import pywhatkit as kit
+            kit.playonyt(query)
+            return json.dumps({"status": "success", "action": "play_youtube", "query": query})
+        except ImportError:
+            # Fallback to browser if pywhatkit not installed
+            url = f"https://www.youtube.com/results?search_query={query.replace(' ', '+')}"
+            webbrowser.open(url)
+            return json.dumps({"status": "success", "action": "play_youtube_fallback", "query": query, "note": "Install pywhatkit for better YouTube playback"})
         except Exception as e:
             return json.dumps({"status": "error", "error": str(e)})

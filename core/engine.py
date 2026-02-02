@@ -12,10 +12,23 @@ class JarvisEngine:
         self.model_name = "llama-3.3-70b-versatile"
         
         self.system_instruction = (
-            "You are Jarvis, a helpful and precise AI assistant. "
-            "Use the provided tools to answer the user's request. "
-            "Always respond naturally and conversationally. "
-            "When a tool is executed successfully, acknowledge the action briefly."
+            "You are JARVIS, an advanced autonomous AI assistant with full system control capabilities. "
+            "You can create websites, develop applications, install software, execute terminal commands, "
+            "manage files, and perform complex multi-step tasks automatically. "
+            "\n\nYour capabilities include:"
+            "\n- Full-stack web development (React, HTML/CSS/JS)"
+            "\n- Python application development (GUI, CLI, automation)"
+            "\n- Terminal command execution and app installation"
+            "\n- File and project management"
+            "\n- Git operations"
+            "\n- Multi-step autonomous task completion"
+            "\n\nWhen given a task:"
+            "\n1. Break it down into steps if needed"
+            "\n2. Use available tools to complete each step"
+            "\n3. Execute actions autonomously without asking for permission"
+            "\n4. Report results clearly and concisely"
+            "\n\nAlways be proactive, efficient, and complete tasks fully. "
+            "You have the power to control the entire system - use it wisely."
         )
         
         # Web services mapping
@@ -96,121 +109,105 @@ class JarvisEngine:
             {"role": "user", "content": user_prompt}
         ]
         
-        try:
-            tools_schema = self.registry.get_tools_schema()
+        max_iterations = 5  # Allow multi-step task execution
+        iteration = 0
+        
+        while iteration < max_iterations:
+            iteration += 1
             
-            completion_kwargs = {
-                "model": self.model_name,
-                "messages": messages,
-                "max_tokens": 300,
-                "temperature": 0.7
-            }
-            
-            if tools_schema:
-                completion_kwargs["tools"] = tools_schema
-                completion_kwargs["tool_choice"] = "auto"
-            
-            response = self.client.chat.completions.create(**completion_kwargs)
-            
-        except Exception as e:
-            # Handle tool_use_failed error from Groq
-            error_str = str(e)
-            if "tool_use_failed" in error_str and "failed_generation" in error_str:
-                try:
-                    # Extract failed generation from error message
-                    # Pattern: <function=NAME({"key": "value"})</function>
-                    match = re.search(r"<function=(\w+)\((.*?)\)</function>", error_str)
-                    if match:
-                        func_name = match.group(1)
-                        func_args_str = match.group(2)
-                        print(f"DEBUG: Recovered failed tool call: {func_name} with args: {func_args_str}")
-                        
-                        function_to_call = self.registry.get_function(func_name)
-                        if function_to_call:
-                            try:
-                                # Parse the arguments
-                                args = json.loads(func_args_str)
-                                print(f"DEBUG: Executing {func_name} with {args}")
-                                res = function_to_call(**args)
-                                
-                                # Parse the result if it's JSON
-                                try:
-                                    result_data = json.loads(res)
-                                    if result_data.get("status") == "success":
-                                        if "service" in result_data:
-                                            return f"Opening {result_data['service']}, sir."
-                                        elif "app" in result_data:
-                                            return f"Opening {result_data['app']}, sir."
-                                        else:
-                                            return "Done, sir."
-                                    else:
-                                        return str(res)
-                                except:
-                                    return str(res)
-                                    
-                            except Exception as exec_e:
-                                print(f"Error executing recovered tool: {exec_e}")
-                                return f"I encountered an error: {exec_e}"
-                except Exception as parse_e:
-                    print(f"Failed to recover tool call: {parse_e}")
-
-            print(f"Groq API Error: {e}")
-            return "I am having trouble connecting to the brain, sir."
-
-        response_message = response.choices[0].message
-        tool_calls = response_message.tool_calls
-
-        # CASE 1: AI wants to use a tool (Action)
-        if tool_calls:
-            print("DEBUG: Executing Tool...")
-            messages.append(response_message)
-
-            for tool_call in tool_calls:
-                function_name = tool_call.function.name
-                function_to_call = self.registry.get_function(function_name)
+            try:
+                tools_schema = self.registry.get_tools_schema()
                 
-                if not function_to_call:
-                    res = "Error: Tool not found."
-                else:
+                completion_kwargs = {
+                    "model": self.model_name,
+                    "messages": messages,
+                    "max_tokens": 500,
+                    "temperature": 0.8
+                }
+                
+                if tools_schema:
+                    completion_kwargs["tools"] = tools_schema
+                    completion_kwargs["tool_choice"] = "auto"
+                
+                response = self.client.chat.completions.create(**completion_kwargs)
+                
+            except Exception as e:
+                # Handle tool_use_failed error from Groq
+                error_str = str(e)
+                if "tool_use_failed" in error_str and "failed_generation" in error_str:
                     try:
-                        function_args = json.loads(tool_call.function.arguments)
-                        if function_args is None:
-                            function_args = {}
-                        
-                        print(f"DEBUG: Calling {function_name} with {function_args}")
-                        res = function_to_call(**function_args)
-                    except Exception as e:
-                        res = f"Error executing tool: {e}"
-                        print(f"Tool execution error: {e}")
-                
-                messages.append(
-                    {
+                        # Extract failed generation from error message
+                        match = re.search(r"<function=(\w+)\((.*?)\)</function>", error_str)
+                        if match:
+                            func_name = match.group(1)
+                            func_args_str = match.group(2)
+                            print(f"DEBUG: Recovered failed tool call: {func_name} with args: {func_args_str}")
+                            
+                            function_to_call = self.registry.get_function(func_name)
+                            if function_to_call:
+                                try:
+                                    args = json.loads(func_args_str)
+                                    print(f"DEBUG: Executing {func_name} with {args}")
+                                    res = function_to_call(**args)
+                                    
+                                    try:
+                                        result_data = json.loads(res)
+                                        if result_data.get("status") == "success":
+                                            return result_data.get("message", "Task completed successfully, sir.")
+                                        else:
+                                            return str(res)
+                                    except:
+                                        return str(res)
+                                        
+                                except Exception as exec_e:
+                                    print(f"Error executing recovered tool: {exec_e}")
+                                    return f"I encountered an error: {exec_e}"
+                    except Exception as parse_e:
+                        print(f"Failed to recover tool call: {parse_e}")
+
+                print(f"Groq API Error: {e}")
+                return "I am having trouble connecting to the brain, sir."
+
+            response_message = response.choices[0].message
+            tool_calls = response_message.tool_calls
+
+            # CASE 1: AI wants to use tools (Action)
+            if tool_calls:
+                print(f"DEBUG: Executing {len(tool_calls)} tool(s)... (Iteration {iteration})")
+                messages.append(response_message)
+
+                for tool_call in tool_calls:
+                    function_name = tool_call.function.name
+                    function_to_call = self.registry.get_function(function_name)
+                    
+                    if not function_to_call:
+                        res = json.dumps({"status": "error", "error": "Tool not found"})
+                    else:
+                        try:
+                            function_args = json.loads(tool_call.function.arguments)
+                            if function_args is None:
+                                function_args = {}
+                            
+                            print(f"DEBUG: Calling {function_name} with {function_args}")
+                            res = function_to_call(**function_args)
+                            print(f"DEBUG: Result: {res[:200]}...")
+                        except Exception as e:
+                            res = json.dumps({"status": "error", "error": str(e)})
+                            print(f"Tool execution error: {e}")
+                    
+                    messages.append({
                         "tool_call_id": tool_call.id,
                         "role": "tool",
                         "name": function_name,
                         "content": str(res),
-                    }
-                )
+                    })
+                
+                # Continue loop to get next response (might need more tools or final answer)
+                continue
             
-            # Get final spoken response after tool runs
-            try:
-                second_response = self.client.chat.completions.create(
-                    model=self.model_name,
-                    messages=messages,
-                    max_tokens=150
-                )
-                return second_response.choices[0].message.content
-            except Exception as e:
-                print(f"Error getting final response: {e}")
-                # Return a generic success message based on the tool result
-                try:
-                    result_data = json.loads(res)
-                    if result_data.get("status") == "success":
-                        return "Done, sir."
-                except:
-                    pass
-                return "Task completed, sir."
+            # CASE 2: AI has final response
+            else:
+                return response_message.content
         
-        # CASE 2: AI wants to chat
-        else:
-            return response_message.content
+        # Max iterations reached
+        return "Task completed with multiple steps, sir. Check the results."

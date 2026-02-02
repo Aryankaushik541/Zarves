@@ -22,6 +22,11 @@ mouse>=0.7.1
 Pillow>=10.0.0
 numpy>=1.24.0
 
+# System Control Dependencies
+psutil>=5.9.0
+pygetwindow>=0.0.9; sys_platform == 'win32'
+wmi>=1.5.1; sys_platform == 'win32'
+
 # NPU Acceleration (Optional - for Omen PC optimization)
 # Intel NPU support via OpenVINO
 openvino>=2024.0.0; sys_platform == 'win32'
@@ -32,9 +37,6 @@ onnxruntime-directml>=1.17.0; sys_platform == 'win32'
 
 # AMD NPU support (Ryzen AI)
 # onnxruntime-vitisai; sys_platform == 'win32'  # Uncomment if you have AMD Ryzen AI
-
-# System monitoring
-psutil>=5.9.0
 
 # Optional: PyTorch with CUDA (if NVIDIA GPU available)
 # torch>=2.0.0

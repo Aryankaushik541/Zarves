@@ -43,6 +43,27 @@ class JarvisEngine:
         while retry_count < max_retries:
             try:
                 return self._execute_conversation(user_query)
+            except AttributeError as e:
+                # Special handling for AttributeError - these are code issues
+                error_msg = str(e)
+                
+                if "get_all_tools" in error_msg or "SkillRegistry" in error_msg:
+                    print(f"\n🔧 Code update detected! Restarting required...")
+                    print(f"   Issue: {error_msg}")
+                    print(f"\n✅ Fix applied! Please restart JARVIS:")
+                    print(f"   python main.py\n")
+                    return "System update हुआ है। कृपया JARVIS restart करें: python main.py"
+                
+                # Log but don't show to user
+                self_healing.log_error(e, f"AttributeError in conversation: {user_query}")
+                retry_count += 1
+                
+                if retry_count < max_retries:
+                    print(f"🔄 Retrying... ({retry_count}/{max_retries})")
+                    continue
+                else:
+                    return "System में update चल रहा है। कृपया JARVIS restart करें।"
+                    
             except Exception as e:
                 retry_count += 1
                 print(f"\n⚠️  Conversation error (attempt {retry_count}/{max_retries})")
@@ -57,7 +78,7 @@ class JarvisEngine:
                         continue
                     else:
                         print(f"❌ Maximum retries reached. Error: {e}")
-                        return f"माफ़ करें, मैं इस request को process नहीं कर सका। Error: {str(e)}"
+                        return f"माफ़ करें, मैं इस request को process नहीं कर सका। कृपया दोबारा try करें।"
         
         return "माफ़ करें, कुछ technical issue है। कृपया दोबारा try करें।"
 
@@ -69,8 +90,16 @@ class JarvisEngine:
             "content": user_query
         })
 
-        # Get all available tools
-        tools = self.registry.get_all_tools()
+        # Get all available tools with error handling
+        try:
+            tools = self.registry.get_all_tools()
+        except AttributeError as e:
+            # Fallback to alternative method
+            try:
+                tools = self.registry.get_tools_schema()
+            except:
+                print(f"⚠️  Registry method missing. Using empty tools.")
+                tools = []
         
         iteration = 0
         while iteration < self.max_iterations:

@@ -43,7 +43,36 @@ class SkillRegistry:
         self.functions.update(skill.get_functions())
 
     def get_tools_schema(self) -> List[Dict[str, Any]]:
+        """Get all tools schema for LLM function calling"""
+        return self.tools_schema
+    
+    def get_all_tools(self) -> List[Dict[str, Any]]:
+        """
+        Get all tools schema (alias for get_tools_schema for compatibility).
+        This method is called by JarvisEngine.
+        """
         return self.tools_schema
 
     def get_function(self, name: str) -> Callable:
+        """Get a specific function by name"""
         return self.functions.get(name)
+    
+    def get_all_functions(self) -> Dict[str, Callable]:
+        """Get all registered functions"""
+        return self.functions
+    
+    def get_skill(self, name: str) -> Skill:
+        """Get a specific skill by name"""
+        return self.skills.get(name)
+    
+    def get_all_skills(self) -> Dict[str, Skill]:
+        """Get all registered skills"""
+        return self.skills
+    
+    def list_skills(self) -> List[str]:
+        """List all skill names"""
+        return list(self.skills.keys())
+    
+    def list_tools(self) -> List[str]:
+        """List all tool names"""
+        return [tool.get('function', {}).get('name', 'unknown') for tool in self.tools_schema]

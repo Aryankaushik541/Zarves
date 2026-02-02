@@ -6,10 +6,21 @@ os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false'
 os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '0'
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '0'
 os.environ['QT_SCALE_FACTOR'] = '1'
+os.environ['QT_DEVICE_PIXEL_RATIO'] = '0'
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QFont
+# Suppress Python warnings
+import warnings
+warnings.filterwarnings("ignore")
+
+try:
+    from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel
+    from PyQt5.QtCore import Qt, QTimer
+    from PyQt5.QtGui import QFont
+    GUI_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  GUI not available: {e}")
+    print("Running in terminal mode only.")
+    GUI_AVAILABLE = False
 
 class JarvisGUI(QMainWindow):
     def __init__(self, pause_event):
@@ -112,19 +123,32 @@ class JarvisGUI(QMainWindow):
         QTimer.singleShot(1000, lambda: sys.exit(0))
 
 def run_gui(pause_event):
-    """Run the GUI application with suppressed warnings"""
-    # Additional warning suppression
-    import warnings
-    warnings.filterwarnings("ignore")
+    """Run the GUI application with error handling"""
+    if not GUI_AVAILABLE:
+        print("❌ GUI dependencies not available. Install with: pip install PyQt5")
+        return False
     
-    app = QApplication.instance()
-    if app is None:
-        app = QApplication(sys.argv)
-    
-    # Set application attributes to suppress DPI warnings
-    app.setAttribute(Qt.AA_DisableHighDpiScaling)
-    app.setAttribute(Qt.AA_Use96Dpi)
-    
-    window = JarvisGUI(pause_event)
-    window.show()
-    sys.exit(app.exec_())
+    try:
+        # Check if QApplication already exists
+        app = QApplication.instance()
+        if app is None:
+            app = QApplication(sys.argv)
+        
+        # Set application attributes to suppress DPI warnings
+        try:
+            app.setAttribute(Qt.AA_DisableHighDpiScaling)
+            app.setAttribute(Qt.AA_Use96Dpi)
+        except:
+            pass  # Ignore if attributes not available
+        
+        # Create and show window
+        window = JarvisGUI(pause_event)
+        window.show()
+        
+        # Run event loop
+        return app.exec_()
+        
+    except Exception as e:
+        print(f"❌ GUI Error: {e}")
+        print("Falling back to terminal mode...")
+        return False

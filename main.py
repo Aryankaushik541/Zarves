@@ -42,6 +42,135 @@ except Exception as e:
     print(f"⚠️  Error loading .env: {e}")
     self_healing.auto_fix_error(e, ".env loading")
 
+
+def run_startup_tests():
+    """
+    Run automatic startup tests to verify JARVIS is properly configured.
+    This replaces the need to run test_fixes.py separately.
+    """
+    print("=" * 70)
+    print("🧪 JARVIS Startup Verification")
+    print("=" * 70)
+    print()
+    
+    all_passed = True
+    
+    # Test 1: Core Imports
+    print("📦 Test 1: Checking core imports...")
+    try:
+        from core.voice import detect_wake_word, listen, speak
+        from core.npu_accelerator import npu_accelerator
+        from core.indian_language import normalize_indian_text
+        print("✅ All core imports successful")
+    except ImportError as e:
+        print(f"❌ Import failed: {e}")
+        print("   Run: pip install -r requirements.txt")
+        all_passed = False
+    print()
+    
+    # Test 2: Wake Word Detection
+    print("📝 Test 2: Wake word detection...")
+    try:
+        from core.voice import detect_wake_word
+        test_cases = [
+            ("Jarvis, YouTube kholo", True),
+            ("जार्विस यूट्यूब खोलो", True),
+            ("YouTube kholo", False),
+        ]
+        
+        passed = 0
+        for text, should_detect in test_cases:
+            has_wake_word, _ = detect_wake_word(text)
+            if has_wake_word == should_detect:
+                passed += 1
+        
+        if passed == len(test_cases):
+            print(f"✅ Wake word detection working ({passed}/{len(test_cases)} tests passed)")
+        else:
+            print(f"⚠️  Wake word detection issues ({passed}/{len(test_cases)} tests passed)")
+            all_passed = False
+    except Exception as e:
+        print(f"❌ Wake word test failed: {e}")
+        all_passed = False
+    print()
+    
+    # Test 3: Hardware Detection
+    print("🖥️  Test 3: Hardware detection...")
+    try:
+        from core.npu_accelerator import npu_accelerator
+        npu_accelerator.print_status()
+        print("✅ Hardware detection successful")
+    except Exception as e:
+        print(f"⚠️  Hardware detection warning: {e}")
+        # Not critical, don't fail
+    print()
+    
+    # Test 4: PyTorch & CUDA
+    print("🔥 Test 4: PyTorch & CUDA...")
+    try:
+        import torch
+        print(f"✅ PyTorch version: {torch.__version__}")
+        if torch.cuda.is_available():
+            print(f"   ✅ CUDA available: {torch.version.cuda}")
+            print(f"   ✅ GPU: {torch.cuda.get_device_name(0)}")
+        else:
+            print("   ℹ️  Using CPU (no GPU detected)")
+    except ImportError:
+        print("⚠️  PyTorch not installed (optional)")
+    print()
+    
+    # Test 5: Speech Recognition
+    print("🎤 Test 5: Speech recognition...")
+    try:
+        import speech_recognition as sr
+        print(f"✅ SpeechRecognition installed")
+        try:
+            mics = sr.Microphone.list_microphone_names()
+            print(f"   ✅ Found {len(mics)} microphone(s)")
+        except:
+            print("   ⚠️  No microphones detected (text mode will be used)")
+    except ImportError:
+        print("❌ SpeechRecognition not installed")
+        print("   Run: pip install SpeechRecognition")
+        all_passed = False
+    print()
+    
+    # Test 6: Text-to-Speech
+    print("🗣️  Test 6: Text-to-speech...")
+    try:
+        import pyttsx3
+        engine = pyttsx3.init()
+        print("✅ pyttsx3 initialized")
+    except Exception as e:
+        print(f"⚠️  pyttsx3 warning: {e}")
+        # Not critical
+    print()
+    
+    # Test 7: Environment Variables
+    print("🔑 Test 7: Environment variables...")
+    groq_key = os.environ.get("GROQ_API_KEY")
+    if groq_key:
+        print(f"✅ GROQ_API_KEY found (length: {len(groq_key)})")
+    else:
+        print("⚠️  GROQ_API_KEY not found in .env")
+        print("   Create .env file and add: GROQ_API_KEY=your_key_here")
+        print("   Get free key from: https://console.groq.com/keys")
+        all_passed = False
+    print()
+    
+    # Summary
+    print("=" * 70)
+    if all_passed:
+        print("✅ All critical tests passed! JARVIS is ready.")
+    else:
+        print("⚠️  Some tests failed. JARVIS may have limited functionality.")
+        print("   Check the errors above and install missing dependencies.")
+    print("=" * 70)
+    print()
+    
+    return all_passed
+
+
 # Import with self-healing
 try:
     from core.voice import speak, listen
@@ -252,151 +381,83 @@ def jarvis_loop(pause_event, registry, use_text_mode):
                 if AutoMode.detect_voice_available():
                     use_text_mode = False
                     print("✅ Switched to voice mode")
+                    speak("Voice mode activated")
                 else:
-                    print("❌ Voice not available. Staying in text mode.")
+                    print("❌ Voice mode not available")
                 continue
-            
-            # Error report command
-            if "error report" in normalized_query or "show errors" in normalized_query:
-                report = jarvis.get_error_report()
-                print(report)
-                continue
-            
-            # NPU status command
-            if "npu status" in normalized_query or "hardware status" in normalized_query:
-                npu_accelerator.print_status()
-                continue
-            
-            # Enhanced wake word / Command filtering Logic
-            direct_commands = [
-                "open", "close", "launch", "start",
-                "volume", "mute", "unmute",
-                "search", "find", "look", "google",
-                "create", "make", "write", "read", "delete",
-                "who", "what", "when", "where", "how", "why",
-                "thank", "hello", "hi", "hey",
-                "play", "pause", "stop",
-                "email", "send", "message",
-                "weather", "time", "date",
-                "screenshot", "capture",
-                "youtube", "chrome", "browser",
-                "music", "song", "video", "photo",
-                "do", "show", "tell"  # Added from Indian language
-            ]
-            
-            # Check both original and normalized query
-            is_direct = any(cmd in normalized_query for cmd in direct_commands)
-            has_wake_word = "jarvis" in user_query.lower()
-            
-            # If no wake word and not a direct command, ignore (only in voice mode)
-            if not use_text_mode and not has_wake_word and not is_direct:
-                print(f"Ignored (no wake word): {original_query}")
-                print("💡 Tip: Say 'Jarvis' pehle, phir command")
-                continue
-            
-            # Remove wake word for cleaner processing
-            clean_query = normalized_query.replace("jarvis", "").strip()
-            clean_query = clean_query.replace("please", "").replace("can you", "").replace("could you", "").strip()
-            
-            # Use original query if it has direct commands (preserves context)
-            if is_direct and not has_wake_word:
-                clean_query = normalized_query
-            
+
             # Process query with error handling
             try:
-                print(f"Processing: {clean_query}")
-                response = jarvis.run_conversation(clean_query)
+                response = jarvis.process_query(normalized_query)
                 
-                # Check pause before speaking response
-                if pause_event.is_set():
-                    continue
-
-                if response:
-                    if use_text_mode:
+                # Output response
+                if use_text_mode:
+                    print(f"JARVIS: {response}")
+                else:
+                    try:
+                        speak(response)
+                    except Exception as e:
+                        print(f"⚠️  TTS error: {e}")
                         print(f"JARVIS: {response}")
-                    else:
-                        try:
-                            speak(response)
-                        except Exception as e:
-                            print(f"⚠️  TTS error: {e}")
-                            self_healing.auto_fix_error(e, "Response TTS")
-                            print(f"JARVIS: {response}")
-                            
+                        
             except Exception as e:
-                print(f"⚠️  Processing error: {e}")
-                consecutive_errors += 1
+                error_msg = f"Error processing query: {str(e)}"
+                print(f"❌ {error_msg}")
                 
                 # Try to auto-fix
-                if self_healing.auto_fix_error(e, f"Query processing: {clean_query}"):
+                if self_healing.auto_fix_error(e, f"Query processing: {normalized_query}"):
                     print("✅ Error fixed! Please try again.")
-                    consecutive_errors = 0
                 else:
-                    error_msg = "Sorry, system error hua. Please try again."
+                    # Provide helpful error message
                     if use_text_mode:
-                        print(f"JARVIS: {error_msg}")
+                        print("JARVIS: I encountered an error. Please try rephrasing your request.")
                     else:
                         try:
-                            speak(error_msg)
+                            speak("I encountered an error. Please try again.")
                         except:
-                            print(f"JARVIS: {error_msg}")
+                            print("JARVIS: I encountered an error. Please try rephrasing your request.")
                 
-                # Check if too many errors
-                if consecutive_errors >= max_consecutive_errors:
-                    print("❌ Too many consecutive errors. Resetting conversation...")
-                    jarvis.reset_conversation()
-                    consecutive_errors = 0
-                    
         except KeyboardInterrupt:
-            print("\n⚠️  Keyboard interrupt detected. Type 'quit' to exit or continue...")
+            print("\n⚠️  Keyboard interrupt. Type 'quit' to exit.")
             continue
         except Exception as e:
             print(f"❌ Unexpected error in main loop: {e}")
-            self_healing.auto_fix_error(e, "Main loop")
-            time.sleep(1)  # Prevent rapid error loops
-    
-    # Final error report
-    if AUTO_DEBUG_MODE:
-        print("\n" + "="*60)
-        print(jarvis.get_error_report())
-        print("="*60)
+            if self_healing.auto_fix_error(e, "Main loop"):
+                print("✅ Error fixed! Continuing...")
+                continue
+            else:
+                print("❌ Critical error. Restarting loop...")
+                time.sleep(2)
 
 
 def main():
-    """
-    Fully autonomous main function.
-    Auto-detects best mode and runs everything automatically.
-    """
-    print("="*60)
-    print("🤖 JARVIS - Autonomous AI Assistant")
-    print("⚡ NPU-Accelerated for Omen PC")
-    print("🇮🇳 Natural Indian Language Support")
-    print("="*60)
-    print("🔧 Self-Healing System: Active")
-    print("🧠 Auto-Mode Detection: Active")
-    print("💬 Hinglish Support: Active")
-    print("="*60)
+    """Main entry point with automatic mode detection and startup tests"""
     
-    # Initialize NPU Accelerator
-    print("\n🚀 Initializing NPU Acceleration...")
-    try:
-        # Setup NPU optimizations
-        if npu_accelerator.npu_available:
-            npu_accelerator.setup_openvino_npu()
-            npu_accelerator.setup_onnx_runtime()
-            npu_accelerator.optimize_for_speech_recognition()
-            npu_accelerator.optimize_for_llm_inference()
-        
-        # Print NPU status
-        npu_accelerator.print_status()
-    except Exception as e:
-        print(f"⚠️  NPU initialization warning: {e}")
-        print("Continuing with CPU/GPU fallback...\n")
+    # Run startup tests automatically
+    print()
+    tests_passed = run_startup_tests()
+    
+    if not tests_passed:
+        print("⚠️  Warning: Some tests failed. Continue anyway? (y/n)")
+        try:
+            choice = input().lower()
+            if choice != 'y':
+                print("Exiting. Please fix the errors and try again.")
+                sys.exit(1)
+        except:
+            pass  # Continue anyway in non-interactive mode
+        print()
     
     # Auto-detect modes
     use_text_mode = AutoMode.should_use_text_mode()
     use_gui = AutoMode.should_use_gui()
     
-    print(f"📊 Detected Configuration:")
+    # Print startup banner
+    print("=" * 60)
+    print("🤖 JARVIS - Autonomous AI Assistant")
+    print("=" * 60)
+    print()
+    print("⚙️  Configuration:")
     print(f"   Voice Mode: {'❌ Disabled' if use_text_mode else '✅ Enabled'}")
     print(f"   GUI Mode: {'✅ Enabled' if use_gui else '❌ Disabled'}")
     print(f"   Debug Logging: {'✅ Enabled' if AUTO_DEBUG_MODE else '❌ Disabled'}")
@@ -460,10 +521,10 @@ def main():
             jarvis_thread.join()
         except KeyboardInterrupt:
             print("\n\n👋 Shutting down JARVIS...")
-            print("="*60)
+            print("=" * 60)
             if AUTO_DEBUG_MODE:
                 print(self_healing.get_error_report())
-            print("="*60)
+            print("=" * 60)
             print("Goodbye! 👋")
 
 

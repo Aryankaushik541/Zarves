@@ -1,13 +1,31 @@
-import os
-import sys
-import threading 
-import time
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-# Suppress Qt DPI warnings (Windows specific)
+"""
+JARVIS - Autonomous AI Assistant with Self-Healing
+Fully autonomous operation with auto-detection and error recovery
+"""
+
+import sys
+import os
+
+# ============================================================================
+# CRITICAL: Qt environment setup MUST be before ANY imports
+# This suppresses Qt DPI warnings on Windows
+# ============================================================================
+os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false'
 os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '0'
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '0'
 os.environ['QT_SCALE_FACTOR'] = '1'
+os.environ['QT_DEVICE_PIXEL_RATIO'] = '0'
 
+# Suppress Python warnings
+import warnings
+warnings.filterwarnings("ignore")
+
+# Now safe to import other modules
+import threading 
+import time
 from dotenv import load_dotenv
 from core.self_healing import self_healing
 
@@ -147,7 +165,6 @@ def normalize_hindi_command(query):
         'तस्वीर': 'photo',
         
         # Transliterated Hindi (Roman script)
-        'karo': 'do',
         'karo': 'do',
         'band': 'close',
         'shuru': 'start',

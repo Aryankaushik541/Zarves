@@ -1,10 +1,13 @@
 import os
 import sys
-import argparse
 import threading 
 import time
 from dotenv import load_dotenv
 from core.self_healing import self_healing
+
+# Auto-detect mode based on environment
+AUTO_TEXT_MODE = False
+AUTO_DEBUG_MODE = True  # Always log errors for self-healing
 
 # Load Env with error handling
 try:
@@ -23,10 +26,11 @@ except ImportError as e:
     print(f"⚠️  Import error detect हुआ: {e}")
     if self_healing.auto_fix_error(e, "Initial imports"):
         print("✅ Dependencies fixed! Please restart the application.")
+        print("   python main.py")
         sys.exit(0)
     else:
-        print("❌ Critical import error. Please install dependencies manually:")
-        print("   pip install -r requirements.txt")
+        print("❌ Critical import error. Auto-installing dependencies...")
+        print("   Please wait...")
         sys.exit(1)
 
 # Check API key
@@ -36,10 +40,66 @@ if not os.environ.get("GROQ_API_KEY"):
         print("❌ Please set GROQ_API_KEY in .env file")
         sys.exit(1)
 
-def jarvis_loop(pause_event, registry, args):
+
+class AutoMode:
+    """Automatically detect best mode for running JARVIS"""
+    
+    @staticmethod
+    def detect_voice_available():
+        """Check if voice/microphone is available"""
+        try:
+            import speech_recognition as sr
+            r = sr.Recognizer()
+            # Try to access microphone
+            with sr.Microphone() as source:
+                r.adjust_for_ambient_noise(source, duration=0.5)
+            return True
+        except Exception as e:
+            print(f"🎤 Voice input not available: {e}")
+            return False
+    
+    @staticmethod
+    def detect_gui_available():
+        """Check if GUI can run"""
+        try:
+            from PyQt5.QtWidgets import QApplication
+            # Try to create QApplication
+            app = QApplication.instance()
+            if app is None:
+                app = QApplication([])
+            return True
+        except Exception as e:
+            print(f"🖥️  GUI not available: {e}")
+            return False
+    
+    @staticmethod
+    def should_use_text_mode():
+        """Decide if text mode should be used"""
+        # Check if running in non-interactive environment
+        if not sys.stdin.isatty():
+            return True
+        
+        # Check if voice is available
+        if not AutoMode.detect_voice_available():
+            print("📝 Voice input not available. Using text mode.")
+            return True
+        
+        return AUTO_TEXT_MODE
+    
+    @staticmethod
+    def should_use_gui():
+        """Decide if GUI should be used"""
+        # Check if display is available
+        if not os.environ.get('DISPLAY') and sys.platform != 'darwin' and sys.platform != 'win32':
+            return False
+        
+        return AutoMode.detect_gui_available()
+
+
+def jarvis_loop(pause_event, registry, use_text_mode):
     """
-    Main loop for JARVIS with self-healing capabilities.
-    Automatically recovers from errors and continues running.
+    Main loop for JARVIS with full autonomous operation.
+    Automatically handles all errors and mode switching.
     """
     # Initialize Engine with retry
     jarvis = None
@@ -67,15 +127,18 @@ def jarvis_loop(pause_event, registry, args):
 
     # Startup message
     startup_msg = "Jarvis Online. Ready for command."
-    if args.text:
+    if use_text_mode:
         print(f"JARVIS: {startup_msg}")
+        print("💬 Text mode active. Type your commands.")
     else:
         try:
             speak(startup_msg)
+            print("🎤 Voice mode active. Say 'Jarvis' followed by your command.")
         except Exception as e:
             print(f"⚠️  TTS error: {e}")
             self_healing.auto_fix_error(e, "Startup TTS")
             print(f"JARVIS: {startup_msg}")
+            use_text_mode = True  # Fallback to text mode
 
     # Main loop with error recovery
     consecutive_errors = 0
@@ -88,12 +151,15 @@ def jarvis_loop(pause_event, registry, args):
                 time.sleep(0.5)
                 continue
 
-            # Get user input
-            if args.text:
+            # Get user input - auto-detect mode
+            if use_text_mode:
                 try:
                     user_query = input("YOU: ").lower()
                 except EOFError:
                     break
+                except KeyboardInterrupt:
+                    print("\n⚠️  Keyboard interrupt. Type 'quit' to exit.")
+                    continue
             else:
                 try:
                     user_query = listen()
@@ -104,8 +170,9 @@ def jarvis_loop(pause_event, registry, args):
                     else:
                         consecutive_errors += 1
                         if consecutive_errors >= max_consecutive_errors:
-                            print("❌ Too many consecutive errors. Switching to text mode.")
-                            args.text = True
+                            print("❌ Too many voice errors. Auto-switching to text mode.")
+                            use_text_mode = True
+                            print("💬 Text mode active. Type your commands.")
                         continue
             
             # Reset error counter on successful input
@@ -119,10 +186,10 @@ def jarvis_loop(pause_event, registry, args):
                 continue
                 
             # Shutdown commands
-            if "quit" in user_query or "exit" in user_query or "shutdown" in user_query: 
-                print("Shutting down JARVIS loop...")
-                shutdown_msg = "Shutting down."
-                if args.text:
+            if any(cmd in user_query for cmd in ["quit", "exit", "shutdown", "बंद करो", "बाहर निकलो"]):
+                print("Shutting down JARVIS...")
+                shutdown_msg = "Shutting down. Goodbye!"
+                if use_text_mode:
                     print(f"JARVIS: {shutdown_msg}")
                 else:
                     try:
@@ -131,8 +198,22 @@ def jarvis_loop(pause_event, registry, args):
                         print(f"JARVIS: {shutdown_msg}")
                 break
             
+            # Mode switch commands
+            if "text mode" in user_query or "टेक्स्ट मोड" in user_query:
+                use_text_mode = True
+                print("✅ Switched to text mode")
+                continue
+            
+            if "voice mode" in user_query or "वॉइस मोड" in user_query:
+                if AutoMode.detect_voice_available():
+                    use_text_mode = False
+                    print("✅ Switched to voice mode")
+                else:
+                    print("❌ Voice not available. Staying in text mode.")
+                continue
+            
             # Error report command
-            if "error report" in user_query or "show errors" in user_query:
+            if "error report" in user_query or "show errors" in user_query or "एरर रिपोर्ट" in user_query:
                 report = jarvis.get_error_report()
                 print(report)
                 continue
@@ -149,19 +230,20 @@ def jarvis_loop(pause_event, registry, args):
                 "email", "send", "message",
                 "weather", "time", "date",
                 "screenshot", "capture",
-                "बजाओ", "खोलो", "बंद", "ढूंढो"  # Hindi commands
+                "बजाओ", "खोलो", "बंद", "ढूंढो", "बनाओ", "लिखो"  # Hindi commands
             ]
             
             is_direct = any(cmd in user_query for cmd in direct_commands)
             
-            # If no wake word and not a direct command, ignore
-            if "jarvis" not in user_query and not is_direct:
+            # If no wake word and not a direct command, ignore (only in voice mode)
+            if not use_text_mode and "jarvis" not in user_query and not is_direct:
                 print(f"Ignored: {user_query}")
                 continue
             
             # Remove wake word for cleaner processing
             clean_query = user_query.replace("jarvis", "").strip()
             clean_query = clean_query.replace("please", "").replace("can you", "").replace("could you", "").strip()
+            clean_query = clean_query.replace("कृपया", "").replace("जरा", "").strip()
             
             # Process query with error handling
             try:
@@ -173,7 +255,7 @@ def jarvis_loop(pause_event, registry, args):
                     continue
 
                 if response:
-                    if args.text:
+                    if use_text_mode:
                         print(f"JARVIS: {response}")
                     else:
                         try:
@@ -192,8 +274,8 @@ def jarvis_loop(pause_event, registry, args):
                     print("✅ Error fixed! Please try again.")
                     consecutive_errors = 0
                 else:
-                    error_msg = "System error. Please try again."
-                    if args.text:
+                    error_msg = "माफ़ करें, system error हुआ। कृपया दोबारा try करें।"
+                    if use_text_mode:
                         print(f"JARVIS: {error_msg}")
                     else:
                         try:
@@ -203,35 +285,59 @@ def jarvis_loop(pause_event, registry, args):
                 
                 # Check if too many errors
                 if consecutive_errors >= max_consecutive_errors:
-                    print("❌ Too many consecutive errors. Resetting...")
+                    print("❌ Too many consecutive errors. Resetting conversation...")
                     jarvis.reset_conversation()
                     consecutive_errors = 0
                     
         except KeyboardInterrupt:
-            print("\n⚠️  Keyboard interrupt detected. Shutting down...")
-            break
+            print("\n⚠️  Keyboard interrupt detected. Type 'quit' to exit or continue...")
+            continue
         except Exception as e:
             print(f"❌ Unexpected error in main loop: {e}")
             self_healing.auto_fix_error(e, "Main loop")
             time.sleep(1)  # Prevent rapid error loops
+    
+    # Final error report
+    if AUTO_DEBUG_MODE:
+        print("\n" + "="*60)
+        print(jarvis.get_error_report())
+        print("="*60)
+
 
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS AI Assistant with Self-Healing")
-    parser.add_argument("--text", action="store_true", help="Run in text mode (no voice I/O)")
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode with detailed error logs")
-    args = parser.parse_args()
-
-    print("🚀 Starting JARVIS with Self-Healing System...")
+    """
+    Fully autonomous main function.
+    Auto-detects best mode and runs everything automatically.
+    """
+    print("="*60)
+    print("🤖 JARVIS - Autonomous AI Assistant")
+    print("="*60)
+    print("🔧 Self-Healing System: Active")
+    print("🧠 Auto-Mode Detection: Active")
+    print("="*60)
+    
+    # Auto-detect modes
+    use_text_mode = AutoMode.should_use_text_mode()
+    use_gui = AutoMode.should_use_gui()
+    
+    print(f"\n📊 Detected Configuration:")
+    print(f"   Voice Mode: {'❌ Disabled' if use_text_mode else '✅ Enabled'}")
+    print(f"   GUI Mode: {'✅ Enabled' if use_gui else '❌ Disabled'}")
+    print(f"   Debug Logging: {'✅ Enabled' if AUTO_DEBUG_MODE else '❌ Disabled'}")
+    print()
+    
+    print("🚀 Starting JARVIS...\n")
     
     # 1. Initialize Registry and Load Skills
     try:
         registry = SkillRegistry()
         skills_dir = os.path.join(os.path.dirname(__file__), "skill")
         registry.load_skills(skills_dir)
-        print(f"✅ Loaded {len(registry.skills)} skills")
+        print(f"✅ Loaded {len(registry.skills)} skills successfully")
     except Exception as e:
         print(f"❌ Failed to load skills: {e}")
         if not self_healing.auto_fix_error(e, "Skill loading"):
+            print("❌ Critical error. Exiting...")
             sys.exit(1)
         # Retry after fix
         registry = SkillRegistry()
@@ -242,30 +348,50 @@ def main():
     pause_event = threading.Event()
     
     # 3. Start JARVIS Loop in Background Thread
-    t = threading.Thread(target=jarvis_loop, args=(pause_event, registry, args), daemon=True)
-    t.start()
+    jarvis_thread = threading.Thread(
+        target=jarvis_loop, 
+        args=(pause_event, registry, use_text_mode), 
+        daemon=True
+    )
+    jarvis_thread.start()
     
-    # 4. Start GUI in Main Thread
-    try:
-        run_gui_app(pause_event)
-    except Exception as e:
-        print(f"⚠️  GUI error: {e}")
-        if self_healing.auto_fix_error(e, "GUI startup"):
-            print("✅ GUI error fixed. Please restart.")
-        else:
-            print("❌ Running in text-only mode...")
-            args.text = True
-            # Keep the thread alive
-            try:
-                t.join()
-            except KeyboardInterrupt:
-                print("\n👋 Goodbye!")
+    # 4. Start GUI or keep thread alive
+    if use_gui:
+        try:
+            print("🖥️  Starting GUI...\n")
+            run_gui_app(pause_event)
+        except Exception as e:
+            print(f"⚠️  GUI error: {e}")
+            if self_healing.auto_fix_error(e, "GUI startup"):
+                print("✅ GUI error fixed. Please restart: python main.py")
+            else:
+                print("❌ GUI failed. Running in terminal mode...")
+                use_gui = False
     
-    # Print final error report if debug mode
-    if args.debug:
-        print("\n" + "="*60)
-        print(self_healing.get_error_report())
-        print("="*60)
+    # If no GUI, keep main thread alive
+    if not use_gui:
+        print("💻 Running in terminal mode. Press Ctrl+C to exit.\n")
+        try:
+            jarvis_thread.join()
+        except KeyboardInterrupt:
+            print("\n\n👋 Shutting down JARVIS...")
+            print("="*60)
+            if AUTO_DEBUG_MODE:
+                print(self_healing.get_error_report())
+            print("="*60)
+            print("Goodbye! 👋")
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"\n❌ Critical error: {e}")
+        print("🔧 Attempting auto-fix...")
+        if self_healing.auto_fix_error(e, "Main function"):
+            print("✅ Fixed! Please restart: python main.py")
+        else:
+            print("❌ Could not auto-fix. Please check the error above.")
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)

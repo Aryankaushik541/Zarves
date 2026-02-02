@@ -1,3 +1,4 @@
+# Core dependencies
 groq
 pyttsx3
 SpeechRecognition
@@ -5,6 +6,26 @@ python-dotenv
 PyQt5
 pywhatkit
 pyaudio
+
+# Platform-specific dependencies
 pyobjc-core; sys_platform == 'darwin'
 pyobjc-framework-Cocoa; sys_platform == 'darwin'
 pywin32; sys_platform == 'win32'
+
+# NPU Acceleration (Optional - for Omen PC optimization)
+# Intel NPU support via OpenVINO
+openvino>=2024.0.0; sys_platform == 'win32'
+openvino-dev>=2024.0.0; sys_platform == 'win32'
+
+# ONNX Runtime with DirectML (Windows GPU/NPU)
+onnxruntime-directml>=1.17.0; sys_platform == 'win32'
+
+# AMD NPU support (Ryzen AI)
+# onnxruntime-vitisai; sys_platform == 'win32'  # Uncomment if you have AMD Ryzen AI
+
+# System monitoring
+psutil>=5.9.0
+
+# Optional: PyTorch with CUDA (if NVIDIA GPU available)
+# torch>=2.0.0; sys_platform == 'win32'
+# torchvision>=0.15.0; sys_platform == 'win32'

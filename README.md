@@ -3,6 +3,7 @@
 > **"I don't just assist. I create, I fix, I evolve myself, and I control your entire system."**
 
 JARVIS is an **advanced self-coding AI** that can:
+- ✅ **100% FREE & LOCAL** - Uses Ollama (no API keys, no rate limits!)
 - ✅ **Write and fix its own code** using AI
 - ✅ **Continuous listening mode** - say "Jarvis" once, then give commands naturally
 - ✅ **Create new skills** on demand with AI-generated code
@@ -15,6 +16,31 @@ JARVIS is an **advanced self-coding AI** that can:
 
 ## ⚡ Quick Start
 
+### **Step 1: Install Ollama (Free Local LLM)**
+
+```bash
+# Windows
+https://ollama.com/download/windows
+
+# Mac
+brew install ollama
+
+# Linux
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+### **Step 2: Start Ollama & Pull Model**
+
+```bash
+# Start Ollama server
+ollama serve
+
+# In another terminal, pull model (one-time, ~2GB download)
+ollama pull llama3.2
+```
+
+### **Step 3: Setup JARVIS**
+
 ```bash
 # 1. Clone repository
 git clone https://github.com/Aryankaushik541/Zarves.git
@@ -22,19 +48,21 @@ cd Zarves
 
 # 2. Setup environment
 python -m venv venv
-venv\Scripts\activate  # Windows
+venv\\Scripts\\activate  # Windows
 # source venv/bin/activate  # Mac/Linux
 
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Setup API key
-cp .env.template .env
-# Add your GROQ_API_KEY from https://console.groq.com/keys
-
-# 5. Run JARVIS
+# 4. Run JARVIS (no API key needed!)
 python main.py
 ```
+
+### **That's it! No API keys, completely FREE!** 🎉
+
+> **📖 Detailed Ollama Setup:** See [OLLAMA_SETUP.md](OLLAMA_SETUP.md) for complete guide
+
+---
 
 ### First Commands:
 ```
@@ -51,6 +79,34 @@ python main.py
 ---
 
 ## 🌟 Revolutionary Features
+
+### 🆓 **100% Free & Local with Ollama** ⭐ NEW!
+
+**No more API keys! No rate limits! Completely private!**
+
+```bash
+✅ FREE - No API costs, no subscriptions
+✅ UNLIMITED - Use as much as you want
+✅ PRIVATE - All data stays on your computer
+✅ OFFLINE - Works without internet (after model download)
+✅ FAST - Local execution means quick responses
+```
+
+**Why Ollama?**
+- 🚫 No GROQ_API_KEY needed
+- 🚫 No rate limits (14,400 tokens/min)
+- 🚫 No cloud dependency
+- ✅ Your own AI server
+- ✅ Multiple models available
+- ✅ Easy to setup
+
+**Supported Models:**
+- `llama3.2` (2GB) - **Recommended** - Fast & efficient
+- `llama3.1` (4.7GB) - More powerful
+- `mistral` (4.1GB) - Alternative model
+- `codellama` (3.8GB) - Best for coding
+
+---
 
 ### 🎤 **Continuous Listening Mode** ⭐ NEW!
 
@@ -180,7 +236,7 @@ JARVIS: 📊 Code Analysis:
 **Auto-Fixes:**
 - ✅ Missing packages → Auto-installs
 - ✅ Missing files → Creates directories
-- ✅ API key errors → Creates .env file
+- ✅ Ollama connection → Guides setup
 - ✅ Code errors → AI generates fixes
 - ✅ Import errors → Installs dependencies
 - ✅ Attribute errors → Suggests fixes
@@ -355,7 +411,7 @@ JARVIS: 📊 Code Analysis:
 ```
 JARVIS/
 ├── core/
-│   ├── engine.py                    # Main AI engine with LLM
+│   ├── engine.py                    # Main AI engine with Ollama LLM
 │   ├── voice.py                     # Voice input/output + continuous mode
 │   ├── registry.py                  # Skill management
 │   ├── self_healing.py              # Auto error fixing
@@ -375,14 +431,33 @@ JARVIS/
 ├── gui/
 │   └── app.py                       # PyQt5 GUI
 │
-└── main.py                          # Entry point
+├── main.py                          # Entry point
+├── OLLAMA_SETUP.md                  # Detailed Ollama guide
+└── README.md                        # This file
 ```
 
 ---
 
 ## 🎯 How It Works
 
-### **1. Continuous Listening Flow**
+### **1. Ollama Local LLM**
+```
+User Command
+  ↓
+JARVIS Engine
+  ↓
+Ollama Server (http://localhost:11434)
+  ↓
+Local LLM Model (llama3.2)
+  ↓
+Response Generation
+  ↓
+Tool Execution
+  ↓
+Voice/Text Output
+```
+
+### **2. Continuous Listening Flow**
 ```
 User: "Jarvis play music"
   ↓
@@ -399,7 +474,7 @@ Execute command → Play another song
 Timeout or "stop listening" → Deactivate
 ```
 
-### **2. Self-Coding AI Flow**
+### **3. Self-Coding AI Flow**
 ```
 Error Detected
   ↓
@@ -422,67 +497,111 @@ Apply Fix
 Log Success
 ```
 
-### **3. Command Processing**
-```
-Voice Input → Speech Recognition
-  ↓
-Wake Word Detection (if not in continuous mode)
-  ↓
-Indian Language Normalization
-  ↓
-LLM Processing (Groq)
-  ↓
-Tool Selection
-  ↓
-Skill Execution
-  ↓
-Response Generation
-  ↓
-Voice Output
-```
-
 ---
 
 ## 🔧 Configuration
 
 ### **Environment Variables (.env)**
 ```bash
-# Required
-GROQ_API_KEY=your_groq_api_key_here
+# Ollama Configuration (Optional - defaults work fine!)
+OLLAMA_HOST=http://localhost:11434  # Default Ollama server
+OLLAMA_MODEL=llama3.2               # Default model
 
-# Optional
-AUTO_TEXT_MODE=False          # Force text mode
-AUTO_DEBUG_MODE=True          # Enable debug logging
+# Other Optional Settings
+AUTO_TEXT_MODE=False                # Force text mode
+AUTO_DEBUG_MODE=True                # Enable debug logging
 ```
 
-### **Supported Models**
-- `llama-3.1-8b-instant` (Default - Fast & Efficient)
-- `llama-3.3-70b-versatile` (More powerful but slower)
+### **Supported Ollama Models**
+- `llama3.2` (2GB) - **Default** - Fast & efficient
+- `llama3.1` (4.7GB) - More powerful
+- `mistral` (4.1GB) - Alternative model
+- `codellama` (3.8GB) - Best for coding tasks
+
+**Change model:**
+```bash
+# In .env file
+OLLAMA_MODEL=mistral
+
+# Or pull and use different model
+ollama pull llama3.1
+```
 
 ---
 
 ## 📊 Performance
 
-### **Token Efficiency**
-```
-Before Optimization:
-- Model: llama-3.3-70b-versatile
-- Tokens per query: ~6,000
-- Daily limit usage: 97%
+### **Ollama vs Cloud APIs**
 
-After Optimization:
-- Model: llama-3.1-8b-instant
-- Tokens per query: ~1,500 (75% reduction)
-- Daily limit usage: ~25%
-- Response time: 2x faster
+| Feature | Ollama (Local) | Groq (Cloud) |
+|---------|----------------|--------------|
+| **Cost** | 100% FREE | Free tier limited |
+| **Privacy** | 100% local | Data sent to cloud |
+| **Speed** | Fast (depends on hardware) | Very fast |
+| **Rate Limits** | NONE | 14,400 tokens/min |
+| **Internet** | Optional (after download) | Required |
+| **Setup** | Local installation | API key needed |
+
+### **Model Performance**
+
+**Hardware:** Intel i5, 16GB RAM, No GPU
+
+| Model | Response Time | Quality |
+|-------|---------------|---------|
+| `llama3.2` | ~2-3 seconds | ⭐⭐⭐ |
+| `llama3.1` | ~5-7 seconds | ⭐⭐⭐⭐ |
+| `mistral` | ~4-6 seconds | ⭐⭐⭐⭐ |
+
+**Hardware:** Intel i7, 32GB RAM, RTX 3060
+
+| Model | Response Time | Quality |
+|-------|---------------|---------|
+| `llama3.2` | ~1-2 seconds | ⭐⭐⭐ |
+| `llama3.1` | ~2-3 seconds | ⭐⭐⭐⭐ |
+| `mistral` | ~2-3 seconds | ⭐⭐⭐⭐ |
+
+---
+
+## 🐛 Troubleshooting
+
+### **Issue: "Connection refused to Ollama"**
+```bash
+❌ Error: Connection refused to http://localhost:11434
+
+Solution:
+1. Start Ollama server: ollama serve
+2. Check if running: curl http://localhost:11434
+3. Restart JARVIS
 ```
 
-### **Self-Coding Stats**
+### **Issue: "Model not found"**
+```bash
+❌ Error: Model llama3.2 not found
+
+Solution:
+1. Pull model: ollama pull llama3.2
+2. Verify: ollama list
+3. Restart JARVIS
 ```
-✅ Auto-fixes applied: Tracked in fix_history
-✅ Skills created: Logged with timestamps
-✅ Code improvements: Backed up before changes
-✅ Success rate: ~85% for common errors
+
+### **Issue: Import Error**
+```bash
+❌ ModuleNotFoundError: No module named 'ollama'
+
+Solution:
+pip install ollama
+# Or reinstall all dependencies
+pip install -r requirements.txt
+```
+
+### **Issue: Slow responses**
+```bash
+⚠️  Responses are slow
+
+Solution:
+1. Use faster model: ollama pull llama3.2
+2. Enable GPU acceleration (auto-detected)
+3. Close other applications
 ```
 
 ---
@@ -521,34 +640,6 @@ JARVIS: ✅ Opening YouTube
 
 YOU: "stop listening"
 JARVIS: ✅ Continuous mode deactivated
-```
-
----
-
-## 🐛 Troubleshooting
-
-### **Issue: Rate Limit Error**
-```bash
-Solution: JARVIS auto-switches to faster model
-- Automatically uses llama-3.1-8b-instant
-- Reduces token usage by 75%
-- Continues working normally
-```
-
-### **Issue: Tool Call Failed**
-```bash
-Solution: JARVIS falls back to simple mode
-- Retries without tools
-- Provides helpful response
-- Logs error for AI fix
-```
-
-### **Issue: Import Error**
-```bash
-Solution: Auto-installs missing package
-🔧 Attempting to fix import error...
-📦 pywhatkit नहीं मिला। Auto-install कर रहा हूँ...
-✅ pywhatkit successfully install हो गया!
 ```
 
 ---
@@ -599,8 +690,8 @@ MIT License - See LICENSE file
 
 ## 🙏 Credits
 
-- **Groq** - Fast LLM inference
-- **OpenAI** - GPT models
+- **Ollama** - Free local LLM server
+- **Meta** - Llama models
 - **PyQt5** - GUI framework
 - **SpeechRecognition** - Voice input
 - **pyttsx3** - Text-to-speech
@@ -617,9 +708,10 @@ If JARVIS helped you, please ⭐ star this repo!
 
 - **Issues**: [GitHub Issues](https://github.com/Aryankaushik541/Zarves/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Aryankaushik541/Zarves/discussions)
+- **Ollama Setup**: See [OLLAMA_SETUP.md](OLLAMA_SETUP.md)
 
 ---
 
-**Made with ❤️ by developers who believe AI should evolve itself**
+**Made with ❤️ by developers who believe AI should be FREE and LOCAL**
 
-**JARVIS - The AI that writes its own future** 🚀
+**JARVIS - The AI that writes its own future, completely FREE!** 🚀

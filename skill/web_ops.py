@@ -91,7 +91,8 @@ class WebSkill(Skill):
     def play_youtube(self, query):
         try:
             import pywhatkit as kit
-            kit.playonyt(query)
+            # Use open_web=True to open in normal browser window instead of fullscreen
+            kit.playonyt(query, open_web=True)
             return json.dumps({"status": "success", "action": "play_youtube", "query": query})
         except ImportError:
             # Fallback to browser if pywhatkit not installed

@@ -1,5 +1,5 @@
 # Core dependencies
-groq
+ollama
 pyttsx3
 SpeechRecognition
 python-dotenv

@@ -48,29 +48,42 @@ def jarvis_loop(pause_event, registry, args):
             continue
 
         if user_query == "none" or not user_query: continue
-        if "quit" in user_query: 
+        if "quit" in user_query or "exit" in user_query or "shutdown" in user_query: 
             print("Shutting down JARVIS loop...")
-            # We can't easily kill the main thread (GUI) from here, 
-            # but we can stop this loop. The user will have to close the GUI.
-            speak("Shutting down.")
+            if args.text:
+                print("JARVIS: Shutting down.")
+            else:
+                speak("Shutting down.")
             break
         
-        # Wake word / Command filtering Logic
+        # Wake word / Command filtering Logic - EXPANDED
         direct_commands = [
-            "open", "volume", "search", "create", "write", "read", "make",
-            "who", "what", "when", "where", "how", "why", "thank", "hello"
+            "open", "close", "launch", "start",
+            "volume", "mute", "unmute",
+            "search", "find", "look up", "google",
+            "create", "make", "write", "read", "delete",
+            "who", "what", "when", "where", "how", "why",
+            "thank", "hello", "hi", "hey",
+            "play", "pause", "stop",
+            "email", "send", "message",
+            "weather", "time", "date",
+            "screenshot", "capture"
         ]
         
         is_direct = any(cmd in user_query for cmd in direct_commands)
         
+        # If no wake word and not a direct command, ignore
         if "jarvis" not in user_query and not is_direct:
             print(f"Ignored: {user_query}")
             continue
             
+        # Remove wake word for cleaner processing
         clean_query = user_query.replace("jarvis", "").strip()
+        # Also remove common filler words
+        clean_query = clean_query.replace("please", "").replace("can you", "").replace("could you", "").strip()
         
         try:
-            print(f"Thinking: {clean_query}")
+            print(f"Processing: {clean_query}")
             response = jarvis.run_conversation(clean_query)
             
             # Check pause before speaking response

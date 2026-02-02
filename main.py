@@ -2,6 +2,12 @@ import os
 import sys
 import threading 
 import time
+
+# Suppress Qt DPI warnings (Windows specific)
+os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '0'
+os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '0'
+os.environ['QT_SCALE_FACTOR'] = '1'
+
 from dotenv import load_dotenv
 from core.self_healing import self_healing
 
@@ -96,6 +102,75 @@ class AutoMode:
         return AutoMode.detect_gui_available()
 
 
+def normalize_hindi_command(query):
+    """
+    Normalize Hindi commands to English equivalents for better detection.
+    Handles Devanagari script and transliterated Hindi.
+    """
+    # Hindi to English command mapping
+    hindi_commands = {
+        # Devanagari script
+        'खोलो': 'open',
+        'खोल': 'open',
+        'बंद': 'close',
+        'बंद करो': 'close',
+        'शुरू': 'start',
+        'शुरू करो': 'start',
+        'बजाओ': 'play',
+        'बजा': 'play',
+        'रोको': 'stop',
+        'रोक': 'stop',
+        'ढूंढो': 'search',
+        'ढूंढ': 'search',
+        'खोजो': 'search',
+        'खोज': 'search',
+        'बनाओ': 'create',
+        'बना': 'create',
+        'लिखो': 'write',
+        'लिख': 'write',
+        'पढ़ो': 'read',
+        'पढ़': 'read',
+        'मिटाओ': 'delete',
+        'मिटा': 'delete',
+        'भेजो': 'send',
+        'भेज': 'send',
+        'युटुब': 'youtube',
+        'यूट्यूब': 'youtube',
+        'गूगल': 'google',
+        'क्रोम': 'chrome',
+        'ब्राउज़र': 'browser',
+        'म्यूजिक': 'music',
+        'संगीत': 'music',
+        'गाना': 'song',
+        'वीडियो': 'video',
+        'फोटो': 'photo',
+        'तस्वीर': 'photo',
+        
+        # Transliterated Hindi (Roman script)
+        'karo': 'do',
+        'karo': 'do',
+        'band': 'close',
+        'shuru': 'start',
+        'bajao': 'play',
+        'roko': 'stop',
+        'dhundo': 'search',
+        'khojo': 'search',
+        'banao': 'create',
+        'likho': 'write',
+        'padho': 'read',
+        'mitao': 'delete',
+        'bhejo': 'send',
+    }
+    
+    normalized = query.lower()
+    
+    # Replace Hindi words with English equivalents
+    for hindi, english in hindi_commands.items():
+        normalized = normalized.replace(hindi, english)
+    
+    return normalized
+
+
 def jarvis_loop(pause_event, registry, use_text_mode):
     """
     Main loop for JARVIS with full autonomous operation.
@@ -134,6 +209,7 @@ def jarvis_loop(pause_event, registry, use_text_mode):
         try:
             speak(startup_msg)
             print("🎤 Voice mode active. Say 'Jarvis' followed by your command.")
+            print("💡 Tip: Hindi commands bhi kaam karenge! (e.g., 'Jarvis, YouTube kholo')")
         except Exception as e:
             print(f"⚠️  TTS error: {e}")
             self_healing.auto_fix_error(e, "Startup TTS")
@@ -184,9 +260,12 @@ def jarvis_loop(pause_event, registry, use_text_mode):
 
             if user_query == "none" or not user_query: 
                 continue
-                
+            
+            # Normalize Hindi commands to English
+            normalized_query = normalize_hindi_command(user_query)
+            
             # Shutdown commands
-            if any(cmd in user_query for cmd in ["quit", "exit", "shutdown", "बंद करो", "बाहर निकलो"]):
+            if any(cmd in normalized_query for cmd in ["quit", "exit", "shutdown", "band karo", "niklo"]):
                 print("Shutting down JARVIS...")
                 shutdown_msg = "Shutting down. Goodbye!"
                 if use_text_mode:
@@ -199,12 +278,12 @@ def jarvis_loop(pause_event, registry, use_text_mode):
                 break
             
             # Mode switch commands
-            if "text mode" in user_query or "टेक्स्ट मोड" in user_query:
+            if "text mode" in normalized_query or "text mod" in normalized_query:
                 use_text_mode = True
                 print("✅ Switched to text mode")
                 continue
             
-            if "voice mode" in user_query or "वॉइस मोड" in user_query:
+            if "voice mode" in normalized_query or "voice mod" in normalized_query:
                 if AutoMode.detect_voice_available():
                     use_text_mode = False
                     print("✅ Switched to voice mode")
@@ -213,12 +292,12 @@ def jarvis_loop(pause_event, registry, use_text_mode):
                 continue
             
             # Error report command
-            if "error report" in user_query or "show errors" in user_query or "एरर रिपोर्ट" in user_query:
+            if "error report" in normalized_query or "show errors" in normalized_query:
                 report = jarvis.get_error_report()
                 print(report)
                 continue
             
-            # Wake word / Command filtering Logic
+            # Enhanced wake word / Command filtering Logic
             direct_commands = [
                 "open", "close", "launch", "start",
                 "volume", "mute", "unmute",
@@ -230,20 +309,28 @@ def jarvis_loop(pause_event, registry, use_text_mode):
                 "email", "send", "message",
                 "weather", "time", "date",
                 "screenshot", "capture",
-                "बजाओ", "खोलो", "बंद", "ढूंढो", "बनाओ", "लिखो"  # Hindi commands
+                "youtube", "chrome", "browser",  # Added common apps
+                "music", "song", "video", "photo"  # Added media types
             ]
             
-            is_direct = any(cmd in user_query for cmd in direct_commands)
+            # Check both original and normalized query
+            is_direct = any(cmd in normalized_query for cmd in direct_commands)
+            has_wake_word = "jarvis" in user_query.lower()
             
             # If no wake word and not a direct command, ignore (only in voice mode)
-            if not use_text_mode and "jarvis" not in user_query and not is_direct:
-                print(f"Ignored: {user_query}")
+            if not use_text_mode and not has_wake_word and not is_direct:
+                print(f"Ignored (no wake word): {user_query}")
+                print("💡 Tip: Say 'Jarvis' pehle, phir command")
                 continue
             
             # Remove wake word for cleaner processing
             clean_query = user_query.replace("jarvis", "").strip()
             clean_query = clean_query.replace("please", "").replace("can you", "").replace("could you", "").strip()
-            clean_query = clean_query.replace("कृपया", "").replace("जरा", "").strip()
+            clean_query = clean_query.replace("कृपया", "").replace("जरा", "").replace("ज़रा", "").strip()
+            
+            # Use original query if it has direct commands (preserves Hindi)
+            if is_direct and not has_wake_word:
+                clean_query = user_query
             
             # Process query with error handling
             try:
@@ -324,6 +411,7 @@ def main():
     print(f"   Voice Mode: {'❌ Disabled' if use_text_mode else '✅ Enabled'}")
     print(f"   GUI Mode: {'✅ Enabled' if use_gui else '❌ Disabled'}")
     print(f"   Debug Logging: {'✅ Enabled' if AUTO_DEBUG_MODE else '❌ Disabled'}")
+    print(f"   Hindi Support: ✅ Enabled")
     print()
     
     print("🚀 Starting JARVIS...\n")

@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import webbrowser
 from groq import Groq
 from core.registry import SkillRegistry
 
@@ -16,8 +17,80 @@ class JarvisEngine:
             "Always respond naturally and conversationally. "
             "When a tool is executed successfully, acknowledge the action briefly."
         )
+        
+        # Web services mapping
+        self.web_services = {
+            "youtube": "https://www.youtube.com",
+            "gmail": "https://mail.google.com",
+            "google": "https://www.google.com",
+            "facebook": "https://www.facebook.com",
+            "twitter": "https://www.twitter.com",
+            "instagram": "https://www.instagram.com",
+            "reddit": "https://www.reddit.com",
+            "github": "https://www.github.com",
+            "linkedin": "https://www.linkedin.com",
+            "netflix": "https://www.netflix.com",
+            "spotify": "https://open.spotify.com",
+            "amazon": "https://www.amazon.com",
+            "whatsapp": "https://web.whatsapp.com",
+            "discord": "https://discord.com",
+            "slack": "https://slack.com",
+        }
+
+    def handle_direct_command(self, query: str) -> tuple[bool, str]:
+        """
+        Handle direct commands without AI processing for reliability.
+        Returns (handled: bool, response: str)
+        """
+        query_lower = query.lower().strip()
+        
+        # Handle "open X" commands
+        if query_lower.startswith("open "):
+            target = query_lower.replace("open ", "").strip()
+            
+            # Check if it's a web service
+            for service, url in self.web_services.items():
+                if service in target:
+                    try:
+                        webbrowser.open(url)
+                        return True, f"Opening {service.title()}, sir."
+                    except Exception as e:
+                        return True, f"Error opening {service}: {e}"
+            
+            # Try to open as macOS app
+            try:
+                os.system(f"open -a '{target.title()}'")
+                return True, f"Opening {target.title()}, sir."
+            except Exception as e:
+                return True, f"I couldn't open {target}, sir."
+        
+        # Handle "search X" commands
+        if query_lower.startswith("search ") or "search for" in query_lower:
+            search_term = query_lower.replace("search for", "").replace("search", "").strip()
+            try:
+                webbrowser.open(f"https://www.google.com/search?q={search_term}")
+                return True, f"Searching for {search_term}, sir."
+            except Exception as e:
+                return True, f"Error searching: {e}"
+        
+        # Handle volume commands
+        volume_match = re.search(r"volume (\d+)", query_lower)
+        if volume_match or "set volume" in query_lower:
+            try:
+                level = int(volume_match.group(1)) if volume_match else 50
+                os.system(f"osascript -e 'set volume output volume {level}'")
+                return True, f"Volume set to {level}, sir."
+            except Exception as e:
+                return True, f"Error setting volume: {e}"
+        
+        return False, ""
 
     def run_conversation(self, user_prompt: str) -> str:
+        # First try direct command handling
+        handled, response = self.handle_direct_command(user_prompt)
+        if handled:
+            return response
+        
         messages = [
             {"role": "system", "content": self.system_instruction},
             {"role": "user", "content": user_prompt}
@@ -65,7 +138,7 @@ class JarvisEngine:
                                     result_data = json.loads(res)
                                     if result_data.get("status") == "success":
                                         if "service" in result_data:
-                                            return f"Opening {result_data['service']} in your browser, sir."
+                                            return f"Opening {result_data['service']}, sir."
                                         elif "app" in result_data:
                                             return f"Opening {result_data['app']}, sir."
                                         else:

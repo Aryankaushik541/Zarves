@@ -6,11 +6,16 @@ import speech_recognition as sr
 # Initialize engine globally to avoid re-initialization issues
 engine = pyttsx3.init()
 
-# Set voice to deep male voice
+# Set voice to deep male voice with Hindi support
 def set_deep_male_voice():
     voices = engine.getProperty('voices')
+    # Try to find Hindi voice first
     for voice in voices:
-        # Prefer "Daniel" for deep male voice on Mac
+        if "hindi" in voice.name.lower() or "hi" in voice.languages:
+            engine.setProperty('voice', voice.id)
+            return
+    # Fallback to Daniel for deep male voice on Mac
+    for voice in voices:
         if "Daniel" in voice.name:
             engine.setProperty('voice', voice.id)
             return
@@ -24,7 +29,7 @@ set_deep_male_voice()
 
 def speak(text):
     if "{" in text and "}" in text and "status" in text:
-        text = "Task completed."
+        text = "कार्य पूर्ण हुआ।"
     
     # Print first so user sees it even if audio fails
     print(f"JARVIS: {text}")
@@ -36,7 +41,8 @@ def speak(text):
         try:
             # Escape quotes to prevent shell injection/errors
             clean_text = text.replace('"', '\\"').replace("'", "")
-            os.system(f'say "{clean_text}"')
+            # Use Hindi voice on macOS if available
+            os.system(f'say -v Lekha "{clean_text}"')
             return
         except Exception as e2:
             print(f"TTS Fallback Error: {e2}")
@@ -52,13 +58,17 @@ def speak(text):
 def listen():
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        print("Listening...")
+        print("सुन रहा हूँ...")
         r.pause_threshold = 0.8
         r.adjust_for_ambient_noise(source)
         try:
             audio = r.listen(source, timeout=5)
-            print("Recognizing...")
-            query = r.recognize_google(audio)
+            print("पहचान रहा हूँ...")
+            # Try Hindi recognition first, fallback to English
+            try:
+                query = r.recognize_google(audio, language='hi-IN')
+            except:
+                query = r.recognize_google(audio, language='en-IN')
             return query.lower()
         except Exception:
             return "none"

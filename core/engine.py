@@ -21,7 +21,7 @@ class JarvisEngine:
             
             self.client = Groq(api_key=api_key)
         except Exception as e:
-            print(f"❌ Groq client initialize करने में error: {e}")
+            print(f"❌ Failed to initialize Groq client: {e}")
             if self_healing.auto_fix_error(e, "Groq client initialization"):
                 # Retry after fix
                 self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
@@ -52,7 +52,7 @@ class JarvisEngine:
                     print(f"   Issue: {error_msg}")
                     print(f"\n✅ Fix applied! Please restart JARVIS:")
                     print(f"   python main.py\n")
-                    return "System update हुआ है। कृपया JARVIS restart करें: python main.py"
+                    return "System update hua hai. Please restart JARVIS: python main.py"
                 
                 # Log but don't show to user
                 self_healing.log_error(e, f"AttributeError in conversation: {user_query}")
@@ -62,7 +62,7 @@ class JarvisEngine:
                     print(f"🔄 Retrying... ({retry_count}/{max_retries})")
                     continue
                 else:
-                    return "System में update चल रहा है। कृपया JARVIS restart करें।"
+                    return "System update in progress. Please restart JARVIS."
                     
             except Exception as e:
                 retry_count += 1
@@ -78,9 +78,9 @@ class JarvisEngine:
                         continue
                     else:
                         print(f"❌ Maximum retries reached. Error: {e}")
-                        return f"माफ़ करें, मैं इस request को process नहीं कर सका। कृपया दोबारा try करें।"
+                        return f"Sorry, couldn't process your request. Please try again."
         
-        return "माफ़ करें, कुछ technical issue है। कृपया दोबारा try करें।"
+        return "Sorry, technical issue hai. Please try again."
 
     def _execute_conversation(self, user_query: str) -> str:
         """Internal method to execute conversation logic"""
@@ -111,25 +111,35 @@ class JarvisEngine:
                 
                 # Process response
                 assistant_message = response.choices[0].message
-                self.conversation_history.append({
+                
+                # FIX: Properly handle tool_calls to avoid nullable error
+                tool_calls = assistant_message.tool_calls if assistant_message.tool_calls else None
+                
+                # Build assistant message dict
+                assistant_msg = {
                     "role": "assistant",
-                    "content": assistant_message.content or "",
-                    "tool_calls": assistant_message.tool_calls
-                })
+                    "content": assistant_message.content or ""
+                }
+                
+                # Only add tool_calls if they exist (avoid nullable error)
+                if tool_calls:
+                    assistant_msg["tool_calls"] = tool_calls
+                
+                self.conversation_history.append(assistant_msg)
 
                 # Check if done
-                if not assistant_message.tool_calls:
-                    return assistant_message.content or "कार्य पूर्ण हुआ।"
+                if not tool_calls:
+                    return assistant_message.content or "Task completed."
 
                 # Execute tool calls with error handling
-                self._execute_tool_calls_with_healing(assistant_message.tool_calls)
+                self._execute_tool_calls_with_healing(tool_calls)
                 
             except Exception as e:
-                print(f"⚠️  Iteration {iteration} में error: {e}")
+                print(f"⚠️  Iteration {iteration} error: {e}")
                 if not self_healing.auto_fix_error(e, f"LLM iteration {iteration}"):
                     raise
 
-        return "Request process हो गया।"
+        return "Request processed."
 
     def _call_llm_with_retry(self, tools: List[Dict[str, Any]], max_retries: int = 3):
         """Call LLM with automatic retry on failure"""

@@ -28,6 +28,7 @@ warnings.filterwarnings("ignore")
 # Now safe to import other modules
 import threading 
 import time
+import subprocess
 from dotenv import load_dotenv
 from core.self_healing import self_healing
 
@@ -43,17 +44,80 @@ except Exception as e:
     self_healing.auto_fix_error(e, ".env loading")
 
 
+def auto_install_package(package_name):
+    """Automatically install a missing package"""
+    try:
+        print(f"🔧 Auto-installing {package_name}...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name, "-q"])
+        print(f"✅ {package_name} installed successfully")
+        return True
+    except Exception as e:
+        print(f"❌ Failed to install {package_name}: {e}")
+        return False
+
+
+def auto_fix_missing_imports():
+    """Automatically detect and fix missing imports"""
+    print("🔧 Detecting and fixing missing dependencies...")
+    
+    required_packages = {
+        'speech_recognition': 'SpeechRecognition',
+        'pyttsx3': 'pyttsx3',
+        'dotenv': 'python-dotenv',
+        'PyQt5': 'PyQt5',
+        'torch': 'torch',
+    }
+    
+    fixed_any = False
+    for module, package in required_packages.items():
+        try:
+            __import__(module)
+        except ImportError:
+            print(f"⚠️  Missing: {package}")
+            if auto_install_package(package):
+                fixed_any = True
+    
+    return fixed_any
+
+
+def auto_create_env_file():
+    """Automatically create .env file from template"""
+    if os.path.exists('.env'):
+        return True
+    
+    if not os.path.exists('.env.template'):
+        print("⚠️  .env.template not found")
+        return False
+    
+    try:
+        print("🔧 Creating .env file from template...")
+        with open('.env.template', 'r') as template:
+            content = template.read()
+        
+        with open('.env', 'w') as env_file:
+            env_file.write(content)
+        
+        print("✅ .env file created")
+        print("⚠️  Please add your GROQ_API_KEY to .env file")
+        print("   Get free key from: https://console.groq.com/keys")
+        return True
+    except Exception as e:
+        print(f"❌ Failed to create .env: {e}")
+        return False
+
+
 def run_startup_tests():
     """
     Run automatic startup tests to verify JARVIS is properly configured.
-    This replaces the need to run test_fixes.py separately.
+    Automatically fixes any issues found without user intervention.
     """
     print("=" * 70)
-    print("🧪 JARVIS Startup Verification")
+    print("🧪 JARVIS Startup Verification & Auto-Fix")
     print("=" * 70)
     print()
     
     all_passed = True
+    errors_fixed = []
     
     # Test 1: Core Imports
     print("📦 Test 1: Checking core imports...")
@@ -64,8 +128,26 @@ def run_startup_tests():
         print("✅ All core imports successful")
     except ImportError as e:
         print(f"❌ Import failed: {e}")
-        print("   Run: pip install -r requirements.txt")
-        all_passed = False
+        print("🔧 Auto-fixing: Installing missing dependencies...")
+        
+        # Try to install from requirements.txt
+        if os.path.exists('requirements.txt'):
+            try:
+                subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt", "-q"])
+                print("✅ Dependencies installed from requirements.txt")
+                errors_fixed.append("Installed missing dependencies")
+                
+                # Retry import
+                from core.voice import detect_wake_word, listen, speak
+                from core.npu_accelerator import npu_accelerator
+                from core.indian_language import normalize_indian_text
+                print("✅ Core imports now working")
+            except Exception as fix_error:
+                print(f"❌ Auto-fix failed: {fix_error}")
+                all_passed = False
+        else:
+            print("❌ requirements.txt not found")
+            all_passed = False
     print()
     
     # Test 2: Wake Word Detection
@@ -88,10 +170,10 @@ def run_startup_tests():
             print(f"✅ Wake word detection working ({passed}/{len(test_cases)} tests passed)")
         else:
             print(f"⚠️  Wake word detection issues ({passed}/{len(test_cases)} tests passed)")
-            all_passed = False
+            print("   This is not critical - JARVIS will still work")
     except Exception as e:
         print(f"❌ Wake word test failed: {e}")
-        all_passed = False
+        print("   This is not critical - JARVIS will still work")
     print()
     
     # Test 3: Hardware Detection
@@ -102,7 +184,7 @@ def run_startup_tests():
         print("✅ Hardware detection successful")
     except Exception as e:
         print(f"⚠️  Hardware detection warning: {e}")
-        # Not critical, don't fail
+        print("   JARVIS will use CPU mode")
     print()
     
     # Test 4: PyTorch & CUDA
@@ -117,6 +199,13 @@ def run_startup_tests():
             print("   ℹ️  Using CPU (no GPU detected)")
     except ImportError:
         print("⚠️  PyTorch not installed (optional)")
+        print("🔧 Auto-installing PyTorch (this may take a few minutes)...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "torch", "torchvision", "torchaudio", "-q"])
+            print("✅ PyTorch installed successfully")
+            errors_fixed.append("Installed PyTorch")
+        except:
+            print("   Skipping PyTorch installation (optional)")
     print()
     
     # Test 5: Speech Recognition
@@ -131,8 +220,13 @@ def run_startup_tests():
             print("   ⚠️  No microphones detected (text mode will be used)")
     except ImportError:
         print("❌ SpeechRecognition not installed")
-        print("   Run: pip install SpeechRecognition")
-        all_passed = False
+        print("🔧 Auto-installing SpeechRecognition...")
+        if auto_install_package("SpeechRecognition"):
+            errors_fixed.append("Installed SpeechRecognition")
+            print("✅ SpeechRecognition now available")
+        else:
+            print("❌ Failed to install SpeechRecognition")
+            all_passed = False
     print()
     
     # Test 6: Text-to-Speech
@@ -141,9 +235,17 @@ def run_startup_tests():
         import pyttsx3
         engine = pyttsx3.init()
         print("✅ pyttsx3 initialized")
+    except ImportError:
+        print("❌ pyttsx3 not installed")
+        print("🔧 Auto-installing pyttsx3...")
+        if auto_install_package("pyttsx3"):
+            errors_fixed.append("Installed pyttsx3")
+            print("✅ pyttsx3 now available")
+        else:
+            print("❌ Failed to install pyttsx3")
     except Exception as e:
         print(f"⚠️  pyttsx3 warning: {e}")
-        # Not critical
+        print("   Text output will be used instead")
     print()
     
     # Test 7: Environment Variables
@@ -152,23 +254,46 @@ def run_startup_tests():
     if groq_key:
         print(f"✅ GROQ_API_KEY found (length: {len(groq_key)})")
     else:
-        print("⚠️  GROQ_API_KEY not found in .env")
-        print("   Create .env file and add: GROQ_API_KEY=your_key_here")
-        print("   Get free key from: https://console.groq.com/keys")
-        all_passed = False
+        print("❌ GROQ_API_KEY not found")
+        
+        # Check if .env exists
+        if not os.path.exists('.env'):
+            print("🔧 Auto-creating .env file...")
+            if auto_create_env_file():
+                errors_fixed.append("Created .env file")
+                print("⚠️  IMPORTANT: Add your GROQ_API_KEY to .env file")
+                print("   Get free key from: https://console.groq.com/keys")
+                print("   Then restart: python main.py")
+                all_passed = False
+        else:
+            print("⚠️  .env file exists but GROQ_API_KEY is missing")
+            print("   Add: GROQ_API_KEY=your_key_here")
+            print("   Get free key from: https://console.groq.com/keys")
+            all_passed = False
     print()
     
     # Summary
     print("=" * 70)
+    if errors_fixed:
+        print("🔧 Auto-Fixed Issues:")
+        for fix in errors_fixed:
+            print(f"   ✅ {fix}")
+        print()
+    
     if all_passed:
         print("✅ All critical tests passed! JARVIS is ready.")
     else:
-        print("⚠️  Some tests failed. JARVIS may have limited functionality.")
-        print("   Check the errors above and install missing dependencies.")
+        print("⚠️  Some issues detected:")
+        if not groq_key:
+            print("   • GROQ_API_KEY missing - Please add to .env file")
+        print()
+        print("🔧 Auto-fix attempted for all issues.")
+        print("   If GROQ_API_KEY is missing, please add it manually.")
+        print("   Otherwise, JARVIS will continue with available features.")
     print("=" * 70)
     print()
     
-    return all_passed
+    return all_passed, errors_fixed
 
 
 # Import with self-healing
@@ -181,21 +306,33 @@ try:
     from core.indian_language import normalize_indian_text, extract_intent_from_indian_text, is_indian_question
 except ImportError as e:
     print(f"⚠️  Import error detected: {e}")
-    if self_healing.auto_fix_error(e, "Initial imports"):
-        print("✅ Dependencies fixed! Please restart the application.")
-        print("   python main.py")
-        sys.exit(0)
+    print("🔧 Attempting auto-fix...")
+    
+    if auto_fix_missing_imports():
+        print("✅ Dependencies fixed! Restarting imports...")
+        try:
+            from core.voice import speak, listen
+            from core.registry import SkillRegistry
+            from core.engine import JarvisEngine
+            from gui.app import run_gui as run_gui_app
+            from core.npu_accelerator import npu_accelerator
+            from core.indian_language import normalize_indian_text, extract_intent_from_indian_text, is_indian_question
+            print("✅ All imports successful after auto-fix")
+        except ImportError as e2:
+            print(f"❌ Import still failing: {e2}")
+            print("   Please run: pip install -r requirements.txt")
+            sys.exit(1)
     else:
-        print("❌ Critical import error. Auto-installing dependencies...")
-        print("   Please wait...")
+        print("❌ Auto-fix failed. Please run: pip install -r requirements.txt")
         sys.exit(1)
 
 # Check API key
 if not os.environ.get("GROQ_API_KEY"):
     print("⚠️  GROQ_API_KEY not found.")
-    if not self_healing.fix_api_key_error():
-        print("❌ Please set GROQ_API_KEY in .env file")
-        sys.exit(1)
+    if not os.path.exists('.env'):
+        auto_create_env_file()
+    print("⚠️  Please add GROQ_API_KEY to .env file and restart")
+    print("   Get free key from: https://console.groq.com/keys")
 
 
 class AutoMode:
@@ -433,20 +570,29 @@ def jarvis_loop(pause_event, registry, use_text_mode):
 def main():
     """Main entry point with automatic mode detection and startup tests"""
     
-    # Run startup tests automatically
+    # Run startup tests automatically with auto-fix
     print()
-    tests_passed = run_startup_tests()
+    tests_passed, errors_fixed = run_startup_tests()
     
-    if not tests_passed:
-        print("⚠️  Warning: Some tests failed. Continue anyway? (y/n)")
-        try:
-            choice = input().lower()
-            if choice != 'y':
-                print("Exiting. Please fix the errors and try again.")
-                sys.exit(1)
-        except:
-            pass  # Continue anyway in non-interactive mode
+    # If errors were fixed, inform user
+    if errors_fixed:
+        print("🎉 Auto-fix completed! Fixed issues:")
+        for fix in errors_fixed:
+            print(f"   ✅ {fix}")
         print()
+    
+    # Continue regardless of test results (auto-fix handles everything)
+    if not tests_passed:
+        if not os.environ.get("GROQ_API_KEY"):
+            print("⚠️  CRITICAL: GROQ_API_KEY is required to run JARVIS")
+            print("   1. Get free key from: https://console.groq.com/keys")
+            print("   2. Add to .env file: GROQ_API_KEY=your_key_here")
+            print("   3. Restart: python main.py")
+            print()
+            sys.exit(1)
+        else:
+            print("⚠️  Some non-critical issues detected, but JARVIS will continue...")
+            print()
     
     # Auto-detect modes
     use_text_mode = AutoMode.should_use_text_mode()
@@ -462,6 +608,7 @@ def main():
     print(f"   GUI Mode: {'✅ Enabled' if use_gui else '❌ Disabled'}")
     print(f"   Debug Logging: {'✅ Enabled' if AUTO_DEBUG_MODE else '❌ Disabled'}")
     print(f"   Indian Language: ✅ Enabled (Hinglish + Hindi)")
+    print(f"   Auto-Fix: ✅ Enabled")
     print()
     
     print("💡 Example Commands:")

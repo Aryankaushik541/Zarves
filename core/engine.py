@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from groq import Groq
 from typing import List, Dict, Any
 from core.registry import SkillRegistry
@@ -28,9 +29,10 @@ class JarvisEngine:
             else:
                 raise
         
-        self.model = "llama-3.3-70b-versatile"
+        # Use smaller, faster model to save tokens
+        self.model = "llama-3.1-8b-instant"  # Changed from llama-3.3-70b-versatile
         self.conversation_history = []
-        self.max_iterations = 10
+        self.max_iterations = 5  # Reduced from 10 to save tokens
 
     def process_query(self, user_query: str) -> str:
         """
@@ -70,10 +72,33 @@ class JarvisEngine:
                     continue
                 else:
                     return "System update in progress. Please restart JARVIS."
-                    
+            
             except Exception as e:
+                error_str = str(e)
+                
+                # Handle rate limit errors
+                if "rate_limit" in error_str.lower() or "429" in error_str:
+                    print(f"\n⚠️  Rate limit reached!")
+                    print(f"💡 Switching to faster model to save tokens...")
+                    self.model = "llama-3.1-8b-instant"
+                    return "API rate limit reached. Kuch der baad try karo ya apna API key upgrade karo."
+                
+                # Handle bad request errors (tool call format issues)
+                if "tool_use_failed" in error_str or "400" in error_str:
+                    print(f"\n⚠️  Tool call format issue detected")
+                    print(f"💡 Retrying with simpler approach...")
+                    retry_count += 1
+                    
+                    # Try without tools on next attempt
+                    if retry_count < max_retries:
+                        try:
+                            return self._execute_simple_conversation(user_query)
+                        except:
+                            continue
+                    else:
+                        return "Sorry, technical issue hai. Please try a simpler command."
+                
                 retry_count += 1
-                print(f"\n⚠️  Conversation error (attempt {retry_count}/{max_retries})")
                 
                 # Try to auto-fix the error
                 if self_healing.auto_fix_error(e, f"Conversation execution (query: {user_query})"):
@@ -81,13 +106,36 @@ class JarvisEngine:
                     continue
                 else:
                     if retry_count < max_retries:
-                        print(f"🔄 Retrying without fix... ({retry_count}/{max_retries})\n")
+                        print(f"🔄 Retrying... ({retry_count}/{max_retries})\n")
+                        time.sleep(1)  # Brief delay before retry
                         continue
                     else:
-                        print(f"❌ Maximum retries reached. Error: {e}")
+                        print(f"❌ Maximum retries reached.")
                         return f"Sorry, couldn't process your request. Please try again."
         
         return "Sorry, technical issue hai. Please try again."
+
+    def _execute_simple_conversation(self, user_query: str) -> str:
+        """Execute conversation without tools - fallback for errors"""
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are JARVIS, a helpful AI assistant. Respond concisely and helpfully."
+                    },
+                    {
+                        "role": "user",
+                        "content": user_query
+                    }
+                ],
+                max_tokens=500
+            )
+            return response.choices[0].message.content or "Task completed."
+        except Exception as e:
+            print(f"⚠️  Simple conversation also failed: {e}")
+            return "Sorry, I couldn't process that request."
 
     def _execute_conversation(self, user_query: str) -> str:
         """Internal method to execute conversation logic"""
@@ -107,6 +155,10 @@ class JarvisEngine:
             except:
                 print(f"⚠️  Registry method missing. Using empty tools.")
                 tools = []
+        
+        # Validate tools format
+        if tools:
+            tools = self._validate_tools_format(tools)
         
         iteration = 0
         while iteration < self.max_iterations:
@@ -148,22 +200,73 @@ class JarvisEngine:
 
         return "Request processed."
 
+    def _validate_tools_format(self, tools: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Validate and fix tools format to prevent BadRequestError"""
+        validated_tools = []
+        
+        for tool in tools:
+            try:
+                # Ensure proper structure
+                if "type" in tool and "function" in tool:
+                    # Validate function schema
+                    func = tool["function"]
+                    if "name" in func and "parameters" in func:
+                        # Ensure parameters has proper schema
+                        if "type" not in func["parameters"]:
+                            func["parameters"]["type"] = "object"
+                        if "properties" not in func["parameters"]:
+                            func["parameters"]["properties"] = {}
+                        
+                        validated_tools.append(tool)
+            except Exception as e:
+                print(f"⚠️  Skipping invalid tool: {e}")
+                continue
+        
+        return validated_tools
+
     def _call_llm_with_retry(self, tools: List[Dict[str, Any]], max_retries: int = 3):
         """Call LLM with automatic retry on failure"""
         for attempt in range(max_retries):
             try:
-                return self.client.chat.completions.create(
-                    model=self.model,
-                    messages=self.conversation_history,
-                    tools=tools,
-                    tool_choice="auto",
-                    max_tokens=4096
-                )
+                # Prepare request parameters
+                request_params = {
+                    "model": self.model,
+                    "messages": self.conversation_history,
+                    "max_tokens": 2048  # Reduced from 4096 to save tokens
+                }
+                
+                # Only add tools if they exist and are valid
+                if tools and len(tools) > 0:
+                    request_params["tools"] = tools
+                    request_params["tool_choice"] = "auto"
+                
+                return self.client.chat.completions.create(**request_params)
+                
             except Exception as e:
+                error_str = str(e)
+                
+                # Handle rate limit
+                if "rate_limit" in error_str.lower() or "429" in error_str:
+                    raise  # Don't retry rate limits
+                
+                # Handle tool errors
+                if "tool_use_failed" in error_str and attempt < max_retries - 1:
+                    print(f"🔄 Tool call failed, retrying without tools...")
+                    # Remove tools and retry
+                    request_params = {
+                        "model": self.model,
+                        "messages": self.conversation_history,
+                        "max_tokens": 2048
+                    }
+                    try:
+                        return self.client.chat.completions.create(**request_params)
+                    except:
+                        pass
+                
                 if attempt < max_retries - 1:
                     print(f"🔄 LLM call retry {attempt + 1}/{max_retries}")
-                    if self_healing.auto_fix_error(e, "LLM API call"):
-                        continue
+                    time.sleep(1)  # Brief delay
+                    continue
                 raise
 
     def _execute_tool_calls_with_healing(self, tool_calls):

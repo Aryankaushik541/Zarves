@@ -11,6 +11,16 @@ pyaudio
 pyobjc-core; sys_platform == 'darwin'
 pyobjc-framework-Cocoa; sys_platform == 'darwin'
 pywin32; sys_platform == 'win32'
+pycaw; sys_platform == 'win32'
+comtypes; sys_platform == 'win32'
+
+# AI Game Playing Dependencies
+opencv-python>=4.8.0
+pyautogui>=0.9.54
+keyboard>=0.13.5
+mouse>=0.7.1
+Pillow>=10.0.0
+numpy>=1.24.0
 
 # NPU Acceleration (Optional - for Omen PC optimization)
 # Intel NPU support via OpenVINO
@@ -27,5 +37,10 @@ onnxruntime-directml>=1.17.0; sys_platform == 'win32'
 psutil>=5.9.0
 
 # Optional: PyTorch with CUDA (if NVIDIA GPU available)
-# torch>=2.0.0; sys_platform == 'win32'
-# torchvision>=0.15.0; sys_platform == 'win32'
+# torch>=2.0.0
+# torchvision>=0.15.0
+# torchaudio>=2.0.0
+
+# Optional: Advanced AI for game playing
+# tensorflow>=2.13.0  # For deep learning models
+# ultralytics>=8.0.0  # For YOLO object detection

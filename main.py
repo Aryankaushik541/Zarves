@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-JARVIS - Autonomous AI Assistant with Self-Healing
+JARVIS - Autonomous AI Assistant with Self-Healing + NPU Acceleration
 Fully autonomous operation with auto-detection and error recovery
+Optimized for Omen PC with NPU support
 """
 
 import sys
@@ -46,6 +47,7 @@ try:
     from core.registry import SkillRegistry
     from core.engine import JarvisEngine
     from gui.app import run_gui as run_gui_app
+    from core.npu_accelerator import npu_accelerator
 except ImportError as e:
     print(f"⚠️  Import error detected: {e}")
     if self_healing.auto_fix_error(e, "Initial imports"):
@@ -314,6 +316,11 @@ def jarvis_loop(pause_event, registry, use_text_mode):
                 print(report)
                 continue
             
+            # NPU status command
+            if "npu status" in normalized_query or "hardware status" in normalized_query:
+                npu_accelerator.print_status()
+                continue
+            
             # Enhanced wake word / Command filtering Logic
             direct_commands = [
                 "open", "close", "launch", "start",
@@ -415,16 +422,33 @@ def main():
     """
     print("="*60)
     print("🤖 JARVIS - Autonomous AI Assistant")
+    print("⚡ NPU-Accelerated for Omen PC")
     print("="*60)
     print("🔧 Self-Healing System: Active")
     print("🧠 Auto-Mode Detection: Active")
     print("="*60)
     
+    # Initialize NPU Accelerator
+    print("\n🚀 Initializing NPU Acceleration...")
+    try:
+        # Setup NPU optimizations
+        if npu_accelerator.npu_available:
+            npu_accelerator.setup_openvino_npu()
+            npu_accelerator.setup_onnx_runtime()
+            npu_accelerator.optimize_for_speech_recognition()
+            npu_accelerator.optimize_for_llm_inference()
+        
+        # Print NPU status
+        npu_accelerator.print_status()
+    except Exception as e:
+        print(f"⚠️  NPU initialization warning: {e}")
+        print("Continuing with CPU/GPU fallback...\n")
+    
     # Auto-detect modes
     use_text_mode = AutoMode.should_use_text_mode()
     use_gui = AutoMode.should_use_gui()
     
-    print(f"\n📊 Detected Configuration:")
+    print(f"📊 Detected Configuration:")
     print(f"   Voice Mode: {'❌ Disabled' if use_text_mode else '✅ Enabled'}")
     print(f"   GUI Mode: {'✅ Enabled' if use_gui else '❌ Disabled'}")
     print(f"   Debug Logging: {'✅ Enabled' if AUTO_DEBUG_MODE else '❌ Disabled'}")

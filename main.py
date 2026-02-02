@@ -96,7 +96,7 @@ def main():
 
     # 1. Initialize Registry and Load Skills
     registry = SkillRegistry()
-    skills_dir = os.path.join(os.path.dirname(__file__), "skills")
+    skills_dir = os.path.join(os.path.dirname(__file__), "skill")  # Fixed: Changed from "skills" to "skill"
     registry.load_skills(skills_dir)
     
     # 2. Setup Pause Event

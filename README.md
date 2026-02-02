@@ -30,7 +30,11 @@ JARVIC is a modular, voice-activated AI assistant designed with a futuristic HUD
 
 ## Installation
 
-1.  **Clone the Repository** (if applicable) or download the source code.
+1.  **Clone the Repository**:
+    ```bash
+    git clone https://github.com/Aryankaushik541/Zarves.git
+    cd Zarves
+    ```
 
 2.  **Set up a Virtual Environment** (Recommended):
     ```bash
@@ -84,7 +88,7 @@ python main.py --text
 - `skills/`: Directory containing all modular skills (plugins).
 - `assets/`: Images and resources for the GUI.
 
-##BIG UPDATE:
+## BIG UPDATE:
 - Currently this only works on Mac. If you subscribe to my yt channel and did 100 subscribers. I will uplode a JARVIS for windoes.
 
 ## License

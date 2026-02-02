@@ -37,7 +37,7 @@ AUTO_DEBUG_MODE = True  # Always log errors for self-healing
 try:
     load_dotenv()
 except Exception as e:
-    print(f"⚠️  .env load करने में error: {e}")
+    print(f"⚠️  Error loading .env: {e}")
     self_healing.auto_fix_error(e, ".env loading")
 
 # Import with self-healing
@@ -47,7 +47,7 @@ try:
     from core.engine import JarvisEngine
     from gui.app import run_gui as run_gui_app
 except ImportError as e:
-    print(f"⚠️  Import error detect हुआ: {e}")
+    print(f"⚠️  Import error detected: {e}")
     if self_healing.auto_fix_error(e, "Initial imports"):
         print("✅ Dependencies fixed! Please restart the application.")
         print("   python main.py")
@@ -378,7 +378,7 @@ def jarvis_loop(pause_event, registry, use_text_mode):
                     print("✅ Error fixed! Please try again.")
                     consecutive_errors = 0
                 else:
-                    error_msg = "माफ़ करें, system error हुआ। कृपया दोबारा try करें।"
+                    error_msg = "Sorry, system error hua. Please try again."
                     if use_text_mode:
                         print(f"JARVIS: {error_msg}")
                     else:

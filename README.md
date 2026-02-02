@@ -2,7 +2,7 @@
 
 > **"Sometimes you gotta run before you can walk." - Tony Stark**
 
-JARVIS is not just an AI assistant - it's a **self-improving, autonomous superintelligence** inspired by Tony Stark's AI from Iron Man 3. Create other AIs, simulate quantum computers, gather intelligence from anywhere on the internet, **play games autonomously**, and watch JARVIS evolve itself.
+JARVIS is not just an AI assistant - it's a **self-improving, autonomous superintelligence** inspired by Tony Stark's AI from Iron Man 3. **Writes its own code**, creates other AIs, simulates quantum computers, gathers intelligence, **plays games autonomously**, and continuously evolves itself.
 
 ---
 
@@ -35,8 +35,8 @@ python main.py
 ### ✅ First Commands:
 ```
 ✅ "Jarvis, YouTube kholo"
-✅ "Jarvis, gaana bajao"
-✅ "Jarvis, start playing GTA 5"  🎮 NEW!
+✅ "Jarvis, write a web server in Python"  🤖 NEW!
+✅ "Jarvis, start playing GTA 5"  🎮
 ✅ "जार्विस, गूगल खोलो"
 ```
 
@@ -46,7 +46,17 @@ python main.py
 
 ## 🎯 Recent Updates (Feb 2026)
 
-### 🎮 NEW: AI Game Player
+### 🤖 NEW: Self-Coding AI ⭐
+- **Writes code from scratch** - Complete applications in seconds
+- **Auto-fixes errors** - Detects and fixes bugs automatically
+- **Recreates code** - Rebuilds broken code from requirements
+- **Evolves code** - Optimizes performance, adds features
+- **Handles GB+ files** - Processes any file size efficiently
+- **Creates servers** - Full infrastructure with one command
+- **Learns continuously** - Gets smarter with every fix
+- **See:** [SELF_CODING_AI_GUIDE.md](SELF_CODING_AI_GUIDE.md)
+
+### 🎮 AI Game Player
 - **Play games autonomously** - GTA 5, Minecraft, CS:GO
 - **Computer vision** - Analyzes screen in real-time
 - **AI decision making** - Smart gameplay decisions
@@ -74,7 +84,10 @@ python main.py
 
 ## 🌟 What Makes This Iron Man Level?
 
-### **🎮 AI Game Player** ⭐ NEW!
+### **🤖 Self-Coding AI** ⭐ NEW!
+JARVIS can write, fix, and evolve its own code! Creates complete applications, fixes errors automatically, handles files of any size, and learns from every interaction.
+
+### **🎮 AI Game Player**
 JARVIS can play games autonomously using computer vision, AI decision making, and keyboard/mouse control. Supports GTA 5, Minecraft, CS:GO, and more!
 
 ### **🧠 Creates Other AIs**
@@ -107,8 +120,14 @@ Detect trends, anomalies, correlations, and make predictions from any data sourc
 
 | Capability | Description | Example Command |
 |------------|-------------|-----------------|
+| 🤖 **Self-Coding AI** | Write, fix, evolve code | "Write a web server in Python" |
 | 🎮 **AI Game Player** | Play games autonomously | "Start playing GTA 5" |
-| 🤖 **AI Architect** | Create custom AI models | "Create an AI for sentiment analysis" |
+| 🔧 **Auto-Fix Errors** | Fix code bugs automatically | "Fix errors in server.py" |
+| 🔄 **Recreate Code** | Rebuild from scratch | "Recreate broken app.py" |
+| 🧬 **Evolve Code** | Optimize and improve | "Evolve code for performance" |
+| 📦 **Handle GB+ Files** | Process any file size | "Process 5GB data file" |
+| 🏗️ **Create Servers** | Full infrastructure | "Create FastAPI server with DB" |
+| 🤖 **AI Architect** | Create custom AI models | "Create AI for sentiment analysis" |
 | 🔄 **Self-Improvement** | Evolve its own capabilities | "Add blockchain analysis skill" |
 | ⚛️ **Quantum Sim** | Simulate quantum algorithms | "Run Shor's algorithm with 10 qubits" |
 | 🧠 **Neural Search** | Auto-design neural networks | "Design optimal AI for mobile" |
@@ -118,18 +137,30 @@ Detect trends, anomalies, correlations, and make predictions from any data sourc
 | 🔮 **Pattern Analysis** | AI-powered insights | "Detect trends in crypto prices" |
 | 🌍 **Intelligence** | Corporate & competitive intel | "Gather intel on Tesla" |
 | 🚀 **AI Deployment** | Production-ready systems | "Deploy my AI with API" |
-| 🌐 **Web Development** | Full-stack websites | "Create a React todo app" |
-| 🐍 **App Development** | Python GUI/CLI apps | "Build a calculator app" |
-| 📦 **Installation** | Install any software | "Install Docker and VS Code" |
-| 💻 **Terminal Control** | Execute shell commands | "Run npm install" |
-| 📁 **File Management** | Organize and manage files | "Organize my Downloads" |
-| 🔧 **Git Operations** | Complete Git workflows | "Clone repo and install deps" |
 
 ---
 
 ## 🎯 Quick Examples
 
-### 🎮 AI Game Playing (NEW!)
+### 🤖 Self-Coding AI (NEW!)
+```
+"Jarvis, write a Flask web server with database"
+→ Generates complete server code with DB integration
+
+"Jarvis, fix errors in my code"
+→ Automatically detects and fixes bugs
+
+"Jarvis, recreate broken app.py"
+→ Rebuilds code from scratch with improvements
+
+"Jarvis, evolve server.py for performance"
+→ Optimizes code for better performance
+
+"Jarvis, create FastAPI server with auth and caching"
+→ Creates complete server infrastructure
+```
+
+### 🎮 AI Game Playing
 ```
 "Jarvis, start playing GTA 5 in explore mode"
 → AI analyzes screen, drives car, avoids police, explores city
@@ -163,24 +194,6 @@ Detect trends, anomalies, correlations, and make predictions from any data sourc
 ```
 "Jarvis, gather competitive intelligence on OpenAI"
 → Scrapes multiple sources, analyzes data, generates comprehensive report
-```
-
-### Neural Architecture Search
-```
-"Jarvis, design the best neural network for image classification on mobile"
-→ Searches architecture space, optimizes for mobile, builds PyTorch model
-```
-
-### Web Scraping
-```
-"Jarvis, create a scraper for TechCrunch articles"
-→ Generates scraper with anti-detection, handles dynamic content, saves data
-```
-
-### Data Pipeline
-```
-"Jarvis, create a daily pipeline for monitoring AI research papers"
-→ Sets up automated scraping, analysis, and reporting
 ```
 
 ---
@@ -218,6 +231,18 @@ python main.py --text       # Text mode
 
 ## 🎮 Usage Examples
 
+### 🤖 Self-Coding AI
+```
+"Jarvis, write Python code for a REST API"
+"Jarvis, write JavaScript code for a web scraper"
+"Jarvis, fix errors in server.py"
+"Jarvis, recreate app.py with better architecture"
+"Jarvis, evolve code for scalability"
+"Jarvis, process large 10GB file"
+"Jarvis, create microservice with FastAPI and database"
+"Jarvis, analyze and learn from my code"
+```
+
 ### 🎮 AI Game Playing
 ```
 "Jarvis, start playing GTA 5"
@@ -254,19 +279,6 @@ python main.py --text       # Text mode
 "Jarvis, add capability to control IoT devices"
 ```
 
-### Web Development
-```
-"Jarvis, create a portfolio website"
-"Jarvis, build a React e-commerce app"
-```
-
-### System Control
-```
-"Jarvis, install Python and Docker"
-"Jarvis, organize my Downloads folder"
-"Jarvis, clone my GitHub repo and run it"
-```
-
 ---
 
 ## 🏗️ Project Structure
@@ -276,41 +288,54 @@ Zarves/
 ├── main.py                          # Entry point
 ├── core/
 │   ├── engine.py                    # Autonomous AI engine
-│   ├── voice.py                     # Voice I/O (✅ Fixed wake word detection)
-│   ├── npu_accelerator.py           # Hardware detection (✅ Auto-detect GPU/NPU)
+│   ├── voice.py                     # Voice I/O (✅ Fixed wake word)
+│   ├── npu_accelerator.py           # Hardware detection (✅ Auto-detect)
 │   ├── indian_language.py           # Indian language support
 │   ├── registry.py                  # Skill management
 │   └── skill.py                     # Base skill class
 ├── gui/
 │   └── app.py                       # Futuristic HUD
 ├── skill/                           # Autonomous Skills
-│   ├── ai_game_player.py            # 🎮 AI game playing (NEW!)
-│   ├── ai_architect.py              # 🤖 Create AIs, self-improve, quantum sim
-│   ├── advanced_web_intelligence.py # 🌐 Deep research, scraping, intel
+│   ├── self_coding_ai.py            # 🤖 Self-coding AI (NEW!)
+│   ├── ai_game_player.py            # 🎮 AI game playing
+│   ├── ai_architect.py              # 🤖 Create AIs, self-improve
+│   ├── advanced_web_intelligence.py # 🌐 Deep research, scraping
 │   ├── code_generator.py            # 💻 Web & app development
 │   ├── terminal_ops.py              # 🔧 Terminal & installation
 │   ├── advanced_file_ops.py         # 📁 File management
-│   ├── system_ops.py                # ⚙️ System control (✅ Fixed app opening)
+│   ├── system_ops.py                # ⚙️ System control (✅ Fixed)
 │   ├── web_ops.py                   # 🌍 Web operations
 │   └── [other skills]
-├── requirements.txt                 # ✅ Updated with game playing deps
+├── requirements.txt                 # ✅ Updated dependencies
 ├── .env.template
-├── test_fixes.py                    # ✅ Automated test script
+├── test_fixes.py                    # ✅ Automated tests
 ├── README.md                        # This file
-├── QUICKSTART.md                    # 🚀 5-minute setup guide
-├── FIXES.md                         # 🔧 Troubleshooting guide
-├── AI_GAME_PLAYER_GUIDE.md          # 🎮 Game playing guide (NEW!)
-├── IRON_MAN_MODE.md                 # 🦾 Ultimate capabilities guide
+├── QUICKSTART.md                    # 🚀 5-minute setup
+├── FIXES.md                         # 🔧 Troubleshooting
+├── SELF_CODING_AI_GUIDE.md          # 🤖 Self-coding guide (NEW!)
+├── AI_GAME_PLAYER_GUIDE.md          # 🎮 Game playing guide
+├── IRON_MAN_MODE.md                 # 🦾 Ultimate capabilities
 ├── AUTONOMOUS_GUIDE.md              # 🤖 Autonomous features
 ├── QUICK_COMMANDS.md                # ⚡ Command reference
-└── TESTING.md                       # 🧪 Testing guide
+├── TESTING.md                       # 🧪 Testing guide
+└── CHANGELOG.md                     # 📝 Version history
 ```
 
 ---
 
 ## 🌟 Key Features
 
-### 🎮 AI Game Player (NEW!)
+### 🤖 Self-Coding AI (NEW!)
+- **Write Code:** Complete applications from requirements
+- **Auto-Fix:** Detect and fix errors automatically (5 attempts)
+- **Recreate:** Rebuild broken code from scratch
+- **Evolve:** Optimize performance, add features, improve scalability
+- **Large Files:** Handle GB+ files with streaming
+- **Server Creation:** Complete infrastructure with one command
+- **Learning:** Improves from every interaction
+- **Languages:** Python, JavaScript, Go, more coming
+
+### 🎮 AI Game Player
 - **Computer Vision**: Real-time screen analysis
 - **Object Detection**: Cars, enemies, items, obstacles
 - **AI Decision Making**: Smart gameplay strategies
@@ -337,42 +362,43 @@ Zarves/
 - **Data Pipelines**: Automated collection and analysis
 - **Pattern Recognition**: Trends, anomalies, predictions
 
-### 💻 Development
-- **Full-Stack Web**: React, HTML/CSS/JS
-- **Python Apps**: GUI, CLI, automation
-- **Code Generation**: Any language
-- **Project Templates**: Complete structures
-
-### 🔧 System Control
-- **Terminal**: Execute any command
-- **Installation**: Homebrew integration
-- **Git**: Complete workflows
-- **File Management**: Organize, batch operations
-- **App Opening**: Windows/Mac/Linux support (✅ Fixed!)
-
-### 🇮🇳 Indian Language Support
-- **Hinglish**: Natural Hindi-English mix
-- **Wake Word**: "Jarvis" or "जार्विस"
-- **Commands**: Mix Hindi and English freely
-- **Examples**: "YouTube kholo", "gaana bajao"
-
 ---
 
 ## 🎓 Documentation
 
 - **[QUICKSTART.md](QUICKSTART.md)** - 🚀 5-minute setup guide
-- **[AI_GAME_PLAYER_GUIDE.md](AI_GAME_PLAYER_GUIDE.md)** - 🎮 Complete game playing guide (NEW!)
+- **[SELF_CODING_AI_GUIDE.md](SELF_CODING_AI_GUIDE.md)** - 🤖 Complete self-coding guide (NEW!)
+- **[AI_GAME_PLAYER_GUIDE.md](AI_GAME_PLAYER_GUIDE.md)** - 🎮 Complete game playing guide
 - **[FIXES.md](FIXES.md)** - 🔧 Troubleshooting & fixes
-- **[IRON_MAN_MODE.md](IRON_MAN_MODE.md)** - 🦾 Ultimate capabilities like Iron Man 3
-- **[AUTONOMOUS_GUIDE.md](AUTONOMOUS_GUIDE.md)** - 🤖 Autonomous features guide
+- **[IRON_MAN_MODE.md](IRON_MAN_MODE.md)** - 🦾 Ultimate capabilities
+- **[AUTONOMOUS_GUIDE.md](AUTONOMOUS_GUIDE.md)** - 🤖 Autonomous features
 - **[QUICK_COMMANDS.md](QUICK_COMMANDS.md)** - ⚡ Command reference
 - **[TESTING.md](TESTING.md)** - 🧪 Testing guide
+- **[CHANGELOG.md](CHANGELOG.md)** - 📝 Version history
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### Common Issues:
+
+**Code generation failed?**
+```bash
+# Try simpler requirements
+✅ "Jarvis, write simple Python web server"
+
+# Or be more specific
+✅ "Jarvis, write Flask server with 2 routes"
+```
+
+**Error fix not working?**
+```bash
+# Use recreate instead
+✅ "Jarvis, recreate server.py"
+
+# Or let AI learn from manual fix
+# Fix manually, then: "Jarvis, analyze and learn from server.py"
+```
 
 **Wake word not detected?**
 ```bash
@@ -394,18 +420,7 @@ Zarves/
 # See AI_GAME_PLAYER_GUIDE.md for details
 ```
 
-**Microphone not working?**
-```bash
-pip install pyaudio
-# Windows: Download wheel from https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio
-```
-
-**GPU not detected?**
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-```
-
-**More help:** See [FIXES.md](FIXES.md) for complete troubleshooting guide.
+**More help:** See [FIXES.md](FIXES.md) and [SELF_CODING_AI_GUIDE.md](SELF_CODING_AI_GUIDE.md)
 
 ---
 
@@ -455,11 +470,12 @@ MIT License - See LICENSE file for details
 - **Issues:** [GitHub Issues](https://github.com/Aryankaushik541/Zarves/issues)
 - **Documentation:** See docs folder
 - **Quick Start:** [QUICKSTART.md](QUICKSTART.md)
+- **Self-Coding AI:** [SELF_CODING_AI_GUIDE.md](SELF_CODING_AI_GUIDE.md)
 - **Game Playing:** [AI_GAME_PLAYER_GUIDE.md](AI_GAME_PLAYER_GUIDE.md)
 - **Troubleshooting:** [FIXES.md](FIXES.md)
 
 ---
 
-**"I am Iron Man... and I play games too!" - JARVIS** 🦾🎮
+**"I don't just assist. I create, I fix, I evolve." - JARVIS** 🤖🦾
 
 Made with 🔥 by the JARVIS team

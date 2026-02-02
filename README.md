@@ -2,7 +2,7 @@
 
 > **"Sometimes you gotta run before you can walk." - Tony Stark**
 
-JARVIS is not just an AI assistant - it's a **self-improving, autonomous superintelligence** inspired by Tony Stark's AI from Iron Man 3. Create other AIs, simulate quantum computers, gather intelligence from anywhere on the internet, and watch JARVIS evolve itself.
+JARVIS is not just an AI assistant - it's a **self-improving, autonomous superintelligence** inspired by Tony Stark's AI from Iron Man 3. Create other AIs, simulate quantum computers, gather intelligence from anywhere on the internet, **play games autonomously**, and watch JARVIS evolve itself.
 
 ---
 
@@ -36,7 +36,7 @@ python main.py
 ```
 ✅ "Jarvis, YouTube kholo"
 ✅ "Jarvis, gaana bajao"
-✅ "Jarvis, time kya hua?"
+✅ "Jarvis, start playing GTA 5"  🎮 NEW!
 ✅ "जार्विस, गूगल खोलो"
 ```
 
@@ -45,6 +45,18 @@ python main.py
 ---
 
 ## 🎯 Recent Updates (Feb 2026)
+
+### 🎮 NEW: AI Game Player
+- **Play games autonomously** - GTA 5, Minecraft, CS:GO
+- **Computer vision** - Analyzes screen in real-time
+- **AI decision making** - Smart gameplay decisions
+- **Keyboard/mouse control** - Plays like a human
+- **See:** [AI_GAME_PLAYER_GUIDE.md](AI_GAME_PLAYER_GUIDE.md)
+
+### ✅ Fixed App Opening
+- **Before:** Apps not opening properly
+- **After:** Full Windows/Mac/Linux support
+- **Impact:** All apps open correctly now
 
 ### ✅ Fixed Wake Word Detection
 - **Before:** "Jarvis" wake word not detected
@@ -56,16 +68,14 @@ python main.py
 - **After:** Automatic detection (NVIDIA GPU → AMD GPU → Intel NPU → CPU)
 - **Impact:** Seamless acceleration
 
-### ✅ Enhanced Indian Language Support
-- Natural Hinglish understanding
-- Better command normalization
-- Wake word removal from commands
-
 **📝 Details:** See [FIXES.md](FIXES.md) for complete troubleshooting guide.
 
 ---
 
 ## 🌟 What Makes This Iron Man Level?
+
+### **🎮 AI Game Player** ⭐ NEW!
+JARVIS can play games autonomously using computer vision, AI decision making, and keyboard/mouse control. Supports GTA 5, Minecraft, CS:GO, and more!
 
 ### **🧠 Creates Other AIs**
 JARVIS can design, build, train, and deploy custom AI models for any task - NLP, computer vision, prediction, generation, reinforcement learning.
@@ -97,6 +107,7 @@ Detect trends, anomalies, correlations, and make predictions from any data sourc
 
 | Capability | Description | Example Command |
 |------------|-------------|-----------------|
+| 🎮 **AI Game Player** | Play games autonomously | "Start playing GTA 5" |
 | 🤖 **AI Architect** | Create custom AI models | "Create an AI for sentiment analysis" |
 | 🔄 **Self-Improvement** | Evolve its own capabilities | "Add blockchain analysis skill" |
 | ⚛️ **Quantum Sim** | Simulate quantum algorithms | "Run Shor's algorithm with 10 qubits" |
@@ -117,6 +128,18 @@ Detect trends, anomalies, correlations, and make predictions from any data sourc
 ---
 
 ## 🎯 Quick Examples
+
+### 🎮 AI Game Playing (NEW!)
+```
+"Jarvis, start playing GTA 5 in explore mode"
+→ AI analyzes screen, drives car, avoids police, explores city
+
+"Jarvis, play Minecraft and gather resources"
+→ AI mines wood, stone, builds shelter, survives
+
+"Jarvis, play CS:GO in combat mode"
+→ AI aims at enemies, shoots, uses cover
+```
 
 ### Create an AI Model
 ```
@@ -195,6 +218,14 @@ python main.py --text       # Text mode
 
 ## 🎮 Usage Examples
 
+### 🎮 AI Game Playing
+```
+"Jarvis, start playing GTA 5"
+"Jarvis, play Minecraft in survival mode for 10 minutes"
+"Jarvis, analyze game screen"
+"Jarvis, stop playing game"
+```
+
 ### AI Development
 ```
 "Jarvis, create a transformer model for language translation"
@@ -253,20 +284,22 @@ Zarves/
 ├── gui/
 │   └── app.py                       # Futuristic HUD
 ├── skill/                           # Autonomous Skills
+│   ├── ai_game_player.py            # 🎮 AI game playing (NEW!)
 │   ├── ai_architect.py              # 🤖 Create AIs, self-improve, quantum sim
 │   ├── advanced_web_intelligence.py # 🌐 Deep research, scraping, intel
 │   ├── code_generator.py            # 💻 Web & app development
 │   ├── terminal_ops.py              # 🔧 Terminal & installation
 │   ├── advanced_file_ops.py         # 📁 File management
-│   ├── system_ops.py                # ⚙️ System control
+│   ├── system_ops.py                # ⚙️ System control (✅ Fixed app opening)
 │   ├── web_ops.py                   # 🌍 Web operations
 │   └── [other skills]
-├── requirements.txt
+├── requirements.txt                 # ✅ Updated with game playing deps
 ├── .env.template
 ├── test_fixes.py                    # ✅ Automated test script
 ├── README.md                        # This file
 ├── QUICKSTART.md                    # 🚀 5-minute setup guide
 ├── FIXES.md                         # 🔧 Troubleshooting guide
+├── AI_GAME_PLAYER_GUIDE.md          # 🎮 Game playing guide (NEW!)
 ├── IRON_MAN_MODE.md                 # 🦾 Ultimate capabilities guide
 ├── AUTONOMOUS_GUIDE.md              # 🤖 Autonomous features
 ├── QUICK_COMMANDS.md                # ⚡ Command reference
@@ -276,6 +309,14 @@ Zarves/
 ---
 
 ## 🌟 Key Features
+
+### 🎮 AI Game Player (NEW!)
+- **Computer Vision**: Real-time screen analysis
+- **Object Detection**: Cars, enemies, items, obstacles
+- **AI Decision Making**: Smart gameplay strategies
+- **Keyboard/Mouse Control**: Human-like input
+- **Supported Games**: GTA 5, Minecraft, CS:GO, more coming!
+- **Game Modes**: Explore, Mission, Survival, Combat
 
 ### 🤖 AI Architect
 - **Create AI Models**: NLP, vision, prediction, generation
@@ -307,6 +348,7 @@ Zarves/
 - **Installation**: Homebrew integration
 - **Git**: Complete workflows
 - **File Management**: Organize, batch operations
+- **App Opening**: Windows/Mac/Linux support (✅ Fixed!)
 
 ### 🇮🇳 Indian Language Support
 - **Hinglish**: Natural Hindi-English mix
@@ -319,6 +361,7 @@ Zarves/
 ## 🎓 Documentation
 
 - **[QUICKSTART.md](QUICKSTART.md)** - 🚀 5-minute setup guide
+- **[AI_GAME_PLAYER_GUIDE.md](AI_GAME_PLAYER_GUIDE.md)** - 🎮 Complete game playing guide (NEW!)
 - **[FIXES.md](FIXES.md)** - 🔧 Troubleshooting & fixes
 - **[IRON_MAN_MODE.md](IRON_MAN_MODE.md)** - 🦾 Ultimate capabilities like Iron Man 3
 - **[AUTONOMOUS_GUIDE.md](AUTONOMOUS_GUIDE.md)** - 🤖 Autonomous features guide
@@ -336,6 +379,19 @@ Zarves/
 # Make sure to say "Jarvis" first
 ✅ "Jarvis, YouTube kholo"
 ❌ "YouTube kholo"
+```
+
+**Apps not opening?**
+```bash
+# Now fixed! Works on Windows/Mac/Linux
+# Make sure app is installed
+```
+
+**Game not responding to AI?**
+```bash
+# Run as administrator (Windows)
+# Grant accessibility permissions (Mac)
+# See AI_GAME_PLAYER_GUIDE.md for details
 ```
 
 **Microphone not working?**
@@ -399,10 +455,11 @@ MIT License - See LICENSE file for details
 - **Issues:** [GitHub Issues](https://github.com/Aryankaushik541/Zarves/issues)
 - **Documentation:** See docs folder
 - **Quick Start:** [QUICKSTART.md](QUICKSTART.md)
+- **Game Playing:** [AI_GAME_PLAYER_GUIDE.md](AI_GAME_PLAYER_GUIDE.md)
 - **Troubleshooting:** [FIXES.md](FIXES.md)
 
 ---
 
-**"I am Iron Man." - Tony Stark** 🦾
+**"I am Iron Man... and I play games too!" - JARVIS** 🦾🎮
 
 Made with 🔥 by the JARVIS team

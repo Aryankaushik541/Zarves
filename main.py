@@ -5,6 +5,7 @@
 JARVIS - Autonomous AI Assistant with Self-Healing + NPU Acceleration
 Fully autonomous operation with auto-detection and error recovery
 Optimized for Omen PC with NPU support
+Natural Indian Language Support - Koi bhi admi bole, JARVIS samajh jayega!
 """
 
 import sys
@@ -48,6 +49,7 @@ try:
     from core.engine import JarvisEngine
     from gui.app import run_gui as run_gui_app
     from core.npu_accelerator import npu_accelerator
+    from core.indian_language import normalize_indian_text, extract_intent_from_indian_text, is_indian_question
 except ImportError as e:
     print(f"⚠️  Import error detected: {e}")
     if self_healing.auto_fix_error(e, "Initial imports"):
@@ -122,78 +124,11 @@ class AutoMode:
         return AutoMode.detect_gui_available()
 
 
-def normalize_hindi_command(query):
-    """
-    Normalize Hindi commands to English equivalents for better detection.
-    Handles Devanagari script and transliterated Hindi.
-    """
-    # Hindi to English command mapping
-    hindi_commands = {
-        # Devanagari script
-        'खोलो': 'open',
-        'खोल': 'open',
-        'बंद': 'close',
-        'बंद करो': 'close',
-        'शुरू': 'start',
-        'शुरू करो': 'start',
-        'बजाओ': 'play',
-        'बजा': 'play',
-        'रोको': 'stop',
-        'रोक': 'stop',
-        'ढूंढो': 'search',
-        'ढूंढ': 'search',
-        'खोजो': 'search',
-        'खोज': 'search',
-        'बनाओ': 'create',
-        'बना': 'create',
-        'लिखो': 'write',
-        'लिख': 'write',
-        'पढ़ो': 'read',
-        'पढ़': 'read',
-        'मिटाओ': 'delete',
-        'मिटा': 'delete',
-        'भेजो': 'send',
-        'भेज': 'send',
-        'युटुब': 'youtube',
-        'यूट्यूब': 'youtube',
-        'गूगल': 'google',
-        'क्रोम': 'chrome',
-        'ब्राउज़र': 'browser',
-        'म्यूजिक': 'music',
-        'संगीत': 'music',
-        'गाना': 'song',
-        'वीडियो': 'video',
-        'फोटो': 'photo',
-        'तस्वीर': 'photo',
-        
-        # Transliterated Hindi (Roman script)
-        'karo': 'do',
-        'band': 'close',
-        'shuru': 'start',
-        'bajao': 'play',
-        'roko': 'stop',
-        'dhundo': 'search',
-        'khojo': 'search',
-        'banao': 'create',
-        'likho': 'write',
-        'padho': 'read',
-        'mitao': 'delete',
-        'bhejo': 'send',
-    }
-    
-    normalized = query.lower()
-    
-    # Replace Hindi words with English equivalents
-    for hindi, english in hindi_commands.items():
-        normalized = normalized.replace(hindi, english)
-    
-    return normalized
-
-
 def jarvis_loop(pause_event, registry, use_text_mode):
     """
     Main loop for JARVIS with full autonomous operation.
     Automatically handles all errors and mode switching.
+    Supports natural Indian language input.
     """
     # Initialize Engine with retry
     jarvis = None
@@ -224,11 +159,13 @@ def jarvis_loop(pause_event, registry, use_text_mode):
     if use_text_mode:
         print(f"JARVIS: {startup_msg}")
         print("💬 Text mode active. Type your commands.")
+        print("💡 Hinglish bhi chalega! (e.g., 'YouTube kholo', 'gaana bajao')")
     else:
         try:
             speak(startup_msg)
             print("🎤 Voice mode active. Say 'Jarvis' followed by your command.")
-            print("💡 Tip: Hindi commands bhi kaam karenge! (e.g., 'Jarvis, YouTube kholo')")
+            print("💡 Natural Indian language supported!")
+            print("   Examples: 'Jarvis, YouTube kholo', 'Jarvis, gaana bajao'")
         except Exception as e:
             print(f"⚠️  TTS error: {e}")
             self_healing.auto_fix_error(e, "Startup TTS")
@@ -249,7 +186,7 @@ def jarvis_loop(pause_event, registry, use_text_mode):
             # Get user input - auto-detect mode
             if use_text_mode:
                 try:
-                    user_query = input("YOU: ").lower()
+                    user_query = input("YOU: ")
                 except EOFError:
                     break
                 except KeyboardInterrupt:
@@ -280,11 +217,20 @@ def jarvis_loop(pause_event, registry, use_text_mode):
             if user_query == "none" or not user_query: 
                 continue
             
-            # Normalize Hindi commands to English
-            normalized_query = normalize_hindi_command(user_query)
+            # Store original query for display
+            original_query = user_query
+            
+            # Normalize Indian language to English
+            # This handles Hinglish, Indian English, and Hindi commands
+            normalized_query = normalize_indian_text(user_query)
+            
+            # Show what was understood
+            if normalized_query != user_query.lower():
+                print(f"📝 Understood as: {normalized_query}")
             
             # Shutdown commands
-            if any(cmd in normalized_query for cmd in ["quit", "exit", "shutdown", "band karo", "niklo"]):
+            shutdown_commands = ["quit", "exit", "shutdown", "band karo", "niklo", "bye", "goodbye"]
+            if any(cmd in normalized_query for cmd in shutdown_commands):
                 print("Shutting down JARVIS...")
                 shutdown_msg = "Shutting down. Goodbye!"
                 if use_text_mode:
@@ -325,7 +271,7 @@ def jarvis_loop(pause_event, registry, use_text_mode):
             direct_commands = [
                 "open", "close", "launch", "start",
                 "volume", "mute", "unmute",
-                "search", "find", "look up", "google",
+                "search", "find", "look", "google",
                 "create", "make", "write", "read", "delete",
                 "who", "what", "when", "where", "how", "why",
                 "thank", "hello", "hi", "hey",
@@ -333,8 +279,9 @@ def jarvis_loop(pause_event, registry, use_text_mode):
                 "email", "send", "message",
                 "weather", "time", "date",
                 "screenshot", "capture",
-                "youtube", "chrome", "browser",  # Added common apps
-                "music", "song", "video", "photo"  # Added media types
+                "youtube", "chrome", "browser",
+                "music", "song", "video", "photo",
+                "do", "show", "tell"  # Added from Indian language
             ]
             
             # Check both original and normalized query
@@ -343,18 +290,17 @@ def jarvis_loop(pause_event, registry, use_text_mode):
             
             # If no wake word and not a direct command, ignore (only in voice mode)
             if not use_text_mode and not has_wake_word and not is_direct:
-                print(f"Ignored (no wake word): {user_query}")
+                print(f"Ignored (no wake word): {original_query}")
                 print("💡 Tip: Say 'Jarvis' pehle, phir command")
                 continue
             
             # Remove wake word for cleaner processing
-            clean_query = user_query.replace("jarvis", "").strip()
+            clean_query = normalized_query.replace("jarvis", "").strip()
             clean_query = clean_query.replace("please", "").replace("can you", "").replace("could you", "").strip()
-            clean_query = clean_query.replace("कृपया", "").replace("जरा", "").replace("ज़रा", "").strip()
             
-            # Use original query if it has direct commands (preserves Hindi)
+            # Use original query if it has direct commands (preserves context)
             if is_direct and not has_wake_word:
-                clean_query = user_query
+                clean_query = normalized_query
             
             # Process query with error handling
             try:
@@ -423,9 +369,11 @@ def main():
     print("="*60)
     print("🤖 JARVIS - Autonomous AI Assistant")
     print("⚡ NPU-Accelerated for Omen PC")
+    print("🇮🇳 Natural Indian Language Support")
     print("="*60)
     print("🔧 Self-Healing System: Active")
     print("🧠 Auto-Mode Detection: Active")
+    print("💬 Hinglish Support: Active")
     print("="*60)
     
     # Initialize NPU Accelerator
@@ -452,7 +400,15 @@ def main():
     print(f"   Voice Mode: {'❌ Disabled' if use_text_mode else '✅ Enabled'}")
     print(f"   GUI Mode: {'✅ Enabled' if use_gui else '❌ Disabled'}")
     print(f"   Debug Logging: {'✅ Enabled' if AUTO_DEBUG_MODE else '❌ Disabled'}")
-    print(f"   Hindi Support: ✅ Enabled")
+    print(f"   Indian Language: ✅ Enabled (Hinglish + Hindi)")
+    print()
+    
+    print("💡 Example Commands:")
+    print("   • YouTube kholo")
+    print("   • Gaana bajao")
+    print("   • Google pe dhundho")
+    print("   • Time kya hua hai?")
+    print("   • Calculator chalu karo")
     print()
     
     print("🚀 Starting JARVIS...\n")

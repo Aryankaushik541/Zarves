@@ -1,6 +1,7 @@
 """
 Self-Healing System for JARVIS
 Automatically detects and fixes common errors without user intervention
+Now with Advanced Self-Coding AI integration
 """
 
 import os
@@ -12,12 +13,21 @@ from datetime import datetime
 
 
 class SelfHealing:
-    """Autonomous error detection and fixing system"""
+    """Autonomous error detection and fixing system with AI code generation"""
     
     def __init__(self):
         self.error_log: List[Dict] = []
         self.fix_attempts: Dict[str, int] = {}
         self.max_fix_attempts = 3
+        self.advanced_coder = None
+        
+        # Try to initialize advanced self-coder
+        try:
+            from core.advanced_self_coder import advanced_self_coder
+            self.advanced_coder = advanced_self_coder
+            print("✅ Advanced Self-Coder integrated with Self-Healing")
+        except Exception as e:
+            print(f"⚠️  Advanced Self-Coder not available: {e}")
         
     def log_error(self, error: Exception, context: str = ""):
         """Log error for analysis"""
@@ -30,10 +40,18 @@ class SelfHealing:
         }
         self.error_log.append(error_entry)
         
-    def auto_fix_error(self, error: Exception, context: str = "") -> bool:
+    def auto_fix_error(self, error: Exception, context: str = "", file_path: str = None) -> bool:
         """
         Automatically attempt to fix the error.
-        Returns True if fixed, False if cannot fix.
+        Now with AI-powered code generation!
+        
+        Args:
+            error: The exception that occurred
+            context: Context where error happened
+            file_path: Path to file with error (for AI fixes)
+        
+        Returns:
+            True if fixed, False if cannot fix.
         """
         self.log_error(error, context)
         error_type = type(error).__name__
@@ -47,12 +65,31 @@ class SelfHealing:
         
         self.fix_attempts[fix_key] = self.fix_attempts.get(fix_key, 0) + 1
         
-        # Try different fix strategies based on error type
+        # Try basic fixes first (fast)
+        basic_fix = self._try_basic_fix(error_type, error_msg, context)
+        if basic_fix:
+            return True
+        
+        # If basic fix failed and we have advanced coder, try AI fix
+        if self.advanced_coder and file_path:
+            print(f"\n🤖 Trying AI-powered fix...")
+            ai_fix = self.advanced_coder.analyze_error_and_fix(error, context, file_path)
+            if ai_fix:
+                print(f"✅ AI successfully fixed the error!")
+                print(f"💡 Please restart JARVIS to apply changes: python main.py")
+                return True
+        
+        print(f"❌ Could not automatically fix: {error_type}")
+        return False
+    
+    def _try_basic_fix(self, error_type: str, error_msg: str, context: str) -> bool:
+        """Try basic/fast fixes first"""
+        
         if error_type == "ModuleNotFoundError" or error_type == "ImportError":
             return self._fix_import_error(error_msg)
         
         elif error_type == "AttributeError":
-            return self._fix_attribute_error(error, error_msg, context)
+            return self._fix_attribute_error(error_msg, context)
         
         elif error_type == "FileNotFoundError":
             return self._fix_file_not_found(error_msg)
@@ -63,24 +100,15 @@ class SelfHealing:
         elif "API" in error_msg or "key" in error_msg.lower():
             return self._fix_api_error(error_msg)
         
-        else:
-            print(f"❌ इस error को automatically fix नहीं कर सकता: {error_type}")
-            print(f"💡 Error details:")
-            print(traceback.format_exc())
-            return False
+        return False
     
-    def _fix_attribute_error(self, error: Exception, error_msg: str, context: str) -> bool:
+    def _fix_attribute_error(self, error_msg: str, context: str) -> bool:
         """
         Fix AttributeError by analyzing the missing attribute and suggesting fixes.
-        Common cases:
-        1. Missing method in class
-        2. Typo in attribute name
-        3. Wrong object type
         """
         print(f"🔧 Attempting to fix AttributeError...")
         
         # Extract object and attribute from error message
-        # Format: 'ClassName' object has no attribute 'method_name'
         if "has no attribute" in error_msg:
             parts = error_msg.split("'")
             if len(parts) >= 4:
@@ -103,7 +131,7 @@ class SelfHealing:
                         print(f"   Please restart JARVIS: python main.py")
                         return True
                 
-                # Generic attribute error handling
+                # Generic suggestions
                 print(f"💡 Suggestions:")
                 print(f"   1. Check if {class_name} class has {attr_name} method")
                 print(f"   2. Verify the object type is correct")
@@ -139,6 +167,7 @@ class SelfHealing:
                 'PIL': 'Pillow',
                 'sklearn': 'scikit-learn',
                 'speech_recognition': 'SpeechRecognition',
+                'pywhatkit': 'pywhatkit',
             }
             
             if module_name in package_map:
@@ -163,7 +192,7 @@ class SelfHealing:
         # Extract filename if possible
         if "[Errno 2]" in error_msg or "No such file" in error_msg:
             # Try to create common directories
-            common_dirs = ['logs', 'data', 'temp', 'cache']
+            common_dirs = ['logs', 'data', 'temp', 'cache', 'skill']
             for dir_name in common_dirs:
                 if dir_name in error_msg.lower():
                     try:
@@ -221,6 +250,41 @@ class SelfHealing:
         
         return True
     
+    def create_skill_with_ai(self, skill_name: str, description: str, functions: List[str]) -> bool:
+        """
+        Create a new skill using AI code generation
+        
+        Args:
+            skill_name: Name of the skill
+            description: What the skill does
+            functions: List of function names
+        
+        Returns:
+            True if skill created successfully
+        """
+        if not self.advanced_coder:
+            print("⚠️  Advanced Self-Coder not available")
+            return False
+        
+        return self.advanced_coder.create_new_skill(skill_name, description, functions)
+    
+    def improve_code_with_ai(self, file_path: str, improvement_type: str = "performance") -> bool:
+        """
+        Improve existing code using AI
+        
+        Args:
+            file_path: Path to file to improve
+            improvement_type: Type of improvement
+        
+        Returns:
+            True if improvement successful
+        """
+        if not self.advanced_coder:
+            print("⚠️  Advanced Self-Coder not available")
+            return False
+        
+        return self.advanced_coder.improve_code(file_path, improvement_type)
+    
     def get_error_report(self) -> str:
         """Generate error report"""
         if not self.error_log:
@@ -246,12 +310,11 @@ class SelfHealing:
                     report += f"     Context: {error['context']}\n"
             report += "\n"
         
+        # Add AI fix history if available
+        if self.advanced_coder:
+            report += "\n" + self.advanced_coder.get_fix_history()
+        
         return report
-    
-    def clear_error_log(self):
-        """Clear error log"""
-        self.error_log.clear()
-        self.fix_attempts.clear()
 
 
 # Global instance

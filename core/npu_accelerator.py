@@ -1,7 +1,8 @@
 """
 NPU Accelerator for JARVIS
 Leverages Neural Processing Unit (NPU) on Omen PC for faster AI inference
-Supports Intel NPU, AMD XDNA, and fallback to CPU/GPU
+Supports Intel NPU, AMD XDNA, NVIDIA GPU, AMD GPU, and CPU
+Auto-detects best available hardware
 """
 
 import os
@@ -12,8 +13,13 @@ from typing import Optional, Dict, Any
 
 class NPUAccelerator:
     """
-    NPU Acceleration Manager for JARVIS
-    Automatically detects and uses available NPU hardware
+    Hardware Acceleration Manager for JARVIS
+    Automatically detects and uses best available hardware:
+    1. NVIDIA GPU (CUDA)
+    2. AMD GPU (ROCm)
+    3. Intel NPU/GPU
+    4. Apple Silicon (MPS)
+    5. CPU (fallback)
     """
     
     def __init__(self):
@@ -21,129 +27,139 @@ class NPUAccelerator:
         self.npu_type = None
         self.device = "cpu"  # Default fallback
         self.acceleration_enabled = False
+        self.device_name = "CPU"
         
-        # Detect NPU
-        self._detect_npu()
+        # Detect best hardware
+        self._detect_hardware()
         
-    def _detect_npu(self):
-        """Detect available NPU hardware"""
-        print("🔍 Detecting NPU hardware...")
+    def _detect_hardware(self):
+        """Detect best available hardware in priority order"""
+        print("🔍 Detecting hardware...")
         
-        # Check for Intel NPU (AI Boost)
+        # Priority 1: NVIDIA GPU (CUDA)
+        if self._check_nvidia_gpu():
+            return
+        
+        # Priority 2: AMD GPU (ROCm)
+        if self._check_amd_gpu():
+            return
+        
+        # Priority 3: Intel NPU/GPU
         if self._check_intel_npu():
-            self.npu_type = "Intel NPU"
-            self.npu_available = True
-            self.device = "npu"
-            print(f"✅ Detected: {self.npu_type}")
             return
         
-        # Check for AMD XDNA NPU
-        if self._check_amd_npu():
-            self.npu_type = "AMD XDNA NPU"
-            self.npu_available = True
-            self.device = "npu"
-            print(f"✅ Detected: {self.npu_type}")
+        # Priority 4: Apple Silicon (MPS)
+        if self._check_apple_silicon():
             return
         
-        # Fallback to GPU if available
-        if self._check_gpu():
-            self.npu_type = "GPU (CUDA/DirectML)"
-            self.device = "gpu"
-            print(f"✅ Using GPU acceleration")
-            return
-        
-        print("⚠️  No NPU detected. Using CPU.")
+        # Priority 5: CPU (fallback)
+        print("⚠️  No GPU/NPU detected. Using CPU.")
         self.device = "cpu"
+        self.device_name = platform.processor() or "CPU"
+        self.npu_type = "CPU"
+    
+    def _check_nvidia_gpu(self) -> bool:
+        """Check for NVIDIA GPU with CUDA support"""
+        try:
+            import torch
+            if torch.cuda.is_available():
+                self.device = "cuda"
+                self.device_name = torch.cuda.get_device_name(0)
+                self.npu_type = "GPU (NVIDIA CUDA)"
+                self.acceleration_enabled = True
+                print(f"✅ Detected: {self.device_name}")
+                print(f"   CUDA Version: {torch.version.cuda}")
+                return True
+        except Exception as e:
+            pass
+        
+        return False
+    
+    def _check_amd_gpu(self) -> bool:
+        """Check for AMD GPU with ROCm support"""
+        try:
+            import torch
+            # Check for ROCm (AMD GPU)
+            if hasattr(torch.version, 'hip') and torch.version.hip:
+                self.device = "hip"
+                self.device_name = "AMD GPU"
+                self.npu_type = "GPU (AMD ROCm)"
+                self.acceleration_enabled = True
+                print(f"✅ Detected: AMD GPU (ROCm)")
+                print(f"   ROCm Version: {torch.version.hip}")
+                return True
+        except Exception as e:
+            pass
+        
+        return False
     
     def _check_intel_npu(self) -> bool:
-        """Check for Intel NPU (Core Ultra processors)"""
+        """Check for Intel NPU/GPU"""
         try:
-            # Check CPU info for Intel Core Ultra
+            # Check for Intel Extension for PyTorch
+            import intel_extension_for_pytorch as ipex
+            import torch
+            
+            # Intel XPU (NPU/GPU)
+            if hasattr(torch, 'xpu') and torch.xpu.is_available():
+                self.device = "xpu"
+                self.device_name = "Intel NPU/GPU"
+                self.npu_type = "NPU (Intel)"
+                self.npu_available = True
+                self.acceleration_enabled = True
+                print(f"✅ Detected: Intel NPU/GPU")
+                return True
+        except ImportError:
+            pass
+        except Exception as e:
+            pass
+        
+        # Check for Intel Core Ultra (has NPU)
+        try:
             if platform.system() == "Windows":
                 result = subprocess.run(
                     ["wmic", "cpu", "get", "name"],
                     capture_output=True,
                     text=True,
-                    timeout=5
+                    timeout=5,
+                    creationflags=subprocess.CREATE_NO_WINDOW  # Hide window
                 )
                 cpu_info = result.stdout.lower()
                 
-                # Intel Core Ultra has NPU
                 if "core ultra" in cpu_info or "meteor lake" in cpu_info:
-                    return True
-                
-                # Check for Intel AI Boost
-                if "ai boost" in cpu_info:
-                    return True
-            
-            # Check for OpenVINO NPU plugin
-            try:
-                import openvino as ov
-                core = ov.Core()
-                devices = core.available_devices
-                if "NPU" in devices:
-                    return True
-            except:
-                pass
-                
-        except Exception as e:
-            print(f"Intel NPU check error: {e}")
-        
-        return False
-    
-    def _check_amd_npu(self) -> bool:
-        """Check for AMD XDNA NPU (Ryzen AI)"""
-        try:
-            if platform.system() == "Windows":
-                result = subprocess.run(
-                    ["wmic", "cpu", "get", "name"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5
-                )
-                cpu_info = result.stdout.lower()
-                
-                # AMD Ryzen AI has XDNA NPU
-                if "ryzen ai" in cpu_info or "7040" in cpu_info or "8040" in cpu_info:
-                    return True
-            
-            # Check for AMD NPU driver
-            try:
-                import onnxruntime as ort
-                providers = ort.get_available_providers()
-                if "VitisAIExecutionProvider" in providers:
-                    return True
-            except:
-                pass
-                
-        except Exception as e:
-            print(f"AMD NPU check error: {e}")
-        
-        return False
-    
-    def _check_gpu(self) -> bool:
-        """Check for GPU (CUDA or DirectML)"""
-        try:
-            # Check NVIDIA GPU
-            try:
-                import torch
-                if torch.cuda.is_available():
-                    return True
-            except:
-                pass
-            
-            # Check DirectML (Windows GPU)
-            if platform.system() == "Windows":
-                try:
-                    import onnxruntime as ort
-                    if "DmlExecutionProvider" in ort.get_available_providers():
-                        return True
-                except:
-                    pass
+                    print("💡 Intel Core Ultra detected (has NPU)")
+                    print("   Install intel-extension-for-pytorch for NPU support")
+                    print("   pip install intel-extension-for-pytorch")
         except:
             pass
         
         return False
+    
+    def _check_apple_silicon(self) -> bool:
+        """Check for Apple Silicon (M1/M2/M3)"""
+        try:
+            if platform.system() == 'Darwin' and platform.machine() == 'arm64':
+                import torch
+                if torch.backends.mps.is_available():
+                    self.device = "mps"
+                    self.device_name = "Apple Silicon"
+                    self.npu_type = "NPU (Apple Silicon)"
+                    self.npu_available = True
+                    self.acceleration_enabled = True
+                    print(f"✅ Detected: Apple Silicon (MPS)")
+                    return True
+        except Exception as e:
+            pass
+        
+        return False
+    
+    def get_torch_device(self):
+        """Get PyTorch device object"""
+        try:
+            import torch
+            return torch.device(self.device)
+        except:
+            return None
     
     def get_optimized_config(self) -> Dict[str, Any]:
         """Get optimized configuration for current hardware"""
@@ -155,22 +171,22 @@ class NPUAccelerator:
             "num_threads": os.cpu_count() or 4,
         }
         
-        if self.npu_available:
-            # NPU optimizations
-            config.update({
-                "use_fp16": True,  # NPU works best with FP16
-                "use_int8": True,  # NPU supports INT8 quantization
-                "batch_size": 4,   # NPU can handle larger batches
-                "cache_enabled": True,
-                "optimization_level": "aggressive",
-            })
-        elif self.device == "gpu":
+        if self.device in ["cuda", "hip"]:
             # GPU optimizations
             config.update({
                 "use_fp16": True,
                 "batch_size": 8,
                 "cache_enabled": True,
                 "optimization_level": "balanced",
+            })
+        elif self.device in ["xpu", "mps"]:
+            # NPU optimizations
+            config.update({
+                "use_fp16": True,
+                "use_int8": True,
+                "batch_size": 4,
+                "cache_enabled": True,
+                "optimization_level": "aggressive",
             })
         else:
             # CPU optimizations
@@ -215,21 +231,24 @@ class NPUAccelerator:
             
             providers = []
             
-            if self.npu_available:
-                # Try NPU providers
-                if self.npu_type == "AMD XDNA NPU":
-                    providers.append("VitisAIExecutionProvider")
-                
-                # Intel NPU via OpenVINO
+            # CUDA (NVIDIA)
+            if self.device == "cuda":
+                if "CUDAExecutionProvider" in ort.get_available_providers():
+                    providers.append("CUDAExecutionProvider")
+            
+            # ROCm (AMD)
+            elif self.device == "hip":
+                if "ROCMExecutionProvider" in ort.get_available_providers():
+                    providers.append("ROCMExecutionProvider")
+            
+            # Intel NPU
+            elif self.device == "xpu":
                 if "OpenVINOExecutionProvider" in ort.get_available_providers():
                     providers.append(("OpenVINOExecutionProvider", {"device_type": "NPU"}))
             
-            # GPU fallback
-            if self.device == "gpu":
-                available = ort.get_available_providers()
-                if "CUDAExecutionProvider" in available:
-                    providers.append("CUDAExecutionProvider")
-                elif "DmlExecutionProvider" in available:
+            # DirectML (Windows GPU fallback)
+            if platform.system() == "Windows":
+                if "DmlExecutionProvider" in ort.get_available_providers():
                     providers.append("DmlExecutionProvider")
             
             # CPU fallback
@@ -244,51 +263,42 @@ class NPUAccelerator:
             return ["CPUExecutionProvider"]
     
     def optimize_for_speech_recognition(self):
-        """Optimize NPU for speech recognition tasks"""
-        if not self.npu_available:
-            return
+        """Optimize hardware for speech recognition tasks"""
+        if not self.acceleration_enabled:
+            return {}
         
-        print("🎤 Optimizing NPU for speech recognition...")
-        
-        # Speech recognition benefits from:
-        # - Low latency
-        # - Continuous processing
-        # - FP16 precision
+        print("🎤 Optimizing for speech recognition...")
         
         config = {
             "latency_mode": True,
             "streaming": True,
-            "precision": "fp16",
+            "precision": "fp16" if self.device != "cpu" else "fp32",
             "cache_audio_features": True,
         }
         
         return config
     
     def optimize_for_llm_inference(self):
-        """Optimize NPU for LLM inference"""
-        if not self.npu_available:
-            return
+        """Optimize hardware for LLM inference"""
+        if not self.acceleration_enabled:
+            return {}
         
-        print("🧠 Optimizing NPU for LLM inference...")
-        
-        # LLM inference benefits from:
-        # - INT8 quantization
-        # - KV cache
-        # - Batch processing
+        print("🧠 Optimizing for LLM inference...")
         
         config = {
-            "quantization": "int8",
+            "quantization": "int8" if self.npu_available else "fp16",
             "kv_cache_enabled": True,
-            "batch_size": 4,
-            "use_flash_attention": True,
+            "batch_size": 4 if self.acceleration_enabled else 1,
+            "use_flash_attention": self.device == "cuda",
         }
         
         return config
     
     def get_performance_stats(self) -> Dict[str, Any]:
-        """Get NPU performance statistics"""
+        """Get hardware performance statistics"""
         stats = {
             "device": self.device,
+            "device_name": self.device_name,
             "npu_type": self.npu_type,
             "acceleration_enabled": self.acceleration_enabled,
             "cpu_count": os.cpu_count(),
@@ -303,10 +313,19 @@ class NPUAccelerator:
         except:
             pass
         
+        # Add GPU memory if available
+        if self.device == "cuda":
+            try:
+                import torch
+                if torch.cuda.is_available():
+                    stats["gpu_memory_gb"] = round(torch.cuda.get_device_properties(0).total_memory / (1024**3), 2)
+            except:
+                pass
+        
         return stats
     
     def print_status(self):
-        """Print NPU status and configuration"""
+        """Print hardware status and configuration"""
         print("\n" + "="*60)
         print("🔧 NPU Accelerator Status")
         print("="*60)
@@ -315,14 +334,16 @@ class NPUAccelerator:
         config = self.get_optimized_config()
         
         print(f"Device: {stats['device'].upper()}")
-        if stats['npu_type']:
-            print(f"NPU Type: {stats['npu_type']}")
+        print(f"NPU Type: {stats['npu_type']}")
         print(f"Acceleration: {'✅ Enabled' if stats['acceleration_enabled'] else '❌ Disabled'}")
         print(f"CPU Cores: {stats['cpu_count']}")
         
         if 'total_memory_gb' in stats:
             print(f"Total RAM: {stats['total_memory_gb']} GB")
             print(f"Available RAM: {stats['available_memory_gb']} GB")
+        
+        if 'gpu_memory_gb' in stats:
+            print(f"GPU Memory: {stats['gpu_memory_gb']} GB")
         
         print(f"\nOptimizations:")
         print(f"  - Batch Size: {config['batch_size']}")
@@ -349,5 +370,10 @@ def is_npu_available():
 
 
 def get_device():
-    """Get optimal device (npu/gpu/cpu)"""
+    """Get optimal device (cuda/hip/xpu/mps/cpu)"""
     return npu_accelerator.device
+
+
+def get_torch_device():
+    """Get PyTorch device object"""
+    return npu_accelerator.get_torch_device()

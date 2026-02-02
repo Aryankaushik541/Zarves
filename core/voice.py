@@ -62,7 +62,7 @@ set_deep_male_voice()
 
 def speak(text):
     if "{" in text and "}" in text and "status" in text:
-        text = "कार्य पूर्ण हुआ।"
+        text = "Task completed."
     
     # Print first so user sees it even if audio fails
     print(f"JARVIS: {text}")
@@ -102,12 +102,12 @@ def speak(text):
 def listen():
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        print("सुन रहा हूँ... (Listening...)")
+        print("Listening...")
         r.pause_threshold = 0.8
         r.adjust_for_ambient_noise(source, duration=1)
         try:
             audio = r.listen(source, timeout=5, phrase_time_limit=10)
-            print("पहचान रहा हूँ... (Recognizing...)")
+            print("Recognizing...")
             
             # Try Hindi recognition first, fallback to English
             try:
@@ -124,10 +124,10 @@ def listen():
             
             return query.lower()
         except sr.WaitTimeoutError:
-            print("Timeout: कोई आवाज़ नहीं सुनाई दी")
+            print("Timeout: No voice detected")
             return "none"
         except sr.UnknownValueError:
-            print("समझ नहीं आया (Could not understand)")
+            print("Could not understand")
             return "none"
         except Exception as e:
             print(f"Error: {e}")

@@ -32,6 +32,13 @@ class JarvisEngine:
         self.conversation_history = []
         self.max_iterations = 10
 
+    def process_query(self, user_query: str) -> str:
+        """
+        Process user query - main entry point for JARVIS.
+        This is an alias for run_conversation for backward compatibility.
+        """
+        return self.run_conversation(user_query)
+
     def run_conversation(self, user_query: str) -> str:
         """
         Run a conversation with self-healing error handling.

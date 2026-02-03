@@ -30,7 +30,7 @@ class AutonomousCoderV2:
         self.model = model
         self.project_history = []
         self.error_history = []
-        self.max_debug_attempts = 3  # Reduced for faster execution
+        self.max_debug_attempts = 3
         
         # Increased timeouts
         self.generation_timeout = 180  # 3 minutes
@@ -113,6 +113,9 @@ class AutonomousCoderV2:
             if response:
                 research_data['best_practices'] = self._extract_list(response, 'practice')[:3]
                 research_data['libraries'] = self._extract_list(response, 'librar')[:3]
+                print("   ✅ Research completed")
+            else:
+                print("   ⚠️ Research skipped (using defaults)")
         
         except Exception as e:
             print(f"   ⚠️ Research skipped (timeout): Using defaults")
@@ -128,61 +131,19 @@ class AutonomousCoderV2:
         
         print(f"   💻 Generating {project_type.upper()} code files...")
         
-        # Try AI generation first
-        try:
-            if project_type == 'react':
-                return self._generate_react_files_fast(project_name, requirements)
-            elif project_type == 'django':
-                return self._generate_django_files_fast(project_name, requirements)
-            elif project_type == 'mern':
-                return self._generate_mern_files_fast(project_name, requirements)
-            elif project_type == 'android':
-                return self._generate_android_files_fast(project_name, requirements)
+        # Use fallback templates (faster and more reliable)
+        print("   📦 Using optimized templates...")
         
-        except Exception as e:
-            print(f"   ⚠️ AI generation failed: {e}")
-            print(f"   🔄 Using fallback templates...")
-            
-            # Use fallback templates
-            if project_type == 'react':
-                return self._get_react_fallback_template(project_name, requirements)
-            elif project_type == 'django':
-                return self._get_django_fallback_template(project_name, requirements)
-            elif project_type == 'mern':
-                return self._get_mern_fallback_template(project_name, requirements)
-            elif project_type == 'android':
-                return self._get_android_fallback_template(project_name, requirements)
+        if project_type == 'react':
+            return self._get_react_fallback_template(project_name, requirements)
+        elif project_type == 'django':
+            return self._get_django_fallback_template(project_name, requirements)
+        elif project_type == 'mern':
+            return self._get_mern_fallback_template(project_name, requirements)
+        elif project_type == 'android':
+            return self._get_android_fallback_template(project_name, requirements)
         
         return {}
-    
-    # ==================== FAST GENERATION METHODS ====================
-    
-    def _generate_react_files_fast(self, project_name: str, requirements: str) -> Dict:
-        """Generate React files quickly"""
-        
-        files = {}
-        
-        # Use fallback templates (faster and more reliable)
-        print("   📦 Using optimized React templates...")
-        return self._get_react_fallback_template(project_name, requirements)
-    
-    def _generate_django_files_fast(self, project_name: str, requirements: str) -> Dict:
-        """Generate Django files quickly"""
-        
-        print("   📦 Using optimized Django templates...")
-        return self._get_django_fallback_template(project_name, requirements)
-    
-    def _generate_mern_files_fast(self, project_name: str, requirements: str) -> Dict:
-        """Generate MERN files quickly"""
-        
-        print("   📦 Using optimized MERN templates...")
-        return self._get_mern_fallback_template(project_name, requirements)
-    
-    def _generate_android_files_fast(self, project_name: str, requirements: str) -> Dict:
-        """Generate Android files quickly"""
-        
-        print("   📦 Using optimized Android templates...")
-        return self._get_android_fallback_template(project_name, requirements)
     
     # ==================== FALLBACK TEMPLATES ====================
     
@@ -199,6 +160,7 @@ class AutonomousCoderV2:
             "dependencies": {
                 "react": "^18.2.0",
                 "react-dom": "^18.2.0",
+                "react-scripts": "5.0.1",
                 "react-router-dom": "^6.20.0",
                 "axios": "^1.6.0",
                 "@mui/material": "^5.14.0",
@@ -222,7 +184,7 @@ class AutonomousCoderV2:
         
         # src/App.js
         files['src/App.js'] = f'''import React from 'react';
-import {{ BrowserRouter as Router, Routes, Route }} from 'react-router-dom';
+import {{ BrowserRouter as Router, Routes, Route, Link }} from 'react-router-dom';
 import './App.css';
 
 function App() {{
@@ -232,6 +194,9 @@ function App() {{
         <header className="App-header">
           <h1>{project_name}</h1>
           <p>{requirements}</p>
+          <nav>
+            <Link to="/">Home</Link> | <Link to="/about">About</Link>
+          </nav>
         </header>
         <main>
           <Routes>
@@ -246,18 +211,25 @@ function App() {{
 
 function Home() {{
   return (
-    <div>
+    <div className="page">
       <h2>Home Page</h2>
       <p>Welcome to {project_name}!</p>
+      <p>This application is for: {requirements}</p>
     </div>
   );
 }}
 
 function About() {{
   return (
-    <div>
+    <div className="page">
       <h2>About</h2>
-      <p>This is a React application for: {requirements}</p>
+      <p>This is a React application built with:</p>
+      <ul>
+        <li>React 18+</li>
+        <li>React Router v6</li>
+        <li>Material-UI</li>
+        <li>Axios for API calls</li>
+      </ul>
     </div>
   );
 }}
@@ -293,10 +265,47 @@ root.render(
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  padding: 20px;
+}
+
+.App-header nav {
+  margin-top: 20px;
+}
+
+.App-header nav a {
+  color: #61dafb;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+.App-header nav a:hover {
+  text-decoration: underline;
 }
 
 main {
   padding: 20px;
+}
+
+.page {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.page h2 {
+  color: #282c34;
+  border-bottom: 2px solid #61dafb;
+  padding-bottom: 10px;
+}
+
+.page ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.page li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
 }
 '''
         
@@ -313,6 +322,10 @@ main {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+* {
+  box-sizing: border-box;
 }
 '''
         
@@ -333,6 +346,30 @@ code {
 </html>
 '''
         
+        # .gitignore
+        files['.gitignore'] = '''# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+'''
+        
         # README.md
         files['README.md'] = f'''# {project_name}
 
@@ -346,11 +383,34 @@ npm install
 npm start
 ```
 
+The app will open at [http://localhost:3000](http://localhost:3000)
+
 ## Features
 - React 18+
-- React Router
-- Material-UI
+- React Router v6
+- Material-UI components
 - Axios for API calls
+- Responsive design
+
+## Project Structure
+```
+{project_name}/
+├── public/
+│   └── index.html
+├── src/
+│   ├── App.js
+│   ├── App.css
+│   ├── index.js
+│   └── index.css
+├── package.json
+└── README.md
+```
+
+## Available Scripts
+
+- `npm start` - Runs the app in development mode
+- `npm build` - Builds the app for production
+- `npm test` - Runs tests
 
 ## Generated by
 JARVIS Autonomous Coder V2
@@ -393,7 +453,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-change-this-in-production'
+SECRET_KEY = 'django-insecure-change-this-in-production-{project_name}'
 
 DEBUG = True
 
@@ -462,6 +522,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -471,8 +532,15 @@ REST_FRAMEWORK = {{
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
 }}
 '''
+        
+        # __init__.py files
+        files[f'{project_name}/__init__.py'] = ''
+        files['api/__init__.py'] = ''
         
         # urls.py
         files[f'{project_name}/urls.py'] = '''from django.contrib import admin
@@ -484,6 +552,15 @@ urlpatterns = [
 ]
 '''
         
+        # wsgi.py
+        files[f'{project_name}/wsgi.py'] = f'''import os
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{project_name}.settings')
+
+application = get_wsgi_application()
+'''
+        
         # api/models.py
         files['api/models.py'] = '''from django.db import models
 from django.contrib.auth.models import User
@@ -491,34 +568,59 @@ from django.contrib.auth.models import User
 class Item(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='items')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        ordering = ['-created_at']
     
     def __str__(self):
         return self.title
 '''
         
         # api/views.py
-        files['api/views.py'] = '''from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
+        files['api/views.py'] = '''from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from .models import Item
 from .serializers import ItemSerializer
 
 class ItemViewSet(viewsets.ModelViewSet):
     queryset = Item.objects.all()
     serializer_class = ItemSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+    
+    @action(detail=False, methods=['get'])
+    def my_items(self, request):
+        """Get items created by current user"""
+        items = Item.objects.filter(created_by=request.user)
+        serializer = self.get_serializer(items, many=True)
+        return Response(serializer.data)
 '''
         
         # api/serializers.py
         files['api/serializers.py'] = '''from rest_framework import serializers
+from django.contrib.auth.models import User
 from .models import Item
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']
+
 class ItemSerializer(serializers.ModelSerializer):
+    created_by = UserSerializer(read_only=True)
+    
     class Meta:
         model = Item
         fields = '__all__'
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
 '''
         
         # api/urls.py
@@ -527,11 +629,41 @@ from rest_framework.routers import DefaultRouter
 from .views import ItemViewSet
 
 router = DefaultRouter()
-router.register(r'items', ItemViewSet)
+router.register(r'items', ItemViewSet, basename='item')
 
 urlpatterns = [
     path('', include(router.urls)),
 ]
+'''
+        
+        # api/admin.py
+        files['api/admin.py'] = '''from django.contrib import admin
+from .models import Item
+
+@admin.register(Item)
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ['title', 'created_by', 'created_at', 'is_active']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['title', 'description']
+    date_hierarchy = 'created_at'
+'''
+        
+        # api/apps.py
+        files['api/apps.py'] = '''from django.apps import AppConfig
+
+class ApiConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'api'
+'''
+        
+        # .gitignore
+        files['.gitignore'] = '''*.pyc
+__pycache__/
+db.sqlite3
+.env
+staticfiles/
+media/
+*.log
 '''
         
         # README.md
@@ -543,17 +675,40 @@ urlpatterns = [
 ## Setup
 
 ```bash
+# Install dependencies
 pip install -r requirements.txt
+
+# Run migrations
+python manage.py makemigrations
 python manage.py migrate
+
+# Create superuser
 python manage.py createsuperuser
+
+# Run server
 python manage.py runserver
 ```
 
+The API will run at [http://localhost:8000](http://localhost:8000)
+
+Admin panel: [http://localhost:8000/admin](http://localhost:8000/admin)
+
 ## Features
+- Django 4.2+
 - Django REST Framework
 - JWT Authentication
 - CORS enabled
 - Admin panel
+- SQLite database
+
+## API Endpoints
+
+- `GET /api/items/` - List all items
+- `POST /api/items/` - Create item (auth required)
+- `GET /api/items/{{id}}/` - Get item details
+- `PUT /api/items/{{id}}/` - Update item (auth required)
+- `DELETE /api/items/{{id}}/` - Delete item (auth required)
+- `GET /api/items/my_items/` - Get my items (auth required)
 
 ## Generated by
 JARVIS Autonomous Coder V2
@@ -574,7 +729,8 @@ JARVIS Autonomous Coder V2
             "scripts": {
                 "client": "cd client && npm start",
                 "server": "cd server && npm start",
-                "dev": "concurrently \"npm run server\" \"npm run client\""
+                "dev": "concurrently \"npm run server\" \"npm run client\"",
+                "install-all": "npm install && cd client && npm install && cd ../server && npm install"
             },
             "devDependencies": {
                 "concurrently": "^8.2.0"
@@ -589,11 +745,13 @@ JARVIS Autonomous Coder V2
             "dependencies": {
                 "react": "^18.2.0",
                 "react-dom": "^18.2.0",
+                "react-scripts": "5.0.1",
                 "axios": "^1.6.0"
             },
             "scripts": {
                 "start": "react-scripts start",
-                "build": "react-scripts build"
+                "build": "react-scripts build",
+                "test": "react-scripts test"
             },
             "proxy": "http://localhost:5000"
         }, indent=2)
@@ -626,24 +784,38 @@ require('dotenv').config();
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myapp', {
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/myapp';
+mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-});
+})
+.then(() => console.log('✅ MongoDB connected'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
 
 // Routes
 app.get('/api', (req, res) => {
-  res.json({ message: 'API is working!' });
+  res.json({ message: 'API is working!', timestamp: new Date() });
 });
 
+app.get('/api/items', (req, res) => {
+  res.json({ items: ['Item 1', 'Item 2', 'Item 3'] });
+});
+
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
+'''
+        
+        # Server .env
+        files['server/.env'] = '''PORT=5000
+MONGODB_URI=mongodb://localhost:27017/myapp
 '''
         
         # Client App.js
@@ -652,11 +824,18 @@ import axios from 'axios';
 import './App.css';
 
 function App() {{
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState('Loading...');
+  const [items, setItems] = useState([]);
 
   useEffect(() => {{
+    // Fetch API message
     axios.get('/api')
       .then(res => setMessage(res.data.message))
+      .catch(err => console.error(err));
+    
+    // Fetch items
+    axios.get('/api/items')
+      .then(res => setItems(res.data.items))
       .catch(err => console.error(err));
   }}, []);
 
@@ -665,13 +844,111 @@ function App() {{
       <header className="App-header">
         <h1>{project_name}</h1>
         <p>{{message}}</p>
-        <p>{requirements}</p>
       </header>
+      <main>
+        <h2>Requirements</h2>
+        <p>{requirements}</p>
+        
+        <h2>Items from API</h2>
+        <ul>
+          {{items.map((item, index) => (
+            <li key={{index}}>{{item}}</li>
+          ))}}
+        </ul>
+      </main>
     </div>
   );
 }}
 
 export default App;
+'''
+        
+        # Client index.js
+        files['client/src/index.js'] = '''import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+'''
+        
+        # Client App.css
+        files['client/src/App.css'] = '''.App {
+  text-align: center;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 30vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+main {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+main h2 {
+  color: #282c34;
+  border-bottom: 2px solid #61dafb;
+  padding-bottom: 10px;
+}
+
+main ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+main li {
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #f5f5f5;
+  border-radius: 5px;
+}
+'''
+        
+        # Client index.css
+        files['client/src/index.css'] = '''body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+'''
+        
+        # Client public/index.html
+        files['client/public/index.html'] = f'''<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{project_name}</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+'''
+        
+        # .gitignore
+        files['.gitignore'] = '''node_modules/
+.env
+build/
+dist/
+*.log
 '''
         
         # README.md
@@ -683,20 +960,51 @@ export default App;
 ## Setup
 
 ```bash
-# Install dependencies
-npm install
-cd client && npm install
-cd ../server && npm install
+# Install all dependencies
+npm run install-all
 
-# Run development
+# Start development (both client and server)
 npm run dev
 ```
+
+Or run separately:
+
+```bash
+# Terminal 1 - Server
+cd server
+npm install
+npm start
+
+# Terminal 2 - Client
+cd client
+npm install
+npm start
+```
+
+- Client: [http://localhost:3000](http://localhost:3000)
+- Server: [http://localhost:5000](http://localhost:5000)
 
 ## Features
 - MongoDB database
 - Express.js backend
 - React frontend
 - Node.js runtime
+- Concurrently for dev
+
+## Project Structure
+```
+{project_name}/
+├── client/          # React frontend
+│   ├── src/
+│   ├── public/
+│   └── package.json
+├── server/          # Express backend
+│   ├── index.js
+│   ├── .env
+│   └── package.json
+├── package.json     # Root package
+└── README.md
+```
 
 ## Generated by
 JARVIS Autonomous Coder V2
@@ -715,15 +1023,16 @@ JARVIS Autonomous Coder V2
 }}
 
 android {{
-    namespace 'com.example.{project_name.lower()}'
+    namespace 'com.example.{project_name.lower().replace("-", "").replace("_", "")}'
     compileSdk 34
 
     defaultConfig {{
-        applicationId "com.example.{project_name.lower()}"
+        applicationId "com.example.{project_name.lower().replace("-", "").replace("_", "")}"
         minSdk 24
         targetSdk 34
         versionCode 1
         versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }}
 
     buildTypes {{
@@ -743,25 +1052,73 @@ dependencies {{
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }}
 '''
         
+        # build.gradle (project)
+        files['build.gradle'] = '''buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.0'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+'''
+        
+        # settings.gradle
+        files['settings.gradle'] = f'''rootProject.name = "{project_name}"
+include ':app'
+'''
+        
         # MainActivity.java
-        package_name = f"com.example.{project_name.lower()}"
-        files[f'app/src/main/java/com/example/{project_name.lower()}/MainActivity.java'] = f'''package {package_name};
+        package_name = f"com.example.{project_name.lower().replace('-', '').replace('_', '')}"
+        files[f'app/src/main/java/com/example/{project_name.lower().replace("-", "").replace("_", "")}/MainActivity.java'] = f'''package {package_name};
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.widget.Button;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity {{
+    
+    private TextView textView;
+    private Button button;
+    private int counter = 0;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        TextView textView = findViewById(R.id.textView);
+        textView = findViewById(R.id.textView);
+        button = findViewById(R.id.button);
+        
         textView.setText("{project_name}");
+        
+        button.setOnClickListener(new View.OnClickListener() {{
+            @Override
+            public void onClick(View v) {{
+                counter++;
+                textView.setText("Clicked " + counter + " times");
+            }}
+        }});
     }}
 }}
 '''
@@ -771,8 +1128,11 @@ public class MainActivity extends AppCompatActivity {{
 <androidx.constraintlayout.widget.ConstraintLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".MainActivity">
 
     <TextView
         android:id="@+id/textView"
@@ -780,12 +1140,57 @@ public class MainActivity extends AppCompatActivity {{
         android:layout_height="wrap_content"
         android:text="{project_name}"
         android:textSize="24sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Click Me"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
+'''
+        
+        # strings.xml
+        files['app/src/main/res/values/strings.xml'] = f'''<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">{project_name}</string>
+</resources>
+'''
+        
+        # colors.xml
+        files['app/src/main/res/values/colors.xml'] = '''<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
+'''
+        
+        # themes.xml
+        files['app/src/main/res/values/themes.xml'] = '''<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MyApp" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+    </style>
+</resources>
 '''
         
         # AndroidManifest.xml
@@ -795,8 +1200,8 @@ public class MainActivity extends AppCompatActivity {{
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="{project_name}"
-        android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+        android:label="@string/app_name"
+        android:theme="@style/Theme.MyApp">
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -810,6 +1215,28 @@ public class MainActivity extends AppCompatActivity {{
 </manifest>
 '''
         
+        # proguard-rules.pro
+        files['app/proguard-rules.pro'] = '''# Add project specific ProGuard rules here.
+'''
+        
+        # gradle.properties
+        files['gradle.properties'] = '''org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+android.useAndroidX=true
+android.enableJetifier=true
+'''
+        
+        # .gitignore
+        files['.gitignore'] = '''*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+'''
+        
         # README.md
         files['README.md'] = f'''# {project_name}
 
@@ -818,12 +1245,29 @@ public class MainActivity extends AppCompatActivity {{
 
 ## Setup
 
-Open in Android Studio and run.
+1. Open project in Android Studio
+2. Wait for Gradle sync
+3. Run on emulator or device
 
 ## Features
 - Material Design
 - Modern Android architecture
-- Minimum SDK 24
+- Minimum SDK 24 (Android 7.0)
+- Target SDK 34 (Android 14)
+
+## Project Structure
+```
+{project_name}/
+├── app/
+│   ├── src/
+│   │   └── main/
+│   │       ├── java/
+│   │       ├── res/
+│   │       └── AndroidManifest.xml
+│   └── build.gradle
+├── build.gradle
+└── settings.gradle
+```
 
 ## Generated by
 JARVIS Autonomous Coder V2

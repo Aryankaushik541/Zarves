@@ -12,7 +12,7 @@ import traceback
 import subprocess
 from typing import Optional, Dict, List, Tuple
 from datetime import datetime
-from groq import Groq
+from ollama import Client
 
 class AdvancedSelfCoder:
     """
@@ -25,18 +25,23 @@ class AdvancedSelfCoder:
     
     def __init__(self):
         self.client = None
-        self.model = "llama-3.1-8b-instant"  # Fast model for code generation
+        self.model = "llama3.2"  # Fast local model for code generation
         self.fix_history: List[Dict] = []
         self.code_cache: Dict[str, str] = {}
         
-        # Initialize Groq client
+        # Initialize Ollama client
         try:
-            api_key = os.environ.get("GROQ_API_KEY")
-            if api_key:
-                self.client = Groq(api_key=api_key)
-                print("✅ Advanced Self-Coder initialized")
-            else:
-                print("⚠️  GROQ_API_KEY not found - Self-Coder disabled")
+            ollama_host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+            self.client = Client(host=ollama_host)
+            
+            # Test connection
+            try:
+                self.client.list()
+                print("✅ Advanced Self-Coder integrated with Self-Healing")
+            except:
+                print("⚠️  Ollama not running - Self-Coder disabled")
+                print("💡 Start Ollama: ollama serve")
+                self.client = None
         except Exception as e:
             print(f"⚠️  Self-Coder initialization failed: {e}")
     
@@ -99,56 +104,54 @@ class AdvancedSelfCoder:
         
         prompt = f"""You are an expert Python developer fixing code errors.
 
-ERROR DETAILS:
-Type: {error_type}
-Message: {error_msg}
+Error Type: {error_type}
+Error Message: {error_msg}
 Context: {context}
 
-TRACEBACK:
-{error_trace}
+Current Code:
+```python
+{current_code[:2000]}  # First 2000 chars
+```
 
-CURRENT CODE:
-{current_code[:2000] if current_code else "No code provided"}
+Error Traceback:
+{error_trace[:1000]}  # First 1000 chars
 
-TASK:
-1. Analyze the error
-2. Generate ONLY the fixed code (complete file)
-3. Add comments explaining the fix
-4. Ensure code is syntactically correct
-5. Keep all existing functionality
+Generate ONLY the fixed Python code. No explanations, no markdown, just the corrected code.
+The code should:
+1. Fix the error
+2. Maintain existing functionality
+3. Be syntactically correct
+4. Include proper error handling
 
-REQUIREMENTS:
-- Return ONLY valid Python code
-- No explanations outside code comments
-- Fix the specific error
-- Maintain code structure
-- Add error handling
-
-Generate the fixed code:"""
+Fixed code:"""
 
         try:
-            response = self.client.chat.completions.create(
+            response = self.client.chat(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are an expert Python code fixer. Return only valid Python code."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=2048,
-                temperature=0.3  # Lower temperature for more deterministic code
+                    {
+                        "role": "system",
+                        "content": "You are a Python code fixing expert. Output only valid Python code, no explanations."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
             )
             
-            fix_code = response.choices[0].message.content
+            fixed_code = response['message']['content']
             
-            # Extract code from markdown if present
-            if "```python" in fix_code:
-                fix_code = fix_code.split("```python")[1].split("```")[0].strip()
-            elif "```" in fix_code:
-                fix_code = fix_code.split("```")[1].split("```")[0].strip()
+            # Clean up response (remove markdown if present)
+            if "```python" in fixed_code:
+                fixed_code = fixed_code.split("```python")[1].split("```")[0]
+            elif "```" in fixed_code:
+                fixed_code = fixed_code.split("```")[1].split("```")[0]
             
-            return fix_code
+            return fixed_code.strip()
             
         except Exception as e:
-            print(f"❌ LLM fix generation failed: {e}")
+            print(f"❌ LLM error: {e}")
             return None
     
     def _validate_code(self, code: str) -> bool:
@@ -157,7 +160,7 @@ Generate the fixed code:"""
             ast.parse(code)
             return True
         except SyntaxError as e:
-            print(f"❌ Syntax error in generated code: {e}")
+            print(f"⚠️  Syntax error in generated code: {e}")
             return False
     
     def _apply_fix(self, file_path: str, fixed_code: str) -> bool:
@@ -165,21 +168,15 @@ Generate the fixed code:"""
         try:
             # Create backup
             backup_path = f"{file_path}.backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            with open(file_path, 'r', encoding='utf-8') as f:
+                original_code = f.read()
             
-            if os.path.exists(file_path):
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    original_code = f.read()
-                
-                with open(backup_path, 'w', encoding='utf-8') as f:
-                    f.write(original_code)
-                
-                print(f"💾 Backup created: {backup_path}")
+            with open(backup_path, 'w', encoding='utf-8') as f:
+                f.write(original_code)
             
-            # Write fixed code
+            # Apply fix
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(fixed_code)
-            
-            print(f"✅ Fix applied to: {file_path}")
             
             # Log fix
             self.fix_history.append({
@@ -189,6 +186,10 @@ Generate the fixed code:"""
                 'success': True
             })
             
+            print(f"✅ AI successfully fixed the error!")
+            print(f"💾 Backup saved: {backup_path}")
+            print(f"💡 Restart JARVIS to apply changes")
+            
             return True
             
         except Exception as e:
@@ -197,206 +198,221 @@ Generate the fixed code:"""
     
     def create_new_skill(self, skill_name: str, description: str, functions: List[str]) -> bool:
         """
-        Create a new skill file from scratch
+        Create a new skill file using AI
         
         Args:
-            skill_name: Name of the skill (e.g., "weather")
-            description: What the skill does
+            skill_name: Name of the skill
+            description: What the skill should do
             functions: List of function names to implement
         
         Returns:
-            True if skill created successfully
+            True if skill was created successfully
         """
         if not self.client:
-            print("⚠️  Self-Coder not available")
+            print("⚠️  Ollama not available")
             return False
         
         print(f"\n🤖 Creating new skill: {skill_name}")
+        print(f"📝 Description: {description}")
+        print(f"🔧 Functions: {', '.join(functions)}")
         
         try:
             # Generate skill code
-            skill_code = self._generate_skill(skill_name, description, functions)
+            skill_code = self._generate_skill_code(skill_name, description, functions)
             
             if not skill_code:
+                print("❌ Could not generate skill code")
                 return False
             
-            # Validate
+            # Validate code
             if not self._validate_code(skill_code):
+                print("❌ Generated skill has syntax errors")
                 return False
             
-            # Save skill
-            skill_file = f"skill/{skill_name}_ops.py"
+            # Save skill file
+            skill_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "skill")
+            skill_file = os.path.join(skill_dir, f"{skill_name}_ops.py")
             
             if os.path.exists(skill_file):
-                print(f"⚠️  Skill already exists: {skill_file}")
+                print(f"⚠️  Skill file already exists: {skill_file}")
                 return False
             
             with open(skill_file, 'w', encoding='utf-8') as f:
                 f.write(skill_code)
             
             print(f"✅ New skill created: {skill_file}")
+            print(f"💡 Restart JARVIS to use new skill!")
+            
             return True
             
         except Exception as e:
-            print(f"❌ Skill creation failed: {e}")
+            print(f"❌ Skill creation error: {e}")
             return False
     
-    def _generate_skill(self, skill_name: str, description: str, functions: List[str]) -> Optional[str]:
-        """Generate complete skill code using LLM"""
+    def _generate_skill_code(self, skill_name: str, description: str, functions: List[str]) -> Optional[str]:
+        """Generate skill code using LLM"""
         
-        prompt = f"""Create a complete Python skill class for JARVIS.
+        prompt = f"""Create a Python skill class for JARVIS AI assistant.
 
-SKILL NAME: {skill_name}
-DESCRIPTION: {description}
-FUNCTIONS: {', '.join(functions)}
+Skill Name: {skill_name}
+Description: {description}
+Functions to implement: {', '.join(functions)}
 
-REQUIREMENTS:
-1. Import required modules
-2. Create class {skill_name.title()}Skill(Skill)
-3. Implement name property
-4. Implement get_tools() with proper schema
-5. Implement get_functions() returning dict
-6. Implement all functions: {', '.join(functions)}
-7. Add error handling
-8. Return JSON responses
-9. Add helpful comments
+Generate a complete Python file with:
+1. Imports
+2. Skill class inheriting from core.skill.Skill
+3. get_tools() method returning tool definitions
+4. get_functions() method returning function mappings
+5. Implementation of all functions: {', '.join(functions)}
 
-TEMPLATE STRUCTURE:
+Example structure:
 ```python
-import json
-from typing import List, Dict, Any, Callable
 from core.skill import Skill
 
-class {skill_name.title()}Skill(Skill):
+class MySkill(Skill):
     @property
     def name(self) -> str:
-        return "{skill_name}_skill"
+        return "my_skill"
     
-    def get_tools(self) -> List[Dict[str, Any]]:
-        # Return tool schemas
+    def get_tools(self):
+        return [...]
+    
+    def get_functions(self):
+        return {{...}}
+    
+    def my_function(self, param):
+        # Implementation
         pass
-    
-    def get_functions(self) -> Dict[str, Callable]:
-        # Return function mappings
-        pass
-    
-    # Implement functions here
 ```
 
-Generate the complete skill code:"""
+Generate ONLY the Python code, no explanations:"""
 
         try:
-            response = self.client.chat.completions.create(
+            response = self.client.chat(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are an expert Python developer creating JARVIS skills."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=2048,
-                temperature=0.5
+                    {
+                        "role": "system",
+                        "content": "You are a Python code generation expert. Output only valid Python code."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
             )
             
-            skill_code = response.choices[0].message.content
+            code = response['message']['content']
             
-            # Extract code
-            if "```python" in skill_code:
-                skill_code = skill_code.split("```python")[1].split("```")[0].strip()
-            elif "```" in skill_code:
-                skill_code = skill_code.split("```")[1].split("```")[0].strip()
+            # Clean up response
+            if "```python" in code:
+                code = code.split("```python")[1].split("```")[0]
+            elif "```" in code:
+                code = code.split("```")[1].split("```")[0]
             
-            return skill_code
+            return code.strip()
             
         except Exception as e:
-            print(f"❌ Skill generation failed: {e}")
+            print(f"❌ LLM error: {e}")
             return None
     
-    def improve_code(self, file_path: str, improvement_type: str = "performance") -> bool:
+    def improve_code(self, file_path: str, improvement_type: str = "general") -> bool:
         """
-        Improve existing code
+        Improve existing code using AI
         
         Args:
             file_path: Path to file to improve
-            improvement_type: Type of improvement (performance, readability, error_handling)
+            improvement_type: Type of improvement (performance, readability, etc.)
         
         Returns:
-            True if improvement successful
+            True if improvement was successful
         """
-        if not self.client or not os.path.exists(file_path):
+        if not self.client:
+            print("⚠️  Ollama not available")
             return False
         
-        print(f"\n🤖 Improving code: {file_path} ({improvement_type})")
+        if not os.path.exists(file_path):
+            print(f"❌ File not found: {file_path}")
+            return False
+        
+        print(f"\n🤖 Improving code: {file_path}")
+        print(f"🎯 Improvement: {improvement_type}")
         
         try:
+            # Read current code
             with open(file_path, 'r', encoding='utf-8') as f:
                 current_code = f.read()
             
-            improved_code = self._generate_improvement(current_code, improvement_type)
+            # Generate improved code
+            improved_code = self._generate_improved_code(current_code, improvement_type)
             
-            if not improved_code or not self._validate_code(improved_code):
+            if not improved_code:
+                print("❌ Could not generate improvement")
                 return False
             
+            # Validate code
+            if not self._validate_code(improved_code):
+                print("❌ Improved code has syntax errors")
+                return False
+            
+            # Apply improvement
             return self._apply_fix(file_path, improved_code)
             
         except Exception as e:
-            print(f"❌ Code improvement failed: {e}")
+            print(f"❌ Improvement error: {e}")
             return False
     
-    def _generate_improvement(self, code: str, improvement_type: str) -> Optional[str]:
+    def _generate_improved_code(self, current_code: str, improvement_type: str) -> Optional[str]:
         """Generate improved code using LLM"""
         
         prompt = f"""Improve this Python code for {improvement_type}.
 
-CURRENT CODE:
-{code[:2000]}
+Current Code:
+```python
+{current_code[:3000]}  # First 3000 chars
+```
 
-IMPROVEMENT TYPE: {improvement_type}
+Improvements to make:
+- {improvement_type} optimization
+- Better error handling
+- Code clarity
+- Performance improvements
+- Best practices
 
-REQUIREMENTS:
-- Maintain all functionality
-- Add improvements for {improvement_type}
-- Keep code structure
-- Add comments for changes
-- Return complete improved code
-
-Generate improved code:"""
+Generate ONLY the improved Python code, no explanations:"""
 
         try:
-            response = self.client.chat.completions.create(
+            response = self.client.chat(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are an expert code optimizer."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=2048,
-                temperature=0.3
+                    {
+                        "role": "system",
+                        "content": "You are a Python code optimization expert. Output only improved code."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
             )
             
-            improved_code = response.choices[0].message.content
+            code = response['message']['content']
             
-            if "```python" in improved_code:
-                improved_code = improved_code.split("```python")[1].split("```")[0].strip()
-            elif "```" in improved_code:
-                improved_code = improved_code.split("```")[1].split("```")[0].strip()
+            # Clean up response
+            if "```python" in code:
+                code = code.split("```python")[1].split("```")[0]
+            elif "```" in code:
+                code = code.split("```")[1].split("```")[0]
             
-            return improved_code
+            return code.strip()
             
         except Exception as e:
-            print(f"❌ Improvement generation failed: {e}")
+            print(f"❌ LLM error: {e}")
             return None
     
-    def get_fix_history(self) -> str:
+    def get_fix_history(self) -> List[Dict]:
         """Get history of all fixes applied"""
-        if not self.fix_history:
-            return "No fixes applied yet."
-        
-        report = "🔧 Self-Coding Fix History:\n\n"
-        for i, fix in enumerate(self.fix_history, 1):
-            report += f"{i}. {fix['timestamp']}\n"
-            report += f"   File: {fix['file']}\n"
-            report += f"   Backup: {fix['backup']}\n"
-            report += f"   Status: {'✅ Success' if fix['success'] else '❌ Failed'}\n\n"
-        
-        return report
+        return self.fix_history
 
 
 # Global instance

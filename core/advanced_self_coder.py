@@ -1,7 +1,7 @@
 """
 Advanced Self-Coding AI for JARVIS
 Automatically writes, fixes, and improves its own code at runtime
-Uses LLM to generate code fixes and improvements
+Uses Ollama LLM + Internet search for comprehensive error fixing
 """
 
 import os
@@ -10,6 +10,7 @@ import ast
 import json
 import traceback
 import subprocess
+import requests
 from typing import Optional, Dict, List, Tuple
 from datetime import datetime
 from ollama import Client
@@ -17,10 +18,11 @@ from ollama import Client
 class AdvancedSelfCoder:
     """
     Advanced AI that can write and fix its own code
-    - Analyzes errors and generates fixes
-    - Writes new skills on demand
-    - Improves existing code
+    - Analyzes errors using Ollama AI
+    - Searches internet for solutions
+    - Generates fixes combining AI + web research
     - Tests fixes before applying
+    - Fully autonomous error resolution
     """
     
     def __init__(self):
@@ -45,9 +47,74 @@ class AdvancedSelfCoder:
         except Exception as e:
             print(f"⚠️  Self-Coder initialization failed: {e}")
     
+    def _search_error_solution(self, error_type: str, error_msg: str) -> str:
+        """
+        Search internet for error solutions using DuckDuckGo
+        """
+        try:
+            # Create search query
+            search_query = f"Python {error_type} {error_msg} solution fix"
+            
+            # Use DuckDuckGo API
+            url = "https://api.duckduckgo.com/"
+            params = {
+                "q": search_query,
+                "format": "json",
+                "no_html": 1
+            }
+            
+            response = requests.get(url, params=params, timeout=10)
+            data = response.json()
+            
+            # Extract relevant information
+            solutions = []
+            
+            if data.get("Abstract"):
+                solutions.append(f"Solution: {data['Abstract']}")
+            
+            if data.get("RelatedTopics"):
+                for topic in data["RelatedTopics"][:3]:
+                    if isinstance(topic, dict) and topic.get("Text"):
+                        solutions.append(topic["Text"])
+            
+            return "\n".join(solutions) if solutions else ""
+            
+        except Exception as e:
+            print(f"⚠️  Internet search failed: {e}")
+            return ""
+    
+    def _search_stackoverflow(self, error_type: str, error_msg: str) -> str:
+        """
+        Search StackOverflow-like solutions via Google
+        """
+        try:
+            # Search for Python error solutions
+            query = f"site:stackoverflow.com python {error_type} {error_msg}"
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+            
+            url = f"https://www.google.com/search?q={query.replace(' ', '+')}"
+            response = requests.get(url, headers=headers, timeout=10)
+            
+            # Extract snippets (basic scraping)
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            snippets = []
+            for snippet in soup.find_all('div', class_='VwiC3b')[:2]:
+                text = snippet.get_text()
+                if text and len(text) > 20:
+                    snippets.append(text)
+            
+            return "\n".join(snippets) if snippets else ""
+            
+        except Exception as e:
+            return ""
+    
     def analyze_error_and_fix(self, error: Exception, context: str, file_path: str = None) -> bool:
         """
-        Analyze error and automatically generate + apply fix
+        Analyze error using AI + Internet and automatically generate + apply fix
         
         Args:
             error: The exception that occurred
@@ -68,14 +135,36 @@ class AdvancedSelfCoder:
             error_msg = str(error)
             error_trace = traceback.format_exc()
             
+            # Search internet for solutions
+            print(f"🌐 Searching internet for solutions...")
+            web_solutions = self._search_error_solution(error_type, error_msg)
+            stackoverflow_solutions = self._search_stackoverflow(error_type, error_msg)
+            
+            # Combine web research
+            internet_research = ""
+            if web_solutions:
+                internet_research += f"\n📚 Web Solutions:\n{web_solutions}\n"
+            if stackoverflow_solutions:
+                internet_research += f"\n💡 StackOverflow Solutions:\n{stackoverflow_solutions}\n"
+            
+            if internet_research:
+                print(f"✅ Found solutions from internet")
+            
             # Read current code if file path provided
             current_code = ""
             if file_path and os.path.exists(file_path):
                 with open(file_path, 'r', encoding='utf-8') as f:
                     current_code = f.read()
             
-            # Generate fix using LLM
-            fix_code = self._generate_fix(error_type, error_msg, error_trace, current_code, context)
+            # Generate fix using LLM + Internet research
+            fix_code = self._generate_fix(
+                error_type, 
+                error_msg, 
+                error_trace, 
+                current_code, 
+                context,
+                internet_research
+            )
             
             if not fix_code:
                 print("❌ Could not generate fix")
@@ -99,39 +188,48 @@ class AdvancedSelfCoder:
             return False
     
     def _generate_fix(self, error_type: str, error_msg: str, error_trace: str, 
-                     current_code: str, context: str) -> Optional[str]:
-        """Generate code fix using LLM"""
-        
-        prompt = f"""You are an expert Python developer fixing code errors.
+                     current_code: str, context: str, internet_research: str = "") -> Optional[str]:
+        """
+        Generate code fix using Ollama AI + Internet research
+        """
+        try:
+            # Create comprehensive prompt
+            prompt = f"""You are an expert Python developer fixing code errors.
 
-Error Type: {error_type}
-Error Message: {error_msg}
-Context: {context}
+ERROR DETAILS:
+- Type: {error_type}
+- Message: {error_msg}
+- Context: {context}
 
-Current Code:
+TRACEBACK:
+{error_trace}
+
+{internet_research}
+
+CURRENT CODE:
 ```python
-{current_code[:2000]}  # First 2000 chars
+{current_code}
 ```
 
-Error Traceback:
-{error_trace[:1000]}  # First 1000 chars
+TASK:
+1. Analyze the error carefully
+2. Consider the internet solutions provided above
+3. Generate ONLY the fixed Python code (no explanations)
+4. Ensure the fix is complete and syntactically correct
+5. Preserve all existing functionality
+6. Add comments explaining the fix
 
-Generate ONLY the fixed Python code. No explanations, no markdown, just the corrected code.
-The code should:
-1. Fix the error
-2. Maintain existing functionality
-3. Be syntactically correct
-4. Include proper error handling
+OUTPUT FORMAT:
+Return ONLY the complete fixed Python code, nothing else.
+"""
 
-Fixed code:"""
-
-        try:
+            # Call Ollama for fix generation
             response = self.client.chat(
                 model=self.model,
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are a Python code fixing expert. Output only valid Python code, no explanations."
+                        "content": "You are an expert Python code fixer. Return only valid Python code, no markdown, no explanations."
                     },
                     {
                         "role": "user",
@@ -144,18 +242,20 @@ Fixed code:"""
             
             # Clean up response (remove markdown if present)
             if "```python" in fixed_code:
-                fixed_code = fixed_code.split("```python")[1].split("```")[0]
+                fixed_code = fixed_code.split("```python")[1].split("```")[0].strip()
             elif "```" in fixed_code:
-                fixed_code = fixed_code.split("```")[1].split("```")[0]
+                fixed_code = fixed_code.split("```")[1].split("```")[0].strip()
             
-            return fixed_code.strip()
+            return fixed_code
             
         except Exception as e:
-            print(f"❌ LLM error: {e}")
+            print(f"❌ Fix generation failed: {e}")
             return None
     
     def _validate_code(self, code: str) -> bool:
-        """Validate Python code syntax"""
+        """
+        Validate Python code syntax
+        """
         try:
             ast.parse(code)
             return True
@@ -164,21 +264,28 @@ Fixed code:"""
             return False
     
     def _apply_fix(self, file_path: str, fixed_code: str) -> bool:
-        """Apply fix to file with backup"""
+        """
+        Apply the fix to the file
+        """
         try:
-            # Create backup
+            # Backup original file
             backup_path = f"{file_path}.backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            
             with open(file_path, 'r', encoding='utf-8') as f:
                 original_code = f.read()
             
             with open(backup_path, 'w', encoding='utf-8') as f:
                 f.write(original_code)
             
-            # Apply fix
+            print(f"💾 Backup created: {backup_path}")
+            
+            # Write fixed code
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(fixed_code)
             
-            # Log fix
+            print(f"✅ Fix applied to: {file_path}")
+            
+            # Log the fix
             self.fix_history.append({
                 'timestamp': datetime.now().isoformat(),
                 'file': file_path,
@@ -186,114 +293,44 @@ Fixed code:"""
                 'success': True
             })
             
-            print(f"✅ AI successfully fixed the error!")
-            print(f"💾 Backup saved: {backup_path}")
-            print(f"💡 Restart JARVIS to apply changes")
-            
             return True
             
         except Exception as e:
             print(f"❌ Failed to apply fix: {e}")
             return False
     
-    def create_new_skill(self, skill_name: str, description: str, functions: List[str]) -> bool:
+    def write_new_skill(self, skill_name: str, description: str, requirements: List[str]) -> bool:
         """
-        Create a new skill file using AI
-        
-        Args:
-            skill_name: Name of the skill
-            description: What the skill should do
-            functions: List of function names to implement
-        
-        Returns:
-            True if skill was created successfully
+        Write a completely new skill from scratch using AI
         """
         if not self.client:
-            print("⚠️  Ollama not available")
             return False
         
-        print(f"\n🤖 Creating new skill: {skill_name}")
-        print(f"📝 Description: {description}")
-        print(f"🔧 Functions: {', '.join(functions)}")
+        print(f"\n🤖 Writing new skill: {skill_name}...")
         
         try:
-            # Generate skill code
-            skill_code = self._generate_skill_code(skill_name, description, functions)
-            
-            if not skill_code:
-                print("❌ Could not generate skill code")
-                return False
-            
-            # Validate code
-            if not self._validate_code(skill_code):
-                print("❌ Generated skill has syntax errors")
-                return False
-            
-            # Save skill file
-            skill_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "skill")
-            skill_file = os.path.join(skill_dir, f"{skill_name}_ops.py")
-            
-            if os.path.exists(skill_file):
-                print(f"⚠️  Skill file already exists: {skill_file}")
-                return False
-            
-            with open(skill_file, 'w', encoding='utf-8') as f:
-                f.write(skill_code)
-            
-            print(f"✅ New skill created: {skill_file}")
-            print(f"💡 Restart JARVIS to use new skill!")
-            
-            return True
-            
-        except Exception as e:
-            print(f"❌ Skill creation error: {e}")
-            return False
-    
-    def _generate_skill_code(self, skill_name: str, description: str, functions: List[str]) -> Optional[str]:
-        """Generate skill code using LLM"""
-        
-        prompt = f"""Create a Python skill class for JARVIS AI assistant.
+            prompt = f"""Create a new Python skill for JARVIS AI assistant.
 
-Skill Name: {skill_name}
-Description: {description}
-Functions to implement: {', '.join(functions)}
+SKILL NAME: {skill_name}
+DESCRIPTION: {description}
+REQUIREMENTS: {', '.join(requirements)}
 
-Generate a complete Python file with:
-1. Imports
-2. Skill class inheriting from core.skill.Skill
-3. get_tools() method returning tool definitions
-4. get_functions() method returning function mappings
-5. Implementation of all functions: {', '.join(functions)}
+Create a complete Python skill class that:
+1. Inherits from core.skill.Skill
+2. Implements get_tools() method returning tool definitions
+3. Implements get_functions() method returning callable functions
+4. Has proper error handling
+5. Follows JARVIS skill pattern
 
-Example structure:
-```python
-from core.skill import Skill
+Return ONLY the complete Python code, no explanations.
+"""
 
-class MySkill(Skill):
-    @property
-    def name(self) -> str:
-        return "my_skill"
-    
-    def get_tools(self):
-        return [...]
-    
-    def get_functions(self):
-        return {{...}}
-    
-    def my_function(self, param):
-        # Implementation
-        pass
-```
-
-Generate ONLY the Python code, no explanations:"""
-
-        try:
             response = self.client.chat(
                 model=self.model,
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are a Python code generation expert. Output only valid Python code."
+                        "content": "You are an expert Python developer. Write clean, production-ready code."
                     },
                     {
                         "role": "user",
@@ -302,55 +339,89 @@ Generate ONLY the Python code, no explanations:"""
                 ]
             )
             
-            code = response['message']['content']
+            skill_code = response['message']['content']
             
-            # Clean up response
-            if "```python" in code:
-                code = code.split("```python")[1].split("```")[0]
-            elif "```" in code:
-                code = code.split("```")[1].split("```")[0]
+            # Clean up
+            if "```python" in skill_code:
+                skill_code = skill_code.split("```python")[1].split("```")[0].strip()
+            elif "```" in skill_code:
+                skill_code = skill_code.split("```")[1].split("```")[0].strip()
             
-            return code.strip()
+            # Validate
+            if not self._validate_code(skill_code):
+                print("❌ Generated skill has syntax errors")
+                return False
+            
+            # Save skill
+            skill_file = f"skill/{skill_name}.py"
+            with open(skill_file, 'w', encoding='utf-8') as f:
+                f.write(skill_code)
+            
+            print(f"✅ New skill created: {skill_file}")
+            print(f"💡 Restart JARVIS to load the new skill")
+            
+            return True
             
         except Exception as e:
-            print(f"❌ LLM error: {e}")
-            return None
+            print(f"❌ Skill creation failed: {e}")
+            return False
     
-    def improve_code(self, file_path: str, improvement_type: str = "general") -> bool:
+    def improve_code(self, file_path: str, improvement_goal: str) -> bool:
         """
-        Improve existing code using AI
-        
-        Args:
-            file_path: Path to file to improve
-            improvement_type: Type of improvement (performance, readability, etc.)
-        
-        Returns:
-            True if improvement was successful
+        Improve existing code based on a goal
         """
         if not self.client:
-            print("⚠️  Ollama not available")
             return False
         
-        if not os.path.exists(file_path):
-            print(f"❌ File not found: {file_path}")
-            return False
-        
-        print(f"\n🤖 Improving code: {file_path}")
-        print(f"🎯 Improvement: {improvement_type}")
+        print(f"\n🤖 Improving code: {file_path}...")
         
         try:
             # Read current code
             with open(file_path, 'r', encoding='utf-8') as f:
                 current_code = f.read()
             
-            # Generate improved code
-            improved_code = self._generate_improved_code(current_code, improvement_type)
+            prompt = f"""Improve this Python code based on the goal.
+
+IMPROVEMENT GOAL: {improvement_goal}
+
+CURRENT CODE:
+```python
+{current_code}
+```
+
+Improve the code while:
+1. Maintaining all existing functionality
+2. Adding better error handling
+3. Improving performance
+4. Adding helpful comments
+5. Following Python best practices
+
+Return ONLY the improved Python code, no explanations.
+"""
+
+            response = self.client.chat(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert Python code optimizer."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
+            )
             
-            if not improved_code:
-                print("❌ Could not generate improvement")
-                return False
+            improved_code = response['message']['content']
             
-            # Validate code
+            # Clean up
+            if "```python" in improved_code:
+                improved_code = improved_code.split("```python")[1].split("```")[0].strip()
+            elif "```" in improved_code:
+                improved_code = improved_code.split("```")[1].split("```")[0].strip()
+            
+            # Validate
             if not self._validate_code(improved_code):
                 print("❌ Improved code has syntax errors")
                 return False
@@ -359,60 +430,8 @@ Generate ONLY the Python code, no explanations:"""
             return self._apply_fix(file_path, improved_code)
             
         except Exception as e:
-            print(f"❌ Improvement error: {e}")
+            print(f"❌ Code improvement failed: {e}")
             return False
-    
-    def _generate_improved_code(self, current_code: str, improvement_type: str) -> Optional[str]:
-        """Generate improved code using LLM"""
-        
-        prompt = f"""Improve this Python code for {improvement_type}.
-
-Current Code:
-```python
-{current_code[:3000]}  # First 3000 chars
-```
-
-Improvements to make:
-- {improvement_type} optimization
-- Better error handling
-- Code clarity
-- Performance improvements
-- Best practices
-
-Generate ONLY the improved Python code, no explanations:"""
-
-        try:
-            response = self.client.chat(
-                model=self.model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a Python code optimization expert. Output only improved code."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
-            )
-            
-            code = response['message']['content']
-            
-            # Clean up response
-            if "```python" in code:
-                code = code.split("```python")[1].split("```")[0]
-            elif "```" in code:
-                code = code.split("```")[1].split("```")[0]
-            
-            return code.strip()
-            
-        except Exception as e:
-            print(f"❌ LLM error: {e}")
-            return None
-    
-    def get_fix_history(self) -> List[Dict]:
-        """Get history of all fixes applied"""
-        return self.fix_history
 
 
 # Global instance

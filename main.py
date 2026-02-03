@@ -105,23 +105,25 @@ def auto_fix_missing_imports():
     
     # Check required packages
     print("🔍 Checking required packages...")
-    for module, package in required_packages.items():
+    for import_name, pip_name in required_packages.items():
         try:
-            __import__(module)
-            print(f"   ✅ {package}")
+            __import__(import_name)
+            print(f"   ✅ {pip_name}")
         except ImportError:
-            print(f"   ❌ {package} - MISSING")
-            missing_required.append(package)
+            print(f"   ❌ {pip_name} - MISSING")
+            missing_required.append(pip_name)
+    
+    print()
     
     # Check optional packages
-    print("\n🔍 Checking optional packages...")
-    for module, package in optional_packages.items():
+    print("🔍 Checking optional packages...")
+    for import_name, pip_name in optional_packages.items():
         try:
-            __import__(module)
-            print(f"   ✅ {package}")
+            __import__(import_name)
+            print(f"   ✅ {pip_name}")
         except ImportError:
-            print(f"   ⚠️  {package} - MISSING (optional)")
-            missing_optional.append(package)
+            print(f"   ⚠️  {pip_name} - OPTIONAL (not required)")
+            missing_optional.append(pip_name)
     
     print()
     
@@ -132,35 +134,19 @@ def auto_fix_missing_imports():
         print()
         
         # Try installing from requirements.txt first (faster)
-        if os.path.exists('requirements.txt'):
-            print("📋 Installing from requirements.txt...")
-            if auto_install_from_requirements():
-                print("✅ All packages installed from requirements.txt!")
-                return True
-        
-        # Fallback: Install individually
-        print("📦 Installing packages individually...")
-        for package in missing_required:
-            auto_install_package(package)
-        
-        print()
-        print("✅ Dependency installation complete!")
-        print("🔄 Please restart JARVIS for changes to take effect")
-        print()
-        return True
-    
-    elif missing_optional:
-        print(f"⚠️  {len(missing_optional)} optional package(s) missing")
-        print("💡 Install for additional features:")
-        for package in missing_optional:
-            print(f"   pip install {package}")
-        print()
-    
+        print("📋 Installing from requirements.txt...")
+        if auto_install_from_requirements():
+            print("✅ All packages installed from requirements.txt!")
+            return True
+        else:
+            # Fallback: install individually
+            print("⚠️  requirements.txt failed, installing individually...")
+            for package in missing_required:
+                auto_install_package(package)
+            return True
     else:
         print("✅ All required packages are installed!")
-        print()
-    
-    return False
+        return False
 
 
 def check_ollama():
@@ -174,28 +160,31 @@ def check_ollama():
                               text=True, 
                               timeout=5)
         if result.returncode == 0:
-            print(f"   ✅ Ollama installed: {result.stdout.strip()}")
+            version = result.stdout.strip()
+            print(f"   ✅ Ollama installed: {version}")
         else:
             print("   ❌ Ollama not found")
             print()
-            print("📥 Please install Ollama:")
+            print("💡 Install Ollama:")
             print("   Windows: https://ollama.com/download/windows")
-            print("   macOS/Linux: curl -fsSL https://ollama.com/install.sh | sh")
+            print("   Mac: brew install ollama")
+            print("   Linux: curl -fsSL https://ollama.com/install.sh | sh")
             print()
             return False
     except FileNotFoundError:
         print("   ❌ Ollama not found")
         print()
-        print("📥 Please install Ollama:")
+        print("💡 Install Ollama:")
         print("   Windows: https://ollama.com/download/windows")
-        print("   macOS/Linux: curl -fsSL https://ollama.com/install.sh | sh")
+        print("   Mac: brew install ollama")
+        print("   Linux: curl -fsSL https://ollama.com/install.sh | sh")
         print()
         return False
     except Exception as e:
         print(f"   ⚠️  Could not check Ollama: {e}")
         return False
     
-    # Check if model is pulled
+    # Check if llama3.2 model is available
     try:
         result = subprocess.run(['ollama', 'list'], 
                               capture_output=True, 
@@ -244,7 +233,6 @@ def auto_create_env_file():
         
         print("✅ .env file created")
         print("💡 Optional: Configure Ollama settings in .env file")
-        print("   See OLLAMA_SETUP.md for details")
         return True
     except Exception as e:
         print(f"❌ Failed to create .env: {e}")
@@ -321,14 +309,15 @@ except ImportError as e:
 def main():
     """Main entry point for JARVIS"""
     print("\n" + "="*70)
-    print("🤖 JARVIS - Your Autonomous AI Assistant")
+    print("🤖 JARVIS - Your Personal AI Assistant")
     print("="*70)
     print()
     print("💡 Features:")
+    print("   • Natural Conversations - Talk like a human!")
+    print("   • Emotion Detection - Understands your mood")
+    print("   • Context Memory - Remembers previous tasks")
     print("   • YouTube Auto-Music - 'youtube kholo' plays trending songs")
     print("   • Movie Downloader - 'vegamovies se Inception download karo'")
-    print("   • Web Search - 'google search python'")
-    print("   • System Control - 'volume badhao', 'brightness kam karo'")
     print("   • And much more!")
     print()
     print("="*70)
@@ -339,10 +328,11 @@ def main():
         print("🔧 Initializing JARVIS...")
         registry = SkillRegistry()
         
-        # Load all skills
+        # Load all skills from skill directory
         print("📦 Loading skills...")
         try:
-            registry.load_all_skills()
+            skills_dir = os.path.join(os.path.dirname(__file__), 'skill')
+            registry.load_skills(skills_dir)
             print(f"✅ Loaded {len(registry.skills)} skills")
         except Exception as e:
             print(f"❌ Failed to load skills: {e}")
@@ -389,18 +379,19 @@ def main():
     print("🎤 JARVIS is listening...")
     print("="*70)
     print()
-    print("💬 Try these commands:")
+    print("💬 Try these natural commands:")
     print("   • 'hello jarvis'")
-    print("   • 'youtube kholo' (auto-plays trending music)")
-    print("   • 'gaana bajao'")
-    print("   • 'google search python'")
+    print("   • 'gaana bajao' (auto-plays trending music)")
+    print("   • 'youtube kholo'")
+    print("   • 'volume badhao'")
     print("   • 'vegamovies se Inception download karo'")
+    print("   • 'thanks!' (see empathetic response)")
     print()
     print("Type 'quit' or 'exit' to stop")
     print("="*70)
     print()
     
-    # Main loop
+    # Main conversation loop
     while True:
         try:
             # Get user input
@@ -410,24 +401,30 @@ def main():
                 continue
             
             # Check for exit commands
-            if user_input.lower() in ['quit', 'exit', 'bye', 'goodbye']:
-                print("\n🤖 JARVIS: Goodbye! Have a great day!")
+            if user_input.lower() in ['quit', 'exit', 'bye', 'goodbye', 'alvida']:
+                print("\n🤖 JARVIS: Goodbye! Have a great day! 👋")
                 break
             
-            # Process query
+            # Process query with personal assistant
             print("\n🤖 JARVIS: ", end="", flush=True)
             response = engine.process_query(user_input)
             print(response)
             
         except KeyboardInterrupt:
-            print("\n\n🤖 JARVIS: Interrupted. Goodbye!")
+            print("\n\n🤖 JARVIS: Goodbye! Have a great day! 👋")
             break
         except Exception as e:
-            print(f"\n❌ Error: {e}")
-            if self_healing.auto_fix_error(e, f"Processing: {user_input}"):
-                print("✅ Error fixed! Continuing...")
+            print(f"\n⚠️  Error: {e}")
+            # Try to auto-fix
+            if self_healing.auto_fix_error(e, f"Processing query: {user_input}"):
+                print("🔄 Retrying...")
+                try:
+                    response = engine.process_query(user_input)
+                    print(f"\n🤖 JARVIS: {response}")
+                except:
+                    print("❌ Still failed. Please try again.")
             else:
-                print("⚠️  Continuing despite error...")
+                print("💡 Please try rephrasing your request.")
 
 
 if __name__ == "__main__":

@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-JARVIS - Complete AI Assistant
-Beautiful GUI Interface - Auto-Launch
-YouTube Auto-Play Support!
-Just run: python main.py
+JARVIS - Personal AI Assistant
+Main entry point with automatic setup
 """
 
 import sys
@@ -13,11 +11,9 @@ import os
 import subprocess
 import platform
 import time
-import urllib.request
-import shutil
 
 # ============================================================================
-# AUTO-INSTALL OLLAMA
+# OLLAMA SETUP FUNCTIONS
 # ============================================================================
 
 def check_ollama_installed():
@@ -25,27 +21,70 @@ def check_ollama_installed():
     try:
         result = subprocess.run(['ollama', '--version'], 
                               capture_output=True, 
-                              text=True, 
+                              text=True,
                               timeout=5)
         return result.returncode == 0
     except:
         return False
 
+def install_ollama():
+    """Install Ollama based on platform"""
+    system = platform.system()
+    
+    print("   📥 Installing Ollama...")
+    print()
+    
+    if system == "Darwin":  # macOS
+        try:
+            subprocess.run(['curl', '-fsSL', 'https://ollama.com/install.sh'], 
+                         capture_output=True, check=True)
+            subprocess.run(['sh', '-'], 
+                         input=subprocess.run(['curl', '-fsSL', 'https://ollama.com/install.sh'], 
+                                            capture_output=True, check=True).stdout,
+                         check=True)
+            print("   ✅ Ollama installed successfully!")
+            return True
+        except:
+            print("   ⚠️  Auto-install failed")
+            print("   💡 Please install manually: https://ollama.com/download")
+            return False
+    
+    elif system == "Linux":
+        try:
+            subprocess.run(['curl', '-fsSL', 'https://ollama.com/install.sh', '|', 'sh'], 
+                         shell=True, check=True)
+            print("   ✅ Ollama installed successfully!")
+            return True
+        except:
+            print("   ⚠️  Auto-install failed")
+            print("   💡 Please install manually: https://ollama.com/download")
+            return False
+    
+    elif system == "Windows":
+        print("   ⚠️  Windows detected - manual installation required")
+        print()
+        print("   📥 Download from: https://ollama.com/download/windows")
+        print()
+        input("   Press Enter after installing Ollama...")
+        return check_ollama_installed()
+    
+    return False
+
 def check_ollama_running():
     """Check if Ollama server is running"""
     try:
-        import urllib.request
-        urllib.request.urlopen('http://localhost:11434/api/tags', timeout=2)
-        return True
+        import requests
+        response = requests.get('http://localhost:11434/api/tags', timeout=2)
+        return response.status_code == 200
     except:
         return False
 
 def start_ollama_server():
     """Start Ollama server in background"""
     try:
-        if platform.system() == 'Windows':
+        if platform.system() == "Windows":
             subprocess.Popen(['ollama', 'serve'], 
-                           creationflags=subprocess.CREATE_NO_WINDOW,
+                           creationflags=subprocess.CREATE_NEW_CONSOLE,
                            stdout=subprocess.DEVNULL,
                            stderr=subprocess.DEVNULL)
         else:
@@ -61,10 +100,8 @@ def start_ollama_server():
                 print("   ✅ Ollama server started!")
                 return True
         
-        print("   ⚠️  Ollama server start timeout")
         return False
-    except Exception as e:
-        print(f"   ⚠️  Failed to start Ollama: {e}")
+    except:
         return False
 
 def check_ollama_model():
@@ -72,98 +109,36 @@ def check_ollama_model():
     try:
         result = subprocess.run(['ollama', 'list'], 
                               capture_output=True, 
-                              text=True, 
-                              timeout=10)
+                              text=True,
+                              timeout=5)
         return 'llama3.2' in result.stdout
     except:
         return False
 
 def pull_ollama_model():
-    """Pull llama3.2 model"""
+    """Download llama3.2 model"""
+    print()
+    print("   📥 Downloading AI model (llama3.2)...")
+    print("   ⏳ This may take 2-5 minutes (~2GB download)...")
+    print()
+    
     try:
-        print("   📥 Downloading AI model (llama3.2)...")
-        print("   ⏳ This may take 2-5 minutes (~2GB download)...")
-        print()
+        result = subprocess.run(['ollama', 'pull', 'llama3.2'],
+                              capture_output=False,
+                              text=True,
+                              timeout=600)  # 10 minute timeout
         
-        # Run ollama pull with live output
-        process = subprocess.Popen(['ollama', 'pull', 'llama3.2'],
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT,
-                                  text=True,
-                                  bufsize=1)
-        
-        for line in process.stdout:
-            line = line.strip()
-            if line:
-                print(f"   {line}")
-        
-        process.wait()
-        
-        if process.returncode == 0:
+        if result.returncode == 0:
             print()
             print("   ✅ Model downloaded successfully!")
             return True
         else:
-            print()
-            print("   ⚠️  Model download failed")
             return False
-            
-    except Exception as e:
-        print(f"   ⚠️  Failed to download model: {e}")
+    except subprocess.TimeoutExpired:
+        print()
+        print("   ⚠️  Download timed out")
         return False
-
-def install_ollama():
-    """Install Ollama based on OS"""
-    system = platform.system()
-    
-    print("   📥 Installing Ollama...")
-    print()
-    
-    try:
-        if system == 'Windows':
-            print("   ⚠️  Windows detected!")
-            print()
-            print("   Please install Ollama manually:")
-            print("   1. Download: https://ollama.com/download/windows")
-            print("   2. Run the installer")
-            print("   3. Restart this script")
-            print()
-            input("   Press Enter after installing Ollama...")
-            return check_ollama_installed()
-            
-        elif system == 'Darwin':  # macOS
-            print("   🍎 macOS detected - Installing Ollama...")
-            result = subprocess.run(['curl', '-fsSL', 'https://ollama.com/install.sh'],
-                                  capture_output=True,
-                                  text=True)
-            if result.returncode == 0:
-                install_script = result.stdout
-                subprocess.run(['sh', '-c', install_script], check=True)
-                print("   ✅ Ollama installed!")
-                return True
-            else:
-                print("   ⚠️  Installation failed")
-                return False
-                
-        elif system == 'Linux':
-            print("   🐧 Linux detected - Installing Ollama...")
-            result = subprocess.run(['curl', '-fsSL', 'https://ollama.com/install.sh'],
-                                  capture_output=True,
-                                  text=True)
-            if result.returncode == 0:
-                install_script = result.stdout
-                subprocess.run(['sh', '-c', install_script], check=True)
-                print("   ✅ Ollama installed!")
-                return True
-            else:
-                print("   ⚠️  Installation failed")
-                return False
-        else:
-            print(f"   ⚠️  Unsupported OS: {system}")
-            return False
-            
-    except Exception as e:
-        print(f"   ⚠️  Installation error: {e}")
+    except:
         return False
 
 def setup_ollama():
@@ -171,7 +146,7 @@ def setup_ollama():
     print("🤖 Setting up AI Engine (Ollama)...")
     print()
     
-    # Check if installed
+    # Check if Ollama is installed
     if not check_ollama_installed():
         print("   ⚠️  Ollama not found!")
         print()
@@ -193,9 +168,8 @@ def setup_ollama():
     else:
         print("   ✅ Ollama found!")
     
-    # Check if running
+    # Check if server is running
     if not check_ollama_running():
-        print("   ⚠️  Ollama server not running")
         if not start_ollama_server():
             print()
             print("   ⚠️  Failed to start Ollama server")
@@ -324,7 +298,28 @@ def main():
     print()
     
     try:
-        # Import and run GUI directly
+        # Import tkinter first to check if available
+        try:
+            import tkinter as tk
+            print("✅ GUI framework (tkinter) available")
+            print()
+        except ImportError:
+            print("❌ Error: tkinter not found!")
+            print()
+            print("💡 Install tkinter:")
+            if platform.system() == "Linux":
+                print("   sudo apt-get install python3-tk")
+            elif platform.system() == "Darwin":
+                print("   brew install python-tk")
+            else:
+                print("   Reinstall Python with tkinter support")
+            print()
+            return
+        
+        # Import and run GUI
+        print("🎨 Opening GUI window...")
+        print()
+        
         from gui.app import main as gui_main
         gui_main()
         
@@ -351,4 +346,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Fatal Error: {e}")
         print()
-        print("💡 For help, see: https://github.com/Aryankaushik541/Zarves/blob/main/FIXES.md")
+        print("💡 For help, create an issue at:")
+        print("   https://github.com/Aryankaushik541/Zarves/issues")

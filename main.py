@@ -66,6 +66,7 @@ def auto_fix_missing_imports():
         'dotenv': 'python-dotenv',
         'PyQt5': 'PyQt5',
         'torch': 'torch',
+        'ollama': 'ollama',
     }
     
     fixed_any = False
@@ -98,8 +99,8 @@ def auto_create_env_file():
             env_file.write(content)
         
         print("✅ .env file created")
-        print("⚠️  Please add your GROQ_API_KEY to .env file")
-        print("   Get free key from: https://console.groq.com/keys")
+        print("💡 Optional: Configure Ollama settings in .env file")
+        print("   See OLLAMA_SETUP.md for details")
         return True
     except Exception as e:
         print(f"❌ Failed to create .env: {e}")
@@ -248,27 +249,38 @@ def run_startup_tests():
         print("   Text output will be used instead")
     print()
     
-    # Test 7: Environment Variables
-    print("🔑 Test 7: Environment variables...")
-    groq_key = os.environ.get("GROQ_API_KEY")
-    if groq_key:
-        print(f"✅ GROQ_API_KEY found (length: {len(groq_key)})")
-    else:
-        print("❌ GROQ_API_KEY not found")
+    # Test 7: Ollama Connection
+    print("🔑 Test 7: Ollama connection...")
+    try:
+        from ollama import Client
+        ollama_host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+        client = Client(host=ollama_host)
         
-        # Check if .env exists
-        if not os.path.exists('.env'):
-            print("🔧 Auto-creating .env file...")
-            if auto_create_env_file():
-                errors_fixed.append("Created .env file")
-                print("⚠️  IMPORTANT: Add your GROQ_API_KEY to .env file")
-                print("   Get free key from: https://console.groq.com/keys")
-                print("   Then restart: python main.py")
-                all_passed = False
+        # Test connection
+        try:
+            models = client.list()
+            print(f"✅ Connected to Ollama at {ollama_host}")
+            print(f"   📦 Available models: {len(models.get('models', []))}")
+            
+            if len(models.get('models', [])) == 0:
+                print("   ⚠️  No models found. Pull a model:")
+                print("      ollama pull llama3.2")
+        except Exception as conn_error:
+            print(f"❌ Cannot connect to Ollama: {conn_error}")
+            print("   💡 Make sure Ollama is running:")
+            print("      1. Start Ollama: ollama serve")
+            print("      2. Pull model: ollama pull llama3.2")
+            all_passed = False
+    except ImportError:
+        print("❌ Ollama package not installed")
+        print("🔧 Auto-installing ollama...")
+        if auto_install_package("ollama"):
+            errors_fixed.append("Installed ollama package")
+            print("✅ Ollama package installed")
+            print("   💡 Now start Ollama server:")
+            print("      ollama serve")
         else:
-            print("⚠️  .env file exists but GROQ_API_KEY is missing")
-            print("   Add: GROQ_API_KEY=your_key_here")
-            print("   Get free key from: https://console.groq.com/keys")
+            print("❌ Failed to install ollama package")
             all_passed = False
     print()
     
@@ -283,13 +295,12 @@ def run_startup_tests():
     if all_passed:
         print("✅ All critical tests passed! JARVIS is ready.")
     else:
-        print("⚠️  Some issues detected:")
-        if not groq_key:
-            print("   • GROQ_API_KEY missing - Please add to .env file")
+        print("⚠️  Some issues detected. Please check above for details.")
         print()
-        print("🔧 Auto-fix attempted for all issues.")
-        print("   If GROQ_API_KEY is missing, please add it manually.")
-        print("   Otherwise, JARVIS will continue with available features.")
+        print("🔧 Common fixes:")
+        print("   • Start Ollama: ollama serve")
+        print("   • Pull model: ollama pull llama3.2")
+        print("   • Install deps: pip install -r requirements.txt")
     print("=" * 70)
     print()
     
@@ -325,14 +336,6 @@ except ImportError as e:
     else:
         print("❌ Auto-fix failed. Please run: pip install -r requirements.txt")
         sys.exit(1)
-
-# Check API key
-if not os.environ.get("GROQ_API_KEY"):
-    print("⚠️  GROQ_API_KEY not found.")
-    if not os.path.exists('.env'):
-        auto_create_env_file()
-    print("⚠️  Please add GROQ_API_KEY to .env file and restart")
-    print("   Get free key from: https://console.groq.com/keys")
 
 
 class AutoMode:
@@ -581,18 +584,11 @@ def main():
             print(f"   ✅ {fix}")
         print()
     
-    # Continue regardless of test results (auto-fix handles everything)
+    # Continue even if some tests failed (Ollama might not be running yet)
     if not tests_passed:
-        if not os.environ.get("GROQ_API_KEY"):
-            print("⚠️  CRITICAL: GROQ_API_KEY is required to run JARVIS")
-            print("   1. Get free key from: https://console.groq.com/keys")
-            print("   2. Add to .env file: GROQ_API_KEY=your_key_here")
-            print("   3. Restart: python main.py")
-            print()
-            sys.exit(1)
-        else:
-            print("⚠️  Some non-critical issues detected, but JARVIS will continue...")
-            print()
+        print("⚠️  Some issues detected, but JARVIS will attempt to start...")
+        print("💡 Make sure Ollama is running: ollama serve")
+        print()
     
     # Auto-detect modes
     use_text_mode = AutoMode.should_use_text_mode()
@@ -609,6 +605,7 @@ def main():
     print(f"   Debug Logging: {'✅ Enabled' if AUTO_DEBUG_MODE else '❌ Disabled'}")
     print(f"   Indian Language: ✅ Enabled (Hinglish + Hindi)")
     print(f"   Auto-Fix: ✅ Enabled")
+    print(f"   LLM Backend: 🦙 Ollama (Local)")
     print()
     
     print("💡 Example Commands:")

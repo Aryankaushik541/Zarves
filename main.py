@@ -298,36 +298,15 @@ def main():
     print()
     
     try:
-        # Import tkinter first to check if available
-        try:
-            import tkinter as tk
-            print("✅ GUI framework (tkinter) available")
-            print()
-        except ImportError:
-            print("❌ Error: tkinter not found!")
-            print()
-            print("💡 Install tkinter:")
-            if platform.system() == "Linux":
-                print("   sudo apt-get install python3-tk")
-            elif platform.system() == "Darwin":
-                print("   brew install python-tk")
-            else:
-                print("   Reinstall Python with tkinter support")
-            print()
-            return
-        
-        # Import and run GUI
-        print("🎨 Opening GUI window...")
-        print()
-        
-        from gui.app import main as gui_main
+        # Import and run simple GUI
+        from jarvis_gui import main as gui_main
         gui_main()
         
     except ImportError as e:
         print(f"❌ Error: GUI module not found")
         print(f"   Details: {e}")
         print()
-        print("💡 Make sure 'gui' folder exists with app.py")
+        print("💡 Make sure jarvis_gui.py exists")
         print()
         
     except Exception as e:

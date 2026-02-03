@@ -14,6 +14,14 @@ import time
 import threading
 from pathlib import Path
 
+# Try to import tkinter (GUI framework)
+try:
+    import tkinter as tk
+    from tkinter import scrolledtext
+    TKINTER_AVAILABLE = True
+except ImportError:
+    TKINTER_AVAILABLE = False
+
 # ============================================================================
 # OLLAMA SETUP FUNCTIONS
 # ============================================================================
@@ -486,10 +494,20 @@ class SimpleJarvisGUI:
 
 def launch_gui():
     """Launch GUI"""
+    if not TKINTER_AVAILABLE:
+        print("❌ Error: tkinter not found!")
+        print()
+        print("💡 Install tkinter:")
+        if platform.system() == "Linux":
+            print("   sudo apt-get install python3-tk")
+        elif platform.system() == "Darwin":
+            print("   brew install python-tk")
+        else:
+            print("   Reinstall Python with tkinter support")
+        print()
+        return
+    
     try:
-        import tkinter as tk
-        from tkinter import scrolledtext
-        
         print("✅ GUI framework (tkinter) available")
         print()
         print("🎨 Opening GUI window...")
@@ -502,18 +520,6 @@ def launch_gui():
         print("💡 If you don't see the window, check your taskbar\n")
         
         root.mainloop()
-        
-    except ImportError:
-        print("❌ Error: tkinter not found!")
-        print()
-        print("💡 Install tkinter:")
-        if platform.system() == "Linux":
-            print("   sudo apt-get install python3-tk")
-        elif platform.system() == "Darwin":
-            print("   brew install python-tk")
-        else:
-            print("   Reinstall Python with tkinter support")
-        print()
         
     except Exception as e:
         print(f"❌ Error: {e}")

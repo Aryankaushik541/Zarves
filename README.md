@@ -1,8 +1,8 @@
 # 🤖 JARVIS - Your Personal AI Assistant
 
-> **"Just Run `python main.py` - GUI Window Opens Automatically!"**
+> **"Just One File - Just One Command - `python main.py`"**
 
-Complete AI assistant with **automatic setup**, **GUI window**, **browser auto-login**, **PC movie search**, **VLC auto-play**, and **local AI**!
+Complete AI assistant with **everything in main.py** - automatic setup, GUI, browser auto-login, PC movie search, VLC auto-play, and local AI!
 
 ---
 
@@ -13,20 +13,21 @@ Complete AI assistant with **automatic setup**, **GUI window**, **browser auto-l
 git clone https://github.com/Aryankaushik541/Zarves.git
 cd Zarves
 
-# 2. Run (GUI window opens automatically!)
+# 2. Run (Everything happens automatically!)
 python main.py
 ```
 
 **That's it!** 🎉
 
-The script automatically:
-- ✅ Installs Python dependencies
-- ✅ Installs Ollama (if needed)
-- ✅ Starts Ollama server
-- ✅ Downloads AI model (llama3.2)
+**Everything is in main.py:**
+- ✅ Auto-installs Python dependencies
+- ✅ Auto-installs Ollama (if needed)
+- ✅ Auto-starts Ollama server
+- ✅ Auto-downloads AI model (llama3.2)
 - ✅ **Opens beautiful GUI window**
+- ✅ **All GUI code included**
 
-**No manual setup needed!**
+**No separate files needed!**
 
 ---
 
@@ -62,7 +63,9 @@ The script automatically:
 
 ======================================================================
 
-🚀 Launching JARVIS GUI...
+✅ GUI framework (tkinter) available
+
+🎨 Opening GUI window...
 
 ✅ GUI window opened!
 💡 If you don't see the window, check your taskbar
@@ -103,6 +106,12 @@ The GUI window shows:
 ---
 
 ## ✨ Features
+
+### 📄 **Single File Design**
+- Everything in main.py
+- No separate GUI files needed
+- Easy to understand and modify
+- Complete standalone solution
 
 ### 🎨 **Beautiful GUI Window**
 - Modern dark theme interface
@@ -243,9 +252,11 @@ brew install python-tk
 # Reinstall Python with tkinter support from python.org
 ```
 
-**Solution 3 - Run directly:**
+**Solution 3 - Check main.py:**
 ```bash
-python jarvis_gui.py
+# Make sure you have the latest version
+git pull origin main
+python main.py
 ```
 
 ### **Problem: "Ollama installation failed"**
@@ -355,34 +366,33 @@ Edit `~/.jarvis_config.json`:
 ### **Project Structure:**
 ```
 Zarves/
-├── main.py              # Entry point (auto-setup + launch)
-├── jarvis_gui.py        # Simple GUI (guaranteed to work)
-├── core/                # Core engine
+├── main.py              # ⭐ EVERYTHING IS HERE! ⭐
+│                        # - Auto-setup
+│                        # - Ollama installation
+│                        # - Dependency management
+│                        # - Complete GUI code
+│                        # - JARVIS integration
+│
+├── core/                # Core engine (imported by main.py)
 │   ├── engine.py        # AI engine
 │   ├── registry.py      # Skill registry
 │   ├── voice.py         # Voice assistant
 │   └── ...
-├── gui/                 # Advanced GUI (optional)
-│   └── app.py           # Full-featured GUI
+│
 ├── skill/               # Skills (plugins)
 │   ├── web_skills.py
 │   ├── media_skills.py
 │   └── ...
+│
 └── requirements.txt     # Dependencies
 ```
 
-### **Run Different GUIs:**
-
-```bash
-# Simple GUI (recommended):
-python main.py
-
-# Or directly:
-python jarvis_gui.py
-
-# Advanced GUI (if you prefer):
-python gui/app.py
-```
+### **Single File Benefits:**
+- ✅ Easy to understand
+- ✅ Easy to modify
+- ✅ No file dependencies
+- ✅ Portable
+- ✅ Self-contained
 
 ---
 
@@ -410,6 +420,16 @@ Voice: Click 🎤 Voice button
 Text: Type in input box and press Enter
 
 Use what's comfortable!
+```
+
+### **Customize main.py:**
+```python
+# Edit main.py to customize:
+- GUI colors and theme
+- Window size
+- Button labels
+- Status messages
+- Anything you want!
 ```
 
 ---
@@ -456,6 +476,24 @@ It helps others discover this project!
 
 ---
 
+## 🎯 Why Single File?
+
+### **Benefits:**
+1. **Easy to Understand** - Everything in one place
+2. **Easy to Modify** - No file hunting
+3. **Portable** - Just copy main.py
+4. **Self-Contained** - No missing imports
+5. **Beginner Friendly** - Clear structure
+
+### **Perfect For:**
+- Learning Python
+- Understanding AI assistants
+- Quick modifications
+- Sharing with friends
+- Educational purposes
+
+---
+
 **Made with ❤️ by Aryan Kaushik**
 
-**Just run `python main.py` and the GUI window opens! 🚀**
+**Just run `python main.py` - Everything in one file! 🚀**

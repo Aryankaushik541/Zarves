@@ -1,144 +1,127 @@
 # 🤖 JARVIS - Your Personal AI Assistant
 
-> **"Auto-Login | PC Movie Search | VLC Auto-Play | Local AI"**
+> **"Just Run main.py - Everything Auto-Installs!"**
 
-Complete AI assistant with **browser auto-login**, **PC movie search**, **VLC auto-play**, and **local AI** support!
+Complete AI assistant with **automatic setup**, **browser auto-login**, **PC movie search**, **VLC auto-play**, and **local AI**!
 
 ---
 
-## 🚀 Quick Start (Recommended)
+## 🚀 Super Simple Setup - Just 2 Commands!
 
-### **One-Click Launch:**
-
-**Windows:**
 ```bash
+# 1. Clone
 git clone https://github.com/Aryankaushik541/Zarves.git
 cd Zarves
-start_jarvis.bat
+
+# 2. Run (everything auto-installs!)
+python main.py
 ```
 
-**Mac/Linux:**
-```bash
-git clone https://github.com/Aryankaushik541/Zarves.git
-cd Zarves
-chmod +x start_jarvis.sh
-./start_jarvis.sh
-```
+**That's it!** 🎉
 
-**That's it!** The script automatically:
+The script automatically:
+- ✅ Installs Python dependencies
 - ✅ Installs Ollama (if needed)
 - ✅ Starts Ollama server
-- ✅ Downloads AI model
-- ✅ Installs dependencies
-- ✅ Launches JARVIS GUI
+- ✅ Downloads AI model (llama3.2)
+- ✅ Launches beautiful GUI
+
+**No manual setup needed!**
 
 ---
 
-## 📋 Manual Setup (If Needed)
+## 📺 What Happens When You Run
 
-### **Step 1: Install Ollama**
-
-JARVIS uses Ollama for local AI processing.
-
-**Windows:**
-1. Download: https://ollama.com/download/windows
-2. Run installer
-3. Open PowerShell and run: `ollama serve`
-
-**Mac:**
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-ollama serve
 ```
+🤖 JARVIS - Personal AI Assistant
+======================================================================
 
-**Linux:**
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-ollama serve
-```
+📦 Checking Python dependencies...
+   ✅ All dependencies installed!
 
-### **Step 2: Download AI Model**
+🤖 Setting up AI Engine (Ollama)...
+   ✅ Ollama found!
+   ✅ Ollama server running!
+   ✅ AI model ready!
 
-Open a **new terminal** (keep `ollama serve` running):
-```bash
-ollama pull llama3.2
-```
+✅ AI Engine ready!
 
-This downloads the AI model (~2GB). Wait for completion.
-
-### **Step 3: Install Dependencies**
-
-```bash
-cd Zarves
-pip install -r requirements.txt
-```
-
-### **Step 4: Launch JARVIS**
-
-```bash
-python main.py
-```
-
-**Expected Output:**
-```
-✅ Connected to Ollama at http://localhost:11434
-✅ Using model: llama3.2
 🚀 Launching JARVIS GUI...
+
+💡 Full Mode Enabled:
+   ✅ Local AI processing
+   ✅ Natural conversations
+   ✅ Smart task execution
+
+🎵 Features:
+   ✅ YouTube Auto-Play
+   ✅ Browser Auto-Login
+   ✅ PC Movie Search
+   ✅ VLC Auto-Play
+   ✅ Voice & Text Control
+
+======================================================================
 ```
+
+Then the beautiful GUI opens! 🎨
 
 ---
 
-## ⚠️ Troubleshooting
+## ⚡ First Time Setup
 
-### **Problem: "JARVIS engine not initialized"**
+### **If Ollama Not Installed:**
 
-**Solution:**
-```bash
-# Make sure Ollama is running:
-ollama serve
+When you run `python main.py`, it will ask:
 
-# In another terminal, check if model exists:
-ollama list
+```
+⚠️  Ollama not found!
 
-# Should show llama3.2
-# If not, pull it:
-ollama pull llama3.2
-
-# Restart JARVIS:
-python main.py
+Install Ollama now? (y/n): y
 ```
 
-### **Problem: "Ollama connection issue"**
+Type **y** and press Enter. It will:
+1. Install Ollama automatically (Mac/Linux)
+2. Or guide you to download (Windows)
+3. Start Ollama server
+4. Download AI model
 
-**Solution:**
-```bash
-# Check if Ollama is running:
-curl http://localhost:11434/api/tags
+**Windows Users:**
+- Script will open download link
+- Install Ollama
+- Press Enter to continue
+- Script will handle the rest!
 
-# If error, start Ollama:
-ollama serve
+### **If Model Not Downloaded:**
 
-# Then restart JARVIS
+```
+⚠️  AI model (llama3.2) not found
+
+Download model now? (y/n): y
 ```
 
-### **Problem: "Module not found"**
-
-**Solution:**
-```bash
-# Reinstall dependencies:
-pip install --upgrade -r requirements.txt
-
-# If PyQt5 fails on Mac:
-pip install PyQt5 --no-cache-dir
-```
-
-### **Still Having Issues?**
-
-See detailed fixes: [FIXES.md](FIXES.md)
+Type **y** and press Enter. It will download the model (~2GB).
 
 ---
 
 ## ✨ Features
+
+### 🤖 **Automatic Setup**
+```
+✅ One command to rule them all
+✅ Auto-installs everything
+✅ No manual configuration
+✅ Works on Windows, Mac, Linux
+```
+
+### 🧠 **Local AI Processing**
+```
+✅ Runs completely offline
+✅ No API keys needed
+✅ Fast and private
+✅ Uses Ollama + llama3.2
+
+Your data stays on your PC!
+```
 
 ### 🔐 **Browser Auto-Login**
 ```
@@ -175,67 +158,6 @@ Say: "Avengers movie play karo VLC me"
 Result: Finds Avengers, opens VLC, plays automatically!
 ```
 
-### 🤖 **Local AI Processing**
-```
-✅ Runs completely offline
-✅ No API keys needed
-✅ Fast and private
-✅ Uses Ollama + llama3.2
-
-Your data stays on your PC!
-```
-
----
-
-## ⚙️ Configuration (Optional)
-
-### **1. Configure Auto-Login:**
-```
-1. Click "⚙️ Settings" button (top-right)
-2. Enter Google Email
-3. Enter Google Password
-4. Click "Save Settings"
-
-Now JARVIS can auto-login to Gmail, YouTube, Facebook!
-```
-
-### **2. Add Movie Folders:**
-```
-1. Click "⚙️ Settings" button
-2. Scroll to "Movie Search Paths"
-3. Click "Add Folder"
-4. Select your movie folders
-5. Click "Save Settings"
-
-JARVIS will search these folders for movies!
-```
-
-**Default Paths (Auto-detected):**
-- Windows: C:\Users\YourName\Videos, Downloads, Movies
-- All Drives: D:\Movies, E:\Videos, etc.
-
-### **3. Create .env File (Advanced):**
-
-Create `.env` in project root:
-
-```bash
-# AI Model
-OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=llama3.2
-
-# Voice Settings
-VOICE_ENABLED=true
-VOICE_RATE=150
-VOICE_VOLUME=0.9
-
-# Auto-Login (Optional)
-GOOGLE_EMAIL=your_email@gmail.com
-GOOGLE_PASSWORD=your_password
-
-# Movie Search Paths (Optional)
-MOVIE_PATHS=C:\Users\YourName\Videos,D:\Movies
-```
-
 ---
 
 ## 💬 Commands
@@ -267,6 +189,7 @@ MOVIE_PATHS=C:\Users\YourName\Videos,D:\Movies
 "honey singh ka gaana bajao" → Auto-plays Honey Singh
 "Kesariya bajao" → Auto-plays Kesariya
 "arijit singh ka gaana bajao" → Auto-plays Arijit Singh
+"youtube kholo" → Opens YouTube with trending music
 ```
 
 ### **🌐 Web (Quick Access):**
@@ -274,6 +197,7 @@ MOVIE_PATHS=C:\Users\YourName\Videos,D:\Movies
 "gmail kholo" → Opens Gmail
 "facebook kholo" → Opens Facebook
 "youtube kholo" → Opens YouTube
+"google search karo X" → Searches Google for X
 ```
 
 ### **📱 Applications:**
@@ -297,124 +221,130 @@ MOVIE_PATHS=C:\Users\YourName\Videos,D:\Movies
 "sleep karo" → Sleep mode
 ```
 
+### **💬 Natural Conversation:**
+```
+"hello jarvis" → Greets you warmly
+"what's the weather?" → Tells weather
+"tell me a joke" → Tells a joke
+"thanks" → Responds warmly
+```
+
 ---
 
-## 🎯 How It Works
+## ⚙️ Configuration (Optional)
 
-### **1. Browser Auto-Login:**
+### **1. Configure Auto-Login:**
 ```
-You say: "gmail login karo"
+1. Click "⚙️ Settings" button (top-right in GUI)
+2. Enter Google Email
+3. Enter Google Password
+4. Click "Save Settings"
 
-JARVIS:
-1. Opens Chrome with Selenium
-2. Goes to Gmail
-3. Enters your email (from settings)
-4. Enters your password (from settings)
-5. Clicks login automatically
-6. You're logged in!
-
-Result: ✅ Logged into Gmail!
-        🌐 Browser opened with auto-login
+Now JARVIS can auto-login to Gmail, YouTube, Facebook!
 ```
 
-### **2. PC Movie Search:**
+### **2. Add Movie Folders:**
 ```
-You say: "Avengers movie search karo"
+1. Click "⚙️ Settings" button
+2. Scroll to "Movie Search Paths"
+3. Click "Add Folder"
+4. Select your movie folders
+5. Click "Save Settings"
 
-JARVIS:
-1. Searches all configured folders
-2. Looks for "Avengers" in filename
-3. Checks all video formats (MP4, MKV, etc.)
-4. Shows all matches
-
-Result: 🎬 Found 3 movie(s):
-        1. Avengers Endgame.mp4
-        2. Avengers Infinity War.mkv
-        3. The Avengers.avi
+JARVIS will search these folders for movies!
 ```
 
-### **3. VLC Auto-Play:**
-```
-You say: "Avengers movie play karo VLC me"
-
-JARVIS:
-1. Searches PC for "Avengers"
-2. Finds movie file
-3. Locates VLC player
-4. Opens VLC with movie
-5. Movie starts playing!
-
-Result: 🎬 Playing in VLC:
-        Avengers Endgame.mp4
-        ✅ Movie started!
-```
-
-### **4. Local AI Processing:**
-```
-You say: "What's the weather like?"
-
-JARVIS:
-1. Processes query with Ollama (local AI)
-2. Understands intent
-3. Executes appropriate skill
-4. Responds naturally
-
-Result: All processing happens on your PC!
-        No data sent to cloud!
-```
+**Default Paths (Auto-detected):**
+- Windows: C:\Users\YourName\Videos, Downloads, Movies
+- All Drives: D:\Movies, E:\Videos, etc.
 
 ---
 
 ## 🎨 GUI Interface
 
-### **Top Bar:**
+### **Beautiful Visual Interface:**
 ```
-🤖 JARVIS | Auto-Login | Movie Search | VLC Play
-                                    [⚙️ Settings] [● Ready]
-```
-
-### **Left Panel - Quick Actions:**
-```
-🌐 Web (Auto-Login)
-   • Gmail (Login) ✅
-   • Facebook (Login) ✅
-   • YouTube (Login) ✅
-   • Twitter (Login) ✅
-
-🎬 Movies
-   • Search Movie ✅
-   • Play in VLC ✅
-
-📱 Apps
-   • Chrome
-   • Word
-   • Excel
-   • VLC ✅
-   • Notepad
-   • Calculator
-
-🎵 Media
-   • Play Music ✅
-   • Pause
-   • Next
-   • Previous
-
-🔊 System
-   • Volume Up/Down
-   • Mute
-
-⚡ Power
-   • Lock PC
-   • Sleep
+┌─────────────────────────────────────────────────────────────┐
+│  🤖 JARVIS | Auto-Login | Movie Search | VLC Play           │
+│                                    [⚙️ Settings] [● Ready]  │
+├──────────────────┬──────────────────────────────────────────┤
+│                  │                                          │
+│  Quick Actions   │         Chat with JARVIS                │
+│                  │                                          │
+│  🌐 Web          │  💬 Type or speak your commands         │
+│    • Gmail ✅    │                                          │
+│    • YouTube ✅  │  [08:58:46] 👤 YOU: hello jarvis        │
+│    • Facebook ✅ │  [08:58:47] 🤖 JARVIS: Hello! How can   │
+│                  │             I help you today? 😊         │
+│  🎬 Movies       │                                          │
+│    • Search ✅   │  [08:59:12] 👤 YOU: youtube kholo       │
+│    • Play VLC ✅ │  [08:59:13] 🤖 JARVIS: Opening YouTube  │
+│                  │             with trending music! 🎵      │
+│  📱 Apps         │                                          │
+│    • Chrome      │                                          │
+│    • VLC ✅      │  ┌────────────────────────────────────┐ │
+│    • Calculator  │  │ Type your message...               │ │
+│                  │  │                        [🎤] [Send] │ │
+│  🎵 Media        │  └────────────────────────────────────┘ │
+│    • Play ✅     │                                          │
+│    • Pause       │                                          │
+│                  │                                          │
+│  🔊 System       │                                          │
+│    • Volume      │                                          │
+│    • Mute        │                                          │
+│                  │                                          │
+│  ⚡ Power        │                                          │
+│    • Lock        │                                          │
+│    • Sleep       │                                          │
+└──────────────────┴──────────────────────────────────────────┘
 ```
 
-### **Right Panel - Chat:**
+---
+
+## 🔧 Troubleshooting
+
+### **Problem: "Ollama installation failed"**
+
+**Windows:**
+1. Download manually: https://ollama.com/download/windows
+2. Run installer
+3. Run `python main.py` again
+
+**Mac/Linux:**
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+python main.py
 ```
-💬 Chat with JARVIS
-   Type or speak your commands
-   Real-time responses
-   Natural conversation
+
+### **Problem: "Model download failed"**
+
+```bash
+# Open terminal and run:
+ollama serve
+
+# In another terminal:
+ollama pull llama3.2
+
+# Then run JARVIS:
+python main.py
 ```
+
+### **Problem: "Module not found"**
+
+```bash
+pip install -r requirements.txt
+python main.py
+```
+
+### **Problem: "JARVIS running in limited mode"**
+
+This means Ollama is not available. JARVIS will still work but with basic commands only.
+
+**To enable full mode:**
+1. Install Ollama: https://ollama.com/download
+2. Run: `ollama serve`
+3. Run: `ollama pull llama3.2`
+4. Restart JARVIS: `python main.py`
 
 ---
 
@@ -447,9 +377,54 @@ Result: All processing happens on your PC!
 
 ### **Credentials:**
 - Stored in `~/.jarvis_config.json`
-- Encrypted (if you enable encryption)
 - Never shared or uploaded
 - You can delete anytime
+
+---
+
+## 🎯 How It Works
+
+### **1. Automatic Setup:**
+```
+You run: python main.py
+
+JARVIS:
+1. Checks Python dependencies → Installs if missing
+2. Checks Ollama → Asks to install if missing
+3. Checks Ollama server → Starts if not running
+4. Checks AI model → Downloads if missing
+5. Launches beautiful GUI
+
+Result: Everything ready in 5 minutes!
+```
+
+### **2. Local AI Processing:**
+```
+You say: "What's the weather like?"
+
+JARVIS:
+1. Processes query with Ollama (local AI)
+2. Understands intent
+3. Executes appropriate skill
+4. Responds naturally
+
+Result: All processing happens on your PC!
+        No data sent to cloud!
+```
+
+### **3. Smart Task Execution:**
+```
+You say: "Avengers movie play karo VLC me"
+
+JARVIS:
+1. Understands: Search movie + Play in VLC
+2. Searches PC for "Avengers"
+3. Finds movie file
+4. Opens VLC with movie
+5. Movie starts playing!
+
+Result: Complex task done automatically!
+```
 
 ---
 
@@ -458,7 +433,7 @@ Result: All processing happens on your PC!
 ### **Project Structure:**
 ```
 Zarves/
-├── main.py              # Entry point
+├── main.py              # Entry point (auto-setup + launch)
 ├── core/                # Core engine
 │   ├── engine.py        # AI engine
 │   ├── registry.py      # Skill registry
@@ -517,8 +492,8 @@ MIT License - See LICENSE file
 ## 🆘 Support
 
 - **Issues:** https://github.com/Aryankaushik541/Zarves/issues
-- **Fixes Guide:** [FIXES.md](FIXES.md)
-- **Ollama Docs:** https://ollama.com/docs
+- **Detailed Fixes:** [FIXES.md](FIXES.md)
+- **Quick Start:** [QUICKSTART.md](QUICKSTART.md)
 
 ---
 
@@ -542,3 +517,5 @@ It helps others discover this project!
 ---
 
 **Made with ❤️ by Aryan Kaushik**
+
+**Just run `python main.py` and enjoy! 🚀**

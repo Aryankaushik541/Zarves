@@ -1,499 +1,446 @@
 # 🤖 JARVIS - Your Personal AI Assistant
 
-> **"Just One File - Just One Command - `python main.py`"**
+> **"Enhanced AI Agent with Modern GUI - Smart, Fast, Beautiful"**
 
-Complete AI assistant with **everything in main.py** - automatic setup, GUI, browser auto-login, PC movie search, VLC auto-play, and local AI!
+Complete AI assistant with **two powerful interfaces** - Classic all-in-one GUI and Modern Enhanced GUI with smart intent detection, threaded processing, and conversation memory!
 
 ---
 
-## 🚀 Super Simple Setup - Just 2 Commands!
+## 🚀 Quick Start - Choose Your Interface!
 
+### 🎨 **Option 1: Modern GUI (Recommended)**
 ```bash
 # 1. Clone
 git clone https://github.com/Aryankaushik541/Zarves.git
 cd Zarves
 
-# 2. Run (Everything happens automatically!)
+# 2. Run Modern GUI
+python launch_modern.py
+```
+
+**✨ Modern GUI Features:**
+- 🧵 **Threaded Processing** - No freezing!
+- 🧠 **Smart Intent Detection** - Understands Hindi + English
+- 💬 **Conversation Memory** - Context-aware responses
+- 📊 **Live Statistics** - Real-time monitoring
+- ⚡ **Quick Actions** - One-click shortcuts
+- 🎨 **Beautiful Dark Theme** - Professional interface
+
+### 📺 **Option 2: Classic GUI**
+```bash
+# Run Classic GUI (Everything in main.py)
 python main.py
 ```
 
-**That's it!** 🎉
-
-**Everything is in main.py:**
-- ✅ Auto-installs Python dependencies
-- ✅ Auto-installs Ollama (if needed)
+**Classic Features:**
+- ✅ Auto-installs dependencies
+- ✅ Auto-installs Ollama
 - ✅ Auto-starts Ollama server
-- ✅ Auto-downloads AI model (llama3.2)
-- ✅ **Opens beautiful GUI window**
-- ✅ **All GUI code included**
-
-**No separate files needed!**
+- ✅ Auto-downloads AI model
+- ✅ Opens GUI window
+- ✅ All-in-one file
 
 ---
 
-## 📺 What Happens When You Run
+## 🎨 Modern GUI Preview
 
 ```
-🤖 JARVIS - Personal AI Assistant
-======================================================================
-
-📦 Checking Python dependencies...
-   ✅ All dependencies installed!
-
-🤖 Setting up AI Engine (Ollama)...
-   ✅ Ollama found!
-   ✅ Ollama server running!
-   ✅ AI model ready!
-
-✅ AI Engine ready!
-
-🚀 Launching JARVIS GUI...
-
-💡 Full Mode Enabled:
-   ✅ Local AI processing
-   ✅ Natural conversations
-   ✅ Smart task execution
-
-🎵 Features:
-   ✅ YouTube Auto-Play
-   ✅ Browser Auto-Login
-   ✅ PC Movie Search
-   ✅ VLC Auto-Play
-   ✅ Voice & Text Control
-
-======================================================================
-
-✅ GUI framework (tkinter) available
-
-🎨 Opening GUI window...
-
-✅ GUI window opened!
-💡 If you don't see the window, check your taskbar
-```
-
-**Then a beautiful GUI window opens!** 🎨
-
----
-
-## 🎨 GUI Interface
-
-The GUI window shows:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│         🤖 JARVIS - Personal AI Assistant               │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  [09:19:04] ⚙️ SYSTEM: 📦 Loading skills...           │
-│  [09:19:05] ⚙️ SYSTEM: 🧠 Initializing AI engine...   │
-│  [09:19:07] ⚙️ SYSTEM: 🎤 Voice assistant ready!      │
-│  [09:19:07] 🤖 JARVIS: ✅ JARVIS Ready!               │
-│                                                         │
-│             📊 Loaded 21 skills with 69 tools          │
-│                                                         │
-│             💬 How can I help you today?               │
-│                                                         │
-│  [09:20:15] 👤 You: youtube kholo                     │
-│  [09:20:16] 🤖 JARVIS: Opening YouTube! 🎵            │
-│                                                         │
-├─────────────────────────────────────────────────────────┤
-│  Type your message...              [Send] [🎤 Voice]   │
-├─────────────────────────────────────────────────────────┤
-│  ● Ready                                                │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  🤖 JARVIS                                    ● Ready        │
+│  Enhanced AI Assistant                                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  💬 Conversation                    📊 Statistics           │
+│  ┌──────────────────────┐          ┌──────────────────┐    │
+│  │ [09:19:04] 🤖 JARVIS:│          │ 🎯 Skills: 21    │    │
+│  │ How can I help?      │          │ 🔧 Tools: 69     │    │
+│  │                      │          │ 💬 Queries: 15   │    │
+│  │ [09:20:15] 👤 You:   │          │ ✅ Success: 98%  │    │
+│  │ youtube kholo        │          └──────────────────┘    │
+│  │                      │                                   │
+│  │ [09:20:16] 🤖 JARVIS:│          ⚡ Quick Actions        │
+│  │ Opening YouTube! 🎵  │          ┌──────────────────┐    │
+│  │                      │          │ 🎵 YouTube       │    │
+│  └──────────────────────┘          │ 🌐 Browser       │    │
+│                                    │ 🎬 Movies        │    │
+│                                    │ 🔍 Search        │    │
+│                                    │ ⚙️ Settings      │    │
+│                                    └──────────────────┘    │
+├─────────────────────────────────────────────────────────────┤
+│  Type your command...              [Send] [🎤]              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ✨ Features
+## ✨ What's New in Modern GUI?
 
-### 📄 **Single File Design**
-- Everything in main.py
-- No separate GUI files needed
-- Easy to understand and modify
-- Complete standalone solution
+### 🧠 **Enhanced AI Agent**
 
-### 🎨 **Beautiful GUI Window**
-- Modern dark theme interface
-- Real-time chat display
-- Text and voice input
-- Status indicators
-- Automatic window opening
+**Smart Intent Detection** - Automatically understands commands:
 
-### 🤖 **Automatic Setup**
-- One command to rule them all
-- Auto-installs everything
-- No manual configuration
-- Works on Windows, Mac, Linux
+| Intent | Hindi Examples | English Examples |
+|--------|---------------|------------------|
+| YouTube | "youtube खोल", "गाना चला" | "open youtube", "play song" |
+| Browser | "browser खोल" | "open browser" |
+| Movies | "movie चला" | "play movie" |
+| Search | "google खोज", "क्या है" | "search", "what is" |
+| System | "volume बढ़ा" | "volume up" |
 
-### 🧠 **Local AI Processing**
-- Runs completely offline
-- No API keys needed
-- Fast and private
-- Uses Ollama + llama3.2
-- Your data stays on your PC!
+**Context Awareness** - Remembers conversation:
+```
+You: "youtube kholo"
+JARVIS: "Opening YouTube! 🎵"
 
-### 🔐 **Browser Auto-Login**
-- Opens browser automatically
-- Logs in with Google credentials
-- No manual typing needed!
-- Supported: Gmail, YouTube, Facebook, Twitter
+You: "wahan pe gaana search kar"  # Refers to YouTube
+JARVIS: "Searching for song on YouTube..."
+```
 
-### 🎬 **PC Movie Search**
-- Searches entire PC storage
-- Finds movies by name
-- Supports all video formats (MP4, MKV, AVI, MOV, WMV, FLV, WEBM)
-- Shows results instantly
+### 🎯 **Key Improvements**
 
-### 🎥 **VLC Auto-Play**
-- Searches movie on PC
-- Opens VLC automatically
-- Starts playing movie
-- Fully automatic!
+1. **🧵 Non-Blocking UI**
+   - GUI never freezes
+   - Background processing
+   - Smooth animations
 
-### 🎵 **YouTube Auto-Play**
-- Opens YouTube with Selenium
-- Auto-plays songs/videos
-- Trending music support
-- Natural language commands
+2. **💬 Conversation Memory**
+   - Maintains context
+   - Better follow-ups
+   - Natural conversations
+
+3. **📊 Live Statistics**
+   - Skills loaded
+   - Tools available
+   - Queries processed
+   - Success rate
+
+4. **⚡ Quick Actions**
+   - YouTube shortcut
+   - Browser shortcut
+   - Movies shortcut
+   - Search shortcut
+   - Settings access
+
+5. **🎨 Modern Design**
+   - Dark theme
+   - Color-coded messages
+   - Professional look
+   - Better readability
 
 ---
 
-## 💬 Commands
+## 📦 Features
 
-### **🔐 Auto-Login:**
-```
-"gmail login karo" → Opens Gmail and logs in automatically
-"youtube login karo" → Opens YouTube and logs in automatically
-"facebook login karo" → Opens Facebook and logs in automatically
-"twitter login karo" → Opens Twitter and logs in automatically
-```
+### 🎵 **Entertainment**
+- ✅ YouTube Auto-Play
+- ✅ PC Movie Search
+- ✅ VLC Auto-Play
+- ✅ Music Control
 
-### **🎬 Movie Search:**
-```
-"Avengers movie search karo" → Searches PC for Avengers
-"Interstellar movie dhundo" → Finds Interstellar on PC
-"movie search karo" → Shows all movies
-```
+### 🌐 **Web & Browser**
+- ✅ Browser Auto-Login
+- ✅ Web Search
+- ✅ Internet Operations
 
-### **🎥 VLC Auto-Play:**
-```
-"Avengers movie play karo VLC me" → Finds & plays in VLC
-"Interstellar chalao VLC me" → Finds & plays in VLC
-"movie play karo" → Plays last searched movie
-```
+### 💻 **System Control**
+- ✅ Volume Control
+- ✅ Shutdown/Restart
+- ✅ File Operations
+- ✅ Screenshot
 
-### **🎵 YouTube Auto-Play:**
-```
-"honey singh ka gaana bajao" → Auto-plays Honey Singh
-"Kesariya bajao" → Auto-plays Kesariya
-"arijit singh ka gaana bajao" → Auto-plays Arijit Singh
-"youtube kholo" → Opens YouTube with trending music
-```
+### 🤖 **AI Capabilities**
+- ✅ Local AI (Ollama)
+- ✅ Natural Conversations
+- ✅ Smart Task Execution
+- ✅ Multi-language (Hindi + English)
 
-### **🌐 Web (Quick Access):**
-```
-"gmail kholo" → Opens Gmail
-"facebook kholo" → Opens Facebook
-"youtube kholo" → Opens YouTube
-"google search karo X" → Searches Google for X
-```
-
-### **📱 Applications:**
-```
-"chrome kholo" → Opens Chrome
-"word kholo" → Opens Word
-"vlc kholo" → Opens VLC
-"calculator kholo" → Opens Calculator
-```
-
-### **🔊 System Control:**
-```
-"volume badhao" → Increases volume
-"volume kam karo" → Decreases volume
-"mute karo" → Mutes audio
-```
-
-### **⚡ Power:**
-```
-"lock karo" → Locks PC
-"sleep karo" → Sleep mode
-```
-
-### **💬 Natural Conversation:**
-```
-"hello jarvis" → Greets you warmly
-"what's the weather?" → Tells weather
-"tell me a joke" → Tells a joke
-"thanks" → Responds warmly
-```
+### 🎤 **Voice Control**
+- ✅ Voice Commands
+- ✅ Text-to-Speech
+- ✅ Wake Word Detection
+- ✅ Hindi Recognition
 
 ---
 
-## 🔧 Troubleshooting
+## 📚 Documentation
 
-### **Problem: GUI window not opening**
+- **[Modern GUI Guide](MODERN_GUI.md)** - Complete guide for enhanced interface
+- **[Quick Start](QUICKSTART.md)** - Get started in 5 minutes
+- **[Skills Documentation](docs/SKILLS.md)** - All available skills
 
-**Solution 1 - Check taskbar:**
-```
-The window might be minimized or behind other windows.
-Check your taskbar for "JARVIS" window.
-```
+---
 
-**Solution 2 - Install tkinter:**
+## 🎯 Usage Examples
+
+### **Voice Commands**
+
 ```bash
-# Linux:
-sudo apt-get install python3-tk
+# YouTube
+"youtube kholo"
+"gaana sunao"
+"play despacito"
 
-# Mac:
-brew install python-tk
+# Browser
+"browser kholo"
+"chrome open karo"
 
-# Windows:
-# Reinstall Python with tkinter support from python.org
+# Movies
+"movie chalao"
+"inception play karo"
+
+# Search
+"google par search karo"
+"what is AI"
+"python kya hai"
+
+# System
+"volume badhao"
+"screenshot lo"
 ```
 
-**Solution 3 - Check main.py:**
+### **Text Commands**
+
+Simply type in the input field:
+- `open youtube`
+- `play song`
+- `search python`
+- `what time is it`
+- `take screenshot`
+
+---
+
+## 🛠️ Installation
+
+### **Prerequisites**
+- Python 3.8+
+- Ollama (auto-installed)
+- Internet connection (first run)
+
+### **Quick Install**
+
 ```bash
-# Make sure you have the latest version
-git pull origin main
+# Clone repository
+git clone https://github.com/Aryankaushik541/Zarves.git
+cd Zarves
+
+# Install dependencies (optional - auto-installed)
+pip install -r requirements.txt
+
+# Run Modern GUI
+python launch_modern.py
+
+# OR Run Classic GUI
 python main.py
 ```
 
-### **Problem: "Ollama installation failed"**
+### **Manual Ollama Setup** (if needed)
 
-**Windows:**
-1. Download manually: https://ollama.com/download/windows
-2. Run installer
-3. Run `python main.py` again
-
-**Mac/Linux:**
 ```bash
+# Install Ollama
 curl -fsSL https://ollama.com/install.sh | sh
-python main.py
-```
 
-### **Problem: "Model download failed"**
-
-```bash
-# Open terminal 1:
+# Start Ollama server
 ollama serve
 
-# Open terminal 2:
+# Pull model
 ollama pull llama3.2
-
-# Open terminal 3:
-cd Zarves
-python main.py
-```
-
-### **Problem: "Module not found"**
-
-```bash
-pip install -r requirements.txt
-python main.py
 ```
 
 ---
 
-## ⚙️ Configuration (Optional)
+## 📊 Project Structure
 
-### **1. Configure Auto-Login:**
-
-In the GUI window:
 ```
-1. Type: "settings" or click Settings button (if available)
-2. Or manually edit: ~/.jarvis_config.json
-3. Add your Google credentials:
-   {
-     "google_email": "your@gmail.com",
-     "google_password": "yourpassword"
-   }
+Zarves/
+├── main.py                 # Classic all-in-one launcher
+├── launch_modern.py        # Modern GUI launcher
+├── requirements.txt        # Dependencies
+├── README.md              # This file
+├── MODERN_GUI.md          # Modern GUI documentation
+├── QUICKSTART.md          # Quick start guide
+│
+├── core/                  # Core components
+│   ├── engine.py          # JARVIS engine
+│   ├── registry.py        # Skill registry
+│   ├── voice.py           # Voice assistant
+│   ├── enhanced_agent.py  # Enhanced AI agent (NEW!)
+│   └── ...
+│
+├── gui/                   # GUI interfaces
+│   ├── app.py            # Classic GUI
+│   └── modern_app.py     # Modern GUI (NEW!)
+│
+└── skill/                 # Skills (21 skills, 69 tools)
+    ├── youtube_player.py
+    ├── music_ops.py
+    ├── web_ops.py
+    ├── system_ops.py
+    └── ...
 ```
 
-### **2. Add Movie Folders:**
+---
 
-Edit `~/.jarvis_config.json`:
+## 🎓 Skills & Tools
+
+**21 Skills with 69 Tools:**
+
+### **Entertainment**
+- 🎵 YouTube Player
+- 🎬 Movie Downloader
+- 🎵 Music Operations
+
+### **Web & Internet**
+- 🌐 Web Operations
+- 🔍 Internet Search
+- 📧 Email Operations
+
+### **System Control**
+- 💻 System Operations
+- 🎮 Master PC Control
+- 📁 File Operations
+- 📸 Screenshot
+
+### **AI & Development**
+- 🤖 Self-Coding AI
+- 🏗️ AI Architect
+- 💻 Code Generator
+- 🎮 AI Game Player
+
+### **Utilities**
+- 🕐 DateTime Operations
+- 🌤️ Weather Operations
+- 💾 Memory Operations
+- 📝 Text Operations
+- 🖥️ Terminal Operations
+
+---
+
+## 🔧 Configuration
+
+### **Settings** (Modern GUI)
+
+Access via: Quick Actions → Settings
+
+- ✅ Voice responses
+- 🎨 Theme (coming soon)
+- 🌐 Language preference
+- 🔊 Voice settings
+
+### **Config File**
+
+Location: `~/.jarvis_config.json`
+
 ```json
 {
-  "movie_paths": [
-    "D:\\Movies",
-    "E:\\Videos",
-    "C:\\Users\\YourName\\Downloads"
-  ]
+  "theme": "dark",
+  "voice_enabled": true,
+  "auto_execute": false,
+  "language": "hi-IN"
 }
 ```
 
-**Default Paths (Auto-detected):**
-- Windows: C:\Users\YourName\Videos, Downloads, Movies
-- All Drives: D:\Movies, E:\Videos, etc.
+---
+
+## 🐛 Troubleshooting
+
+### **GUI doesn't open**
+```bash
+# Check tkinter
+python -c "import tkinter"
+
+# Linux: Install tkinter
+sudo apt-get install python3-tk
+```
+
+### **Voice not working**
+```bash
+# Install dependencies
+pip install SpeechRecognition pyaudio pyttsx3
+
+# Linux: Install portaudio
+sudo apt-get install portaudio19-dev
+```
+
+### **Ollama connection error**
+```bash
+# Start Ollama
+ollama serve
+
+# Check status
+curl http://localhost:11434/api/tags
+```
 
 ---
 
-## 📊 System Requirements
+## 🚀 Performance
 
-### **Minimum:**
-- Python 3.8+
-- 4GB RAM
-- 5GB free disk space (for AI model)
-- Windows 10/11, macOS 10.15+, or Linux
+### **Modern GUI**
+- ⚡ Non-blocking UI
+- 🚀 < 1s response time
+- 💾 Memory efficient
+- 🔄 Concurrent processing
 
-### **Recommended:**
-- Python 3.10+
-- 8GB RAM
-- 10GB free disk space
-- SSD for faster AI processing
-
----
-
-## 🔒 Privacy & Security
-
-### **Your Data is Safe:**
-- ✅ All AI processing happens locally
-- ✅ No data sent to cloud
-- ✅ Credentials stored locally only
-- ✅ Open source - audit the code
-- ✅ No telemetry or tracking
-
-### **Credentials:**
-- Stored in `~/.jarvis_config.json`
-- Never shared or uploaded
-- You can delete anytime
-
----
-
-## 🛠️ Development
-
-### **Project Structure:**
-```
-Zarves/
-├── main.py              # ⭐ EVERYTHING IS HERE! ⭐
-│                        # - Auto-setup
-│                        # - Ollama installation
-│                        # - Dependency management
-│                        # - Complete GUI code
-│                        # - JARVIS integration
-│
-├── core/                # Core engine (imported by main.py)
-│   ├── engine.py        # AI engine
-│   ├── registry.py      # Skill registry
-│   ├── voice.py         # Voice assistant
-│   └── ...
-│
-├── skill/               # Skills (plugins)
-│   ├── web_skills.py
-│   ├── media_skills.py
-│   └── ...
-│
-└── requirements.txt     # Dependencies
-```
-
-### **Single File Benefits:**
-- ✅ Easy to understand
-- ✅ Easy to modify
-- ✅ No file dependencies
-- ✅ Portable
-- ✅ Self-contained
-
----
-
-## 💡 Tips & Tricks
-
-### **Faster Commands:**
-```
-Instead of: "open youtube and play honey singh song"
-Just say: "honey singh ka gaana bajao"
-```
-
-### **Natural Language:**
-```
-✅ "youtube kholo" (works)
-✅ "open youtube" (works)
-✅ "youtube chalao" (works)
-✅ "yt kholo" (works)
-
-All variations work!
-```
-
-### **Voice vs Text:**
-```
-Voice: Click 🎤 Voice button
-Text: Type in input box and press Enter
-
-Use what's comfortable!
-```
-
-### **Customize main.py:**
-```python
-# Edit main.py to customize:
-- GUI colors and theme
-- Window size
-- Button labels
-- Status messages
-- Anything you want!
-```
+### **Classic GUI**
+- ✅ All-in-one file
+- 🚀 Quick startup
+- 💾 Lightweight
+- 🔄 Simple architecture
 
 ---
 
 ## 🤝 Contributing
 
 Contributions welcome! Please:
-1. Fork the repo
+
+1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Submit a pull request
+4. Test thoroughly
+5. Submit a pull request
 
 ---
 
 ## 📝 License
 
-MIT License - See LICENSE file
+MIT License - Feel free to use and modify!
 
 ---
 
-## 🆘 Support
+## 🙏 Credits
 
-- **Issues:** https://github.com/Aryankaushik541/Zarves/issues
-- **Ollama Docs:** https://ollama.com/docs
-
----
-
-## 🎉 Credits
-
-Built with:
-- Ollama (Local AI)
-- llama3.2 (AI Model)
-- Tkinter (GUI)
-- Selenium (Browser automation)
-- pyttsx3 (Voice)
+- **Ollama** - Local AI processing
+- **Python Community** - Amazing libraries
+- **Contributors** - Thank you!
 
 ---
 
-## ⭐ Star This Repo!
+## 📞 Support
 
-If you find JARVIS helpful, please star this repo! ⭐
-
-It helps others discover this project!
-
----
-
-## 🎯 Why Single File?
-
-### **Benefits:**
-1. **Easy to Understand** - Everything in one place
-2. **Easy to Modify** - No file hunting
-3. **Portable** - Just copy main.py
-4. **Self-Contained** - No missing imports
-5. **Beginner Friendly** - Clear structure
-
-### **Perfect For:**
-- Learning Python
-- Understanding AI assistants
-- Quick modifications
-- Sharing with friends
-- Educational purposes
+- **Issues**: [GitHub Issues](https://github.com/Aryankaushik541/Zarves/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Aryankaushik541/Zarves/discussions)
 
 ---
 
-**Made with ❤️ by Aryan Kaushik**
+## 🌟 Star History
 
-**Just run `python main.py` - Everything in one file! 🚀**
+If you find this project useful, please consider giving it a ⭐!
+
+---
+
+## 📈 Roadmap
+
+### **Coming Soon**
+- [ ] Custom theme support
+- [ ] Plugin system
+- [ ] Mobile app
+- [ ] Cloud sync
+- [ ] Multi-user support
+- [ ] Advanced AI models
+- [ ] Voice customization
+- [ ] Automation workflows
+
+---
+
+**Made with ❤️ for the AI community**
+
+**Choose your interface and start building with JARVIS today!** 🚀

@@ -4,6 +4,7 @@ import sys
 import random
 import requests
 import time
+import threading
 from typing import List, Dict, Any, Callable
 from core.skill import Skill
 
@@ -12,6 +13,9 @@ class MusicSkill(Skill):
     Music playback skill with trending songs support and AUTO-PLAY
     Automatically fetches latest popular songs from YouTube and plays them
     """
+    
+    # Class variable to store active driver instances
+    active_drivers = []
     
     # Fallback popular Hindi songs (if internet fails)
     POPULAR_HINDI_SONGS = [
@@ -168,9 +172,34 @@ class MusicSkill(Skill):
             print(f"⚠️  Could not fetch trending songs: {e}")
             return None
 
+    def _keep_driver_alive(self, driver):
+        """
+        Keep the driver alive in a separate thread
+        This prevents the browser from closing automatically
+        """
+        try:
+            # Store driver reference
+            self.active_drivers.append(driver)
+            
+            # Keep checking if window is still open
+            while True:
+                try:
+                    # Check if window is still open
+                    _ = driver.current_url
+                    time.sleep(5)  # Check every 5 seconds
+                except:
+                    # Window closed by user
+                    print("🔴 Browser window closed by user")
+                    if driver in self.active_drivers:
+                        self.active_drivers.remove(driver)
+                    break
+        except Exception as e:
+            print(f"⚠️  Driver monitoring error: {e}")
+
     def _auto_play_with_selenium(self, query):
         """
         Use Selenium to automatically click and play the first video
+        Browser will stay open until user closes it
         """
         try:
             from selenium import webdriver
@@ -223,14 +252,18 @@ class MusicSkill(Skill):
                 except:
                     print("⚠️  Could not auto-click, but YouTube is open")
             
-            # Keep browser open
-            print("✅ YouTube opened and playing!")
+            # Start background thread to keep driver alive
+            monitor_thread = threading.Thread(target=self._keep_driver_alive, args=(driver,), daemon=True)
+            monitor_thread.start()
+            
+            print("✅ YouTube opened and playing! Browser will stay open until you close it.")
             
             return json.dumps({
                 "status": "success",
                 "action": "auto_play_music",
                 "query": query,
-                "method": "selenium"
+                "method": "selenium",
+                "note": "Browser will stay open. Close it manually when done."
             })
             
         except ImportError as ie:

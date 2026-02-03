@@ -2,23 +2,18 @@
 # -*- coding: utf-8 -*-
 
 """
-JARVIS GUI - Complete Visual Interface
-✅ YouTube Auto-Play
-✅ Browser Auto-Login (Google)
-✅ PC Movie Search
-✅ VLC Auto-Play
-✅ Fixed Quick Actions Panel with Proper Scrolling
+JARVIS GUI - Real-Time Integration with Core Engine
+✅ Dynamic skill loading from skill folder
+✅ Real-time execution through JarvisEngine
+✅ Live status updates
+✅ Actual tool execution
 """
 
 import sys
 import os
-import webbrowser
-import subprocess
-import platform
 import time
 import threading
 import json
-import glob
 from pathlib import Path
 
 # Add parent directory to path
@@ -27,80 +22,64 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 try:
     import tkinter as tk
     from tkinter import ttk, scrolledtext, messagebox, filedialog
-    import pyttsx3
-    import speech_recognition as sr
-    import pyautogui
-    import psutil
 except ImportError as e:
-    print(f"Installing missing packages...")
-    import subprocess
-    packages = ['pyttsx3', 'SpeechRecognition', 'pyautogui', 'psutil']
-    for pkg in packages:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", pkg, "-q"])
-    print("Please restart the application")
-    sys.exit(0)
+    print(f"Installing tkinter...")
+    sys.exit(1)
 
+# Import JARVIS core components
 try:
-    from selenium import webdriver
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.common.keys import Keys
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
-    from selenium.webdriver.chrome.options import Options
-    from selenium.webdriver.chrome.service import Service
-    from webdriver_manager.chrome import ChromeDriverManager
-    SELENIUM_AVAILABLE = True
-except:
-    SELENIUM_AVAILABLE = False
+    from core.registry import SkillRegistry
+    from core.engine import JarvisEngine
+    from core.voice import VoiceAssistant
+    JARVIS_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ JARVIS core not available: {e}")
+    JARVIS_AVAILABLE = False
 
 
 class JarvisGUI:
-    """Complete JARVIS GUI Application"""
+    """Real JARVIS GUI with Engine Integration"""
     
     def __init__(self, root):
         self.root = root
-        self.root.title("🤖 JARVIS - Your Personal AI Assistant")
-        self.root.geometry("1200x800")
+        self.root.title("🤖 JARVIS - AI Assistant (Real-Time)")
+        self.root.geometry("1400x850")
         self.root.configure(bg='#0a0a0a')
         
-        # Initialize components
-        self.os_type = platform.system()
-        self.voice_engine = None
-        self.recognizer = None
+        # Initialize JARVIS components
+        self.registry = None
+        self.engine = None
+        self.voice = None
         self.listening = False
-        self.driver = None
         
-        # Config file for credentials
+        # Config
         self.config_file = Path.home() / ".jarvis_config.json"
         self.config = self._load_config()
         
-        # Movie search paths
-        self.movie_paths = self._get_default_movie_paths()
+        # Stats
+        self.stats = {
+            'total_skills': 0,
+            'total_tools': 0,
+            'queries_processed': 0,
+            'success_rate': 100.0
+        }
         
-        # Initialize voice
-        self._init_voice()
-        
-        # Create GUI
+        # Create GUI first
         self._create_gui()
         
-        # Welcome message
-        welcome = "Hello! I'm JARVIS. I can auto-login browsers, search movies on PC, and play them in VLC!"
-        self.add_message("JARVIS", welcome, "system")
-        self.speak("Hello! I'm JARVIS.")
+        # Initialize JARVIS in background
+        self.update_status("Initializing JARVIS...", "#ff8800")
+        threading.Thread(target=self._init_jarvis, daemon=True).start()
     
     def _load_config(self):
-        """Load saved configuration"""
+        """Load configuration"""
         try:
             if self.config_file.exists():
                 with open(self.config_file, 'r') as f:
                     return json.load(f)
         except:
             pass
-        return {
-            'google_email': '',
-            'google_password': '',
-            'movie_paths': []
-        }
+        return {}
     
     def _save_config(self):
         """Save configuration"""
@@ -110,60 +89,58 @@ class JarvisGUI:
         except Exception as e:
             print(f"Config save error: {e}")
     
-    def _get_default_movie_paths(self):
-        """Get default movie search paths"""
-        paths = []
-        
-        if self.os_type == "Windows":
-            # Common Windows paths
-            drives = ['C:', 'D:', 'E:', 'F:']
-            folders = ['Movies', 'Videos', 'Downloads', 'Desktop']
-            
-            for drive in drives:
-                for folder in folders:
-                    path = Path(f"{drive}\\Users\\{os.getlogin()}\\{folder}")
-                    if path.exists():
-                        paths.append(str(path))
-                    
-                    # Root folders
-                    path = Path(f"{drive}\\{folder}")
-                    if path.exists():
-                        paths.append(str(path))
-        else:
-            # Linux/Mac paths
-            home = Path.home()
-            folders = ['Movies', 'Videos', 'Downloads', 'Desktop']
-            for folder in folders:
-                path = home / folder
-                if path.exists():
-                    paths.append(str(path))
-        
-        # Add custom paths from config
-        if self.config.get('movie_paths'):
-            paths.extend(self.config['movie_paths'])
-        
-        return list(set(paths))  # Remove duplicates
-    
-    def _init_voice(self):
-        """Initialize voice engine"""
+    def _init_jarvis(self):
+        """Initialize JARVIS engine"""
         try:
-            self.voice_engine = pyttsx3.init()
-            self.voice_engine.setProperty('rate', 180)
-            self.voice_engine.setProperty('volume', 1.0)
+            if not JARVIS_AVAILABLE:
+                self.add_message("SYSTEM", "⚠️ JARVIS core not available. Running in demo mode.", "error")
+                self.update_status("Demo Mode", "#ff8800")
+                return
             
-            voices = self.voice_engine.getProperty('voices')
-            for voice in voices:
-                if 'male' in voice.name.lower() or 'david' in voice.name.lower():
-                    self.voice_engine.setProperty('voice', voice.id)
-                    break
+            # Initialize registry
+            self.add_message("SYSTEM", "📦 Loading skills...", "system")
+            self.registry = SkillRegistry()
             
-            self.recognizer = sr.Recognizer()
-            self.recognizer.energy_threshold = 4000
+            # Load skills from skill folder
+            skills_dir = Path(__file__).parent.parent / "skill"
+            if skills_dir.exists():
+                self.registry.load_skills(str(skills_dir))
+            
+            # Get stats
+            self.stats['total_skills'] = len(self.registry.list_skills())
+            self.stats['total_tools'] = len(self.registry.list_tools())
+            
+            # Initialize engine
+            self.add_message("SYSTEM", "🧠 Initializing AI engine...", "system")
+            self.engine = JarvisEngine(self.registry)
+            
+            # Initialize voice
+            try:
+                self.voice = VoiceAssistant()
+                self.add_message("SYSTEM", "🎤 Voice assistant ready!", "system")
+            except:
+                self.add_message("SYSTEM", "⚠️ Voice not available", "error")
+            
+            # Update UI
+            self._update_stats_display()
+            self._populate_skills_panel()
+            
+            # Welcome message
+            welcome = f"✅ JARVIS Ready!\n\n📊 Loaded {self.stats['total_skills']} skills with {self.stats['total_tools']} tools\n\n💬 How can I help you today?"
+            self.add_message("JARVIS", welcome, "system")
+            
+            if self.voice:
+                self.voice.speak("JARVIS ready! How can I help you?")
+            
+            self.update_status("Ready", "#00ff00")
+            
         except Exception as e:
-            print(f"Voice init error: {e}")
+            error_msg = f"❌ Initialization failed: {str(e)}\n\n💡 Make sure Ollama is running:\n   ollama serve"
+            self.add_message("SYSTEM", error_msg, "error")
+            self.update_status("Error", "#ff4444")
     
     def _create_gui(self):
-        """Create complete GUI interface"""
+        """Create GUI interface"""
         
         # ============ TOP BAR ============
         top_bar = tk.Frame(self.root, bg='#1a1a1a', height=80)
@@ -174,9 +151,19 @@ class JarvisGUI:
                         bg='#1a1a1a', fg='#00ff00')
         title.pack(side=tk.LEFT, padx=20, pady=20)
         
-        subtitle = tk.Label(top_bar, text="Auto-Login | Movie Search | VLC Play",
+        subtitle = tk.Label(top_bar, text="Real-Time AI Assistant",
                            font=('Arial', 12), bg='#1a1a1a', fg='#888888')
         subtitle.pack(side=tk.LEFT, padx=0, pady=20)
+        
+        # Stats display
+        self.stats_label = tk.Label(
+            top_bar,
+            text="Skills: 0 | Tools: 0 | Queries: 0",
+            font=('Arial', 10),
+            bg='#1a1a1a',
+            fg='#666666'
+        )
+        self.stats_label.pack(side=tk.LEFT, padx=30, pady=20)
         
         # Settings button
         settings_btn = tk.Button(
@@ -197,124 +184,87 @@ class JarvisGUI:
         self.status_frame.pack(side=tk.RIGHT, padx=20, pady=20)
         
         self.status_dot = tk.Label(self.status_frame, text="●", font=('Arial', 20),
-                                   bg='#1a1a1a', fg='#00ff00')
+                                   bg='#1a1a1a', fg='#ff8800')
         self.status_dot.pack(side=tk.LEFT, padx=5)
         
-        self.status_label = tk.Label(self.status_frame, text="Ready",
-                                     font=('Arial', 12), bg='#1a1a1a', fg='#00ff00')
+        self.status_label = tk.Label(self.status_frame, text="Starting...",
+                                     font=('Arial', 12), bg='#1a1a1a', fg='#ff8800')
         self.status_label.pack(side=tk.LEFT, padx=5)
         
         # ============ MAIN CONTENT ============
         main_frame = tk.Frame(self.root, bg='#0a0a0a')
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # Left panel - Quick Actions (FIXED SCROLLING)
-        left_panel = tk.Frame(main_frame, bg='#1a1a1a', width=320)
+        # Left panel - Skills & Tools
+        left_panel = tk.Frame(main_frame, bg='#1a1a1a', width=350)
         left_panel.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
         left_panel.pack_propagate(False)
         
-        # Quick Actions Title
-        actions_title = tk.Label(left_panel, text="⚡ Quick Actions",
+        # Skills title
+        skills_title = tk.Label(left_panel, text="🛠️ Available Skills",
                                 font=('Arial', 14, 'bold'), bg='#1a1a1a', fg='#ffffff')
-        actions_title.pack(pady=15)
+        skills_title.pack(pady=15)
         
-        # Create canvas with scrollbar for proper scrolling
+        # Search box
+        search_frame = tk.Frame(left_panel, bg='#1a1a1a')
+        search_frame.pack(fill=tk.X, padx=15, pady=(0, 10))
+        
+        self.search_var = tk.StringVar()
+        self.search_var.trace('w', self._filter_skills)
+        
+        search_entry = tk.Entry(
+            search_frame,
+            textvariable=self.search_var,
+            font=('Arial', 10),
+            bg='#2a2a2a',
+            fg='#ffffff',
+            insertbackground='#00ff00',
+            relief=tk.FLAT
+        )
+        search_entry.pack(fill=tk.X, ipady=5)
+        
+        # Skills list with scrollbar
         canvas_frame = tk.Frame(left_panel, bg='#1a1a1a')
         canvas_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
         
         canvas = tk.Canvas(canvas_frame, bg='#1a1a1a', highlightthickness=0)
         scrollbar = ttk.Scrollbar(canvas_frame, orient="vertical", command=canvas.yview)
         
-        # Scrollable frame inside canvas
-        scrollable_frame = tk.Frame(canvas, bg='#1a1a1a')
+        self.skills_frame = tk.Frame(canvas, bg='#1a1a1a')
         
-        # Configure canvas scrolling
-        scrollable_frame.bind(
+        self.skills_frame.bind(
             "<Configure>",
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
         
-        canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas_window = canvas.create_window((0, 0), window=self.skills_frame, anchor="nw")
         
-        # Make canvas width match frame width
         def configure_canvas_width(event):
             canvas.itemconfig(canvas_window, width=event.width)
         
         canvas.bind('<Configure>', configure_canvas_width)
         canvas.configure(yscrollcommand=scrollbar.set)
         
-        # Pack canvas and scrollbar
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
         
-        # Enable mousewheel scrolling
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         
         canvas.bind_all("<MouseWheel>", _on_mousewheel)
         
-        # Button categories with proper spacing
-        self._create_button_category(scrollable_frame, "🔐 Auto-Login", [
-            ("Gmail (Login)", "gmail login karo"),
-            ("Facebook (Login)", "facebook login karo"),
-            ("YouTube (Login)", "youtube login karo"),
-            ("Twitter (Login)", "twitter login karo"),
-        ])
-        
-        self._create_button_category(scrollable_frame, "🎬 Movies", [
-            ("Search Movie", "movie search karo"),
-            ("Play in VLC", "movie play karo vlc me"),
-        ])
-        
-        self._create_button_category(scrollable_frame, "🌐 Web", [
-            ("Gmail", "gmail kholo"),
-            ("Facebook", "facebook kholo"),
-            ("YouTube", "youtube kholo"),
-            ("Google", "google kholo"),
-        ])
-        
-        self._create_button_category(scrollable_frame, "🎵 Music", [
-            ("Play Song", "gaana bajao"),
-            ("Pause", "pause karo"),
-            ("Next", "next"),
-            ("Previous", "previous"),
-        ])
-        
-        self._create_button_category(scrollable_frame, "📱 Apps", [
-            ("Chrome", "chrome kholo"),
-            ("Word", "word kholo"),
-            ("Excel", "excel kholo"),
-            ("VLC", "vlc kholo"),
-            ("Notepad", "notepad kholo"),
-            ("Calculator", "calculator kholo"),
-        ])
-        
-        self._create_button_category(scrollable_frame, "🔊 Volume", [
-            ("Volume Up", "volume badhao"),
-            ("Volume Down", "volume kam karo"),
-            ("Mute", "mute karo"),
-        ])
-        
-        self._create_button_category(scrollable_frame, "⚡ Power", [
-            ("Lock PC", "lock karo"),
-            ("Sleep", "sleep karo"),
-        ])
-        
-        # Add some padding at bottom
-        tk.Frame(scrollable_frame, bg='#1a1a1a', height=20).pack()
-        
-        # Right panel - Chat
-        right_panel = tk.Frame(main_frame, bg='#1a1a1a')
-        right_panel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        # Middle panel - Chat
+        middle_panel = tk.Frame(main_frame, bg='#1a1a1a')
+        middle_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
         # Chat title
-        chat_title = tk.Label(right_panel, text="💬 Conversation",
+        chat_title = tk.Label(middle_panel, text="💬 Conversation",
                              font=('Arial', 14, 'bold'), bg='#1a1a1a', fg='#ffffff')
         chat_title.pack(pady=15)
         
         # Chat display
         self.chat_display = scrolledtext.ScrolledText(
-            right_panel,
+            middle_panel,
             wrap=tk.WORD,
             font=('Consolas', 11),
             bg='#0a0a0a',
@@ -326,14 +276,15 @@ class JarvisGUI:
         )
         self.chat_display.pack(fill=tk.BOTH, expand=True, padx=15, pady=(0, 15))
         
-        # Configure tags for colored messages
+        # Configure tags
         self.chat_display.tag_config('system', foreground='#00ff00')
         self.chat_display.tag_config('user', foreground='#00aaff')
         self.chat_display.tag_config('error', foreground='#ff4444')
         self.chat_display.tag_config('timestamp', foreground='#666666')
+        self.chat_display.tag_config('tool', foreground='#ffaa00')
         
         # Input area
-        input_frame = tk.Frame(right_panel, bg='#1a1a1a')
+        input_frame = tk.Frame(middle_panel, bg='#1a1a1a')
         input_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
         
         self.input_field = tk.Entry(
@@ -363,7 +314,7 @@ class JarvisGUI:
         send_btn.pack(side=tk.LEFT, padx=(0, 10), ipadx=20, ipady=10)
         
         # Voice button
-        voice_btn = tk.Button(
+        self.voice_btn = tk.Button(
             input_frame,
             text="🎤 Voice",
             font=('Arial', 11, 'bold'),
@@ -374,116 +325,266 @@ class JarvisGUI:
             cursor='hand2',
             command=self.voice_input
         )
-        voice_btn.pack(side=tk.LEFT, ipadx=15, ipady=10)
-    
-    def _create_button_category(self, parent, title, buttons):
-        """Create a category of buttons with proper spacing"""
-        # Category frame
-        category_frame = tk.Frame(parent, bg='#1a1a1a')
-        category_frame.pack(fill=tk.X, pady=(10, 5))
+        self.voice_btn.pack(side=tk.LEFT, ipadx=15, ipady=10)
         
-        # Category label
-        label = tk.Label(category_frame, text=title, font=('Arial', 11, 'bold'),
-                        bg='#1a1a1a', fg='#00ff00', anchor='w')
-        label.pack(fill=tk.X, padx=15, pady=(5, 8))
+        # Right panel - System Info
+        right_panel = tk.Frame(main_frame, bg='#1a1a1a', width=300)
+        right_panel.pack(side=tk.RIGHT, fill=tk.Y)
+        right_panel.pack_propagate(False)
         
-        # Buttons
-        for btn_text, command in buttons:
+        # System info title
+        info_title = tk.Label(right_panel, text="📊 System Info",
+                             font=('Arial', 14, 'bold'), bg='#1a1a1a', fg='#ffffff')
+        info_title.pack(pady=15)
+        
+        # Info display
+        self.info_display = scrolledtext.ScrolledText(
+            right_panel,
+            wrap=tk.WORD,
+            font=('Consolas', 9),
+            bg='#0a0a0a',
+            fg='#00ff00',
+            relief=tk.FLAT,
+            padx=10,
+            pady=10,
+            height=20
+        )
+        self.info_display.pack(fill=tk.BOTH, expand=True, padx=15, pady=(0, 15))
+        
+        # Quick actions
+        actions_title = tk.Label(right_panel, text="⚡ Quick Actions",
+                                font=('Arial', 12, 'bold'), bg='#1a1a1a', fg='#ffffff')
+        actions_title.pack(pady=(10, 5))
+        
+        quick_actions = [
+            ("🌐 Open YouTube", "youtube kholo"),
+            ("🔍 Google Search", "google search"),
+            ("🎵 Play Music", "gaana bajao"),
+            ("📧 Open Gmail", "gmail kholo"),
+            ("🖥️ System Info", "system info"),
+            ("🔄 Reload Skills", self.reload_skills),
+        ]
+        
+        for text, action in quick_actions:
+            if callable(action):
+                cmd = action
+            else:
+                cmd = lambda a=action: self.execute_command(a)
+            
             btn = tk.Button(
-                category_frame,
-                text=btn_text,
-                font=('Arial', 10),
+                right_panel,
+                text=text,
+                font=('Arial', 9),
                 bg='#2a2a2a',
                 fg='#ffffff',
                 activebackground='#3a3a3a',
-                activeforeground='#00ff00',
                 relief=tk.FLAT,
                 cursor='hand2',
                 anchor='w',
-                padx=15,
-                command=lambda cmd=command: self.execute_command(cmd)
+                command=cmd
             )
-            btn.pack(fill=tk.X, padx=15, pady=2, ipady=8)
+            btn.pack(fill=tk.X, padx=15, pady=2, ipady=6)
+    
+    def _update_stats_display(self):
+        """Update stats in top bar"""
+        stats_text = f"Skills: {self.stats['total_skills']} | Tools: {self.stats['total_tools']} | Queries: {self.stats['queries_processed']}"
+        self.stats_label.config(text=stats_text)
+        
+        # Update info panel
+        info_text = f"""╔══════════════════════════╗
+║   JARVIS SYSTEM STATUS   ║
+╚══════════════════════════╝
+
+📦 Total Skills: {self.stats['total_skills']}
+🛠️  Total Tools: {self.stats['total_tools']}
+📊 Queries Processed: {self.stats['queries_processed']}
+✅ Success Rate: {self.stats['success_rate']:.1f}%
+
+╔══════════════════════════╗
+║   LOADED SKILLS          ║
+╚══════════════════════════╝
+
+"""
+        if self.registry:
+            for skill_name in self.registry.list_skills():
+                info_text += f"✓ {skill_name}\n"
+        
+        self.info_display.delete('1.0', tk.END)
+        self.info_display.insert('1.0', info_text)
+    
+    def _populate_skills_panel(self):
+        """Populate skills panel with actual skills"""
+        # Clear existing
+        for widget in self.skills_frame.winfo_children():
+            widget.destroy()
+        
+        if not self.registry:
+            return
+        
+        # Group tools by skill
+        skills_dict = {}
+        for tool_schema in self.registry.get_tools_schema():
+            func_info = tool_schema.get('function', {})
+            func_name = func_info.get('name', 'unknown')
+            func_desc = func_info.get('description', 'No description')
+            
+            # Extract skill category from function name
+            category = func_name.split('_')[0] if '_' in func_name else 'general'
+            
+            if category not in skills_dict:
+                skills_dict[category] = []
+            
+            skills_dict[category].append({
+                'name': func_name,
+                'description': func_desc
+            })
+        
+        # Display by category
+        for category, tools in sorted(skills_dict.items()):
+            self._create_skill_category(category.title(), tools)
+    
+    def _create_skill_category(self, title, tools):
+        """Create a skill category"""
+        # Category frame
+        category_frame = tk.Frame(self.skills_frame, bg='#1a1a1a')
+        category_frame.pack(fill=tk.X, pady=(10, 5))
+        
+        # Category label
+        label = tk.Label(
+            category_frame,
+            text=f"📁 {title}",
+            font=('Arial', 11, 'bold'),
+            bg='#1a1a1a',
+            fg='#00ff00',
+            anchor='w'
+        )
+        label.pack(fill=tk.X, padx=15, pady=(5, 8))
+        
+        # Tools
+        for tool in tools[:5]:  # Show max 5 per category
+            tool_frame = tk.Frame(category_frame, bg='#2a2a2a')
+            tool_frame.pack(fill=tk.X, padx=15, pady=2)
+            
+            tool_btn = tk.Label(
+                tool_frame,
+                text=f"  • {tool['name']}",
+                font=('Arial', 9),
+                bg='#2a2a2a',
+                fg='#ffffff',
+                anchor='w',
+                cursor='hand2'
+            )
+            tool_btn.pack(fill=tk.X, padx=5, pady=4)
+            
+            # Tooltip
+            tool_btn.bind('<Enter>', lambda e, desc=tool['description']: self._show_tooltip(e, desc))
+            tool_btn.bind('<Leave>', self._hide_tooltip)
+    
+    def _show_tooltip(self, event, text):
+        """Show tooltip"""
+        # Simple status bar update
+        self.update_status(text[:50], "#00aaff")
+    
+    def _hide_tooltip(self, event):
+        """Hide tooltip"""
+        if self.engine:
+            self.update_status("Ready", "#00ff00")
+    
+    def _filter_skills(self, *args):
+        """Filter skills based on search"""
+        search_text = self.search_var.get().lower()
+        
+        for widget in self.skills_frame.winfo_children():
+            if isinstance(widget, tk.Frame):
+                # Check if any tool matches
+                show = False
+                for child in widget.winfo_children():
+                    if isinstance(child, tk.Frame):
+                        for label in child.winfo_children():
+                            if isinstance(label, tk.Label):
+                                text = label.cget('text').lower()
+                                if search_text in text:
+                                    show = True
+                                    break
+                
+                if show or not search_text:
+                    widget.pack(fill=tk.X, pady=(10, 5))
+                else:
+                    widget.pack_forget()
+    
+    def reload_skills(self):
+        """Reload all skills"""
+        self.update_status("Reloading skills...", "#ff8800")
+        
+        def _reload():
+            try:
+                if self.registry:
+                    skills_dir = Path(__file__).parent.parent / "skill"
+                    self.registry.load_skills(str(skills_dir))
+                    
+                    self.stats['total_skills'] = len(self.registry.list_skills())
+                    self.stats['total_tools'] = len(self.registry.list_tools())
+                    
+                    self._update_stats_display()
+                    self._populate_skills_panel()
+                    
+                    self.add_message("SYSTEM", f"✅ Reloaded {self.stats['total_skills']} skills!", "system")
+                    self.update_status("Ready", "#00ff00")
+            except Exception as e:
+                self.add_message("SYSTEM", f"❌ Reload failed: {e}", "error")
+                self.update_status("Error", "#ff4444")
+        
+        threading.Thread(target=_reload, daemon=True).start()
     
     def open_settings(self):
         """Open settings window"""
         settings_win = tk.Toplevel(self.root)
         settings_win.title("⚙️ JARVIS Settings")
-        settings_win.geometry("600x500")
+        settings_win.geometry("600x400")
         settings_win.configure(bg='#1a1a1a')
-        settings_win.resizable(False, False)
         
-        # Title
         title = tk.Label(settings_win, text="⚙️ Settings", font=('Arial', 18, 'bold'),
                         bg='#1a1a1a', fg='#00ff00')
         title.pack(pady=20)
         
-        # Google Credentials
-        cred_frame = tk.LabelFrame(settings_win, text="Google Auto-Login", font=('Arial', 12, 'bold'),
-                                   bg='#1a1a1a', fg='#ffffff', padx=20, pady=20)
-        cred_frame.pack(fill=tk.X, padx=20, pady=10)
+        # Ollama settings
+        ollama_frame = tk.LabelFrame(settings_win, text="Ollama Configuration",
+                                     font=('Arial', 12, 'bold'),
+                                     bg='#1a1a1a', fg='#ffffff', padx=20, pady=20)
+        ollama_frame.pack(fill=tk.X, padx=20, pady=10)
         
-        tk.Label(cred_frame, text="Email:", bg='#1a1a1a', fg='#ffffff').grid(row=0, column=0, sticky='w', pady=5)
-        email_entry = tk.Entry(cred_frame, width=40, bg='#2a2a2a', fg='#ffffff')
-        email_entry.grid(row=0, column=1, pady=5, padx=10)
-        email_entry.insert(0, self.config.get('google_email', ''))
+        tk.Label(ollama_frame, text="Host:", bg='#1a1a1a', fg='#ffffff').grid(row=0, column=0, sticky='w', pady=5)
+        host_entry = tk.Entry(ollama_frame, width=40, bg='#2a2a2a', fg='#ffffff')
+        host_entry.grid(row=0, column=1, pady=5, padx=10)
+        host_entry.insert(0, os.environ.get('OLLAMA_HOST', 'http://localhost:11434'))
         
-        tk.Label(cred_frame, text="Password:", bg='#1a1a1a', fg='#ffffff').grid(row=1, column=0, sticky='w', pady=5)
-        pass_entry = tk.Entry(cred_frame, width=40, show='*', bg='#2a2a2a', fg='#ffffff')
-        pass_entry.grid(row=1, column=1, pady=5, padx=10)
-        pass_entry.insert(0, self.config.get('google_password', ''))
+        tk.Label(ollama_frame, text="Model:", bg='#1a1a1a', fg='#ffffff').grid(row=1, column=0, sticky='w', pady=5)
+        model_entry = tk.Entry(ollama_frame, width=40, bg='#2a2a2a', fg='#ffffff')
+        model_entry.grid(row=1, column=1, pady=5, padx=10)
+        model_entry.insert(0, os.environ.get('OLLAMA_MODEL', 'llama3.2'))
         
-        # Movie Paths
-        path_frame = tk.LabelFrame(settings_win, text="Movie Search Paths", font=('Arial', 12, 'bold'),
-                                   bg='#1a1a1a', fg='#ffffff', padx=20, pady=20)
-        path_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
-        
-        path_list = tk.Listbox(path_frame, bg='#2a2a2a', fg='#ffffff', height=6)
-        path_list.pack(fill=tk.BOTH, expand=True, pady=5)
-        
-        for path in self.movie_paths:
-            path_list.insert(tk.END, path)
-        
-        path_btn_frame = tk.Frame(path_frame, bg='#1a1a1a')
-        path_btn_frame.pack(fill=tk.X, pady=5)
-        
-        def add_path():
-            path = filedialog.askdirectory(title="Select Movie Folder")
-            if path:
-                path_list.insert(tk.END, path)
-        
-        def remove_path():
-            selection = path_list.curselection()
-            if selection:
-                path_list.delete(selection)
-        
-        tk.Button(path_btn_frame, text="Add Folder", command=add_path,
-                 bg='#00ff00', fg='#000000').pack(side=tk.LEFT, padx=5)
-        tk.Button(path_btn_frame, text="Remove", command=remove_path,
-                 bg='#ff4444', fg='#ffffff').pack(side=tk.LEFT, padx=5)
-        
-        # Save button
         def save_settings():
-            self.config['google_email'] = email_entry.get()
-            self.config['google_password'] = pass_entry.get()
-            self.config['movie_paths'] = list(path_list.get(0, tk.END))
-            self._save_config()
-            self.movie_paths = self._get_default_movie_paths()
-            messagebox.showinfo("Success", "Settings saved!")
+            os.environ['OLLAMA_HOST'] = host_entry.get()
+            os.environ['OLLAMA_MODEL'] = model_entry.get()
+            messagebox.showinfo("Success", "Settings saved! Restart JARVIS to apply.")
             settings_win.destroy()
         
-        save_btn = tk.Button(settings_win, text="💾 Save Settings", font=('Arial', 12, 'bold'),
-                            bg='#00ff00', fg='#000000', command=save_settings)
+        save_btn = tk.Button(settings_win, text="💾 Save Settings",
+                            font=('Arial', 12, 'bold'),
+                            bg='#00ff00', fg='#000000',
+                            command=save_settings)
         save_btn.pack(pady=20, ipadx=20, ipady=10)
     
     def add_message(self, sender, message, msg_type="user"):
-        """Add message to chat display"""
+        """Add message to chat"""
         timestamp = time.strftime("%H:%M:%S")
         
         self.chat_display.insert(tk.END, f"[{timestamp}] ", 'timestamp')
         
         if sender == "JARVIS":
             self.chat_display.insert(tk.END, f"🤖 {sender}: ", 'system')
+        elif sender == "SYSTEM":
+            self.chat_display.insert(tk.END, f"⚙️ {sender}: ", 'tool')
         else:
             self.chat_display.insert(tk.END, f"👤 {sender}: ", 'user')
         
@@ -495,20 +596,8 @@ class JarvisGUI:
         self.status_label.config(text=status, fg=color)
         self.status_dot.config(fg=color)
     
-    def speak(self, text):
-        """Speak text using TTS"""
-        def _speak():
-            try:
-                if self.voice_engine:
-                    self.voice_engine.say(text)
-                    self.voice_engine.runAndWait()
-            except:
-                pass
-        
-        threading.Thread(target=_speak, daemon=True).start()
-    
     def send_message(self):
-        """Send message from input field"""
+        """Send message"""
         message = self.input_field.get().strip()
         if message:
             self.input_field.delete(0, tk.END)
@@ -516,507 +605,64 @@ class JarvisGUI:
             self.execute_command(message)
     
     def voice_input(self):
-        """Get voice input"""
-        if self.listening:
+        """Voice input"""
+        if self.listening or not self.voice:
             return
         
         def _listen():
             self.listening = True
             self.update_status("Listening...", "#0088ff")
+            self.voice_btn.config(bg='#ff4444', text='🔴 Listening...')
             
             try:
-                with sr.Microphone() as source:
-                    self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
-                    audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
-                
-                self.update_status("Processing...", "#ff8800")
-                text = self.recognizer.recognize_google(audio)
-                
-                self.add_message("You", text, "user")
-                self.execute_command(text)
-                
-            except sr.WaitTimeoutError:
-                self.add_message("JARVIS", "No speech detected. Please try again.", "error")
-            except sr.UnknownValueError:
-                self.add_message("JARVIS", "Sorry, I couldn't understand that.", "error")
+                text = self.voice.listen()
+                if text:
+                    self.add_message("You", text, "user")
+                    self.execute_command(text)
+                else:
+                    self.add_message("SYSTEM", "No speech detected", "error")
             except Exception as e:
-                self.add_message("JARVIS", f"Error: {str(e)}", "error")
+                self.add_message("SYSTEM", f"Voice error: {e}", "error")
             finally:
                 self.listening = False
                 self.update_status("Ready", "#00ff00")
+                self.voice_btn.config(bg='#0088ff', text='🎤 Voice')
         
         threading.Thread(target=_listen, daemon=True).start()
     
     def execute_command(self, query):
-        """Execute command"""
+        """Execute command through JARVIS engine"""
         self.update_status("Processing...", "#ff8800")
         
         def _execute():
             try:
-                response = self.process_query(query)
+                if not self.engine:
+                    response = "⚠️ JARVIS engine not initialized. Please wait..."
+                    self.add_message("JARVIS", response, "error")
+                    return
+                
+                # Process through engine
+                response = self.engine.process_query(query)
+                
+                # Update stats
+                self.stats['queries_processed'] += 1
+                self._update_stats_display()
+                
+                # Display response
                 self.add_message("JARVIS", response, "system")
-                self.speak(response)
+                
+                # Speak response
+                if self.voice:
+                    self.voice.speak(response[:200])  # Limit speech length
+                
             except Exception as e:
                 error_msg = f"Error: {str(e)}"
                 self.add_message("JARVIS", error_msg, "error")
+                self.stats['success_rate'] = (self.stats['success_rate'] * 0.9)  # Decrease success rate
             finally:
                 self.update_status("Ready", "#00ff00")
         
         threading.Thread(target=_execute, daemon=True).start()
-    
-    def process_query(self, query):
-        """Process user query"""
-        try:
-            q = query.lower()
-            
-            # Auto-Login Web
-            if 'login' in q:
-                if 'gmail' in q:
-                    return self.auto_login_website('gmail')
-                elif 'facebook' in q:
-                    return self.auto_login_website('facebook')
-                elif 'youtube' in q:
-                    return self.auto_login_website('youtube')
-                elif 'twitter' in q:
-                    return self.auto_login_website('twitter')
-            
-            # Movie commands
-            elif any(w in q for w in ['movie', 'film', 'video']):
-                if 'search' in q or 'dhundo' in q or 'find' in q:
-                    # Extract movie name
-                    words = q.split()
-                    remove = ['movie', 'film', 'video', 'search', 'dhundo', 'find', 'karo', 'kar']
-                    movie_words = [w for w in words if w not in remove]
-                    movie_name = ' '.join(movie_words) if movie_words else None
-                    return self.search_movie(movie_name)
-                elif 'play' in q or 'chalao' in q or 'bajao' in q:
-                    # Extract movie name and play
-                    words = q.split()
-                    remove = ['movie', 'film', 'video', 'play', 'chalao', 'bajao', 'karo', 'kar', 'vlc', 'me', 'pe']
-                    movie_words = [w for w in words if w not in remove]
-                    movie_name = ' '.join(movie_words) if movie_words else None
-                    return self.play_movie_vlc(movie_name)
-            
-            # Web (without login)
-            elif 'gmail' in q and 'login' not in q:
-                return self.open_website('https://mail.google.com')
-            elif 'facebook' in q and 'login' not in q:
-                return self.open_website('https://www.facebook.com')
-            elif 'youtube' in q and ('kholo' in q or 'open' in q):
-                return self.open_website('https://www.youtube.com')
-            elif 'google' in q and ('kholo' in q or 'open' in q):
-                return self.open_website('https://www.google.com')
-            
-            # YouTube Music (with auto-play)
-            elif any(w in q for w in ['gaana', 'song', 'music', 'bajao', 'play']) and 'movie' not in q:
-                return self.play_youtube_auto(query)
-            
-            # Apps
-            elif any(w in q for w in ['kholo', 'open', 'start', 'launch']) and 'movie' not in q:
-                return self.open_app(query)
-            
-            # Close apps
-            elif 'band' in q or 'close' in q:
-                return self.close_app(query)
-            
-            # Media controls
-            elif any(w in q for w in ['pause', 'next', 'previous', 'stop']):
-                return self.media_control(query)
-            
-            # Volume
-            elif 'volume' in q or 'awaaz' in q:
-                return self.control_volume(query)
-            
-            # Power
-            elif any(w in q for w in ['shutdown', 'restart', 'sleep', 'lock']):
-                return self.power_control(query)
-            
-            else:
-                return "I can help with: auto-login, movie search, VLC play, web, apps, music, volume, power"
-        
-        except Exception as e:
-            return f"Error: {str(e)}"
-    
-    def auto_login_website(self, site):
-        """Auto-login to website using Selenium"""
-        if not SELENIUM_AVAILABLE:
-            return "Selenium not available. Install: pip install selenium webdriver-manager"
-        
-        email = self.config.get('google_email')
-        password = self.config.get('google_password')
-        
-        if not email or not password:
-            return "⚠️ Please set Google credentials in Settings first!"
-        
-        try:
-            # Setup Chrome
-            chrome_options = Options()
-            chrome_options.add_argument('--start-maximized')
-            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-            
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=chrome_options)
-            
-            # Site URLs
-            urls = {
-                'gmail': 'https://mail.google.com',
-                'youtube': 'https://www.youtube.com',
-                'facebook': 'https://www.facebook.com',
-                'twitter': 'https://www.twitter.com'
-            }
-            
-            url = urls.get(site, 'https://www.google.com')
-            driver.get(url)
-            
-            # Wait for page load
-            time.sleep(2)
-            
-            # Google login (for Gmail/YouTube)
-            if site in ['gmail', 'youtube']:
-                try:
-                    # Email
-                    email_field = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.NAME, "identifier"))
-                    )
-                    email_field.send_keys(email)
-                    email_field.send_keys(Keys.RETURN)
-                    
-                    time.sleep(2)
-                    
-                    # Password
-                    pass_field = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.NAME, "password"))
-                    )
-                    pass_field.send_keys(password)
-                    pass_field.send_keys(Keys.RETURN)
-                    
-                    return f"✅ Logged into {site.title()}!\n🌐 Browser opened with auto-login"
-                except:
-                    return f"⚠️ {site.title()} opened, but auto-login failed. Please login manually."
-            
-            # Facebook login
-            elif site == 'facebook':
-                try:
-                    email_field = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.ID, "email"))
-                    )
-                    email_field.send_keys(email)
-                    
-                    pass_field = driver.find_element(By.ID, "pass")
-                    pass_field.send_keys(password)
-                    pass_field.send_keys(Keys.RETURN)
-                    
-                    return f"✅ Logged into Facebook!\n🌐 Browser opened with auto-login"
-                except:
-                    return "⚠️ Facebook opened, but auto-login failed. Please login manually."
-            
-            else:
-                return f"✅ {site.title()} opened!"
-        
-        except Exception as e:
-            return f"Login error: {str(e)}"
-    
-    def search_movie(self, movie_name=None):
-        """Search for movie in PC storage"""
-        if not movie_name:
-            return "Please specify movie name. Example: 'search movie Avengers'"
-        
-        self.update_status("Searching PC...", "#ff8800")
-        
-        found_movies = []
-        video_extensions = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm']
-        
-        # Search in all paths
-        for base_path in self.movie_paths:
-            try:
-                for ext in video_extensions:
-                    pattern = f"{base_path}/**/*{movie_name}*{ext}"
-                    matches = glob.glob(pattern, recursive=True)
-                    found_movies.extend(matches)
-            except Exception as e:
-                print(f"Search error in {base_path}: {e}")
-        
-        if found_movies:
-            result = f"🎬 Found {len(found_movies)} movie(s):\n\n"
-            for i, movie in enumerate(found_movies[:5], 1):  # Show max 5
-                movie_file = Path(movie).name
-                result += f"{i}. {movie_file}\n"
-            
-            if len(found_movies) > 5:
-                result += f"\n... and {len(found_movies) - 5} more"
-            
-            # Store for later play
-            self.last_search_results = found_movies
-            
-            return result
-        else:
-            return f"❌ No movies found with name: {movie_name}\n💡 Try: Settings → Add movie folders"
-    
-    def play_movie_vlc(self, movie_name=None):
-        """Search and play movie in VLC"""
-        if not movie_name:
-            # Try to play first from last search
-            if hasattr(self, 'last_search_results') and self.last_search_results:
-                movie_path = self.last_search_results[0]
-            else:
-                return "Please specify movie name. Example: 'play movie Avengers in VLC'"
-        else:
-            # Search for movie
-            self.update_status("Searching movie...", "#ff8800")
-            
-            found_movies = []
-            video_extensions = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm']
-            
-            for base_path in self.movie_paths:
-                try:
-                    for ext in video_extensions:
-                        pattern = f"{base_path}/**/*{movie_name}*{ext}"
-                        matches = glob.glob(pattern, recursive=True)
-                        found_movies.extend(matches)
-                except:
-                    pass
-            
-            if not found_movies:
-                return f"❌ Movie not found: {movie_name}\n💡 Try: Settings → Add movie folders"
-            
-            movie_path = found_movies[0]
-        
-        # Play in VLC
-        try:
-            movie_file = Path(movie_path).name
-            
-            if self.os_type == "Windows":
-                # Try common VLC paths
-                vlc_paths = [
-                    r"C:\Program Files\VideoLAN\VLC\vlc.exe",
-                    r"C:\Program Files (x86)\VideoLAN\VLC\vlc.exe",
-                ]
-                
-                vlc_exe = None
-                for path in vlc_paths:
-                    if Path(path).exists():
-                        vlc_exe = path
-                        break
-                
-                if vlc_exe:
-                    subprocess.Popen([vlc_exe, movie_path])
-                else:
-                    # Try default
-                    os.startfile(movie_path)
-            else:
-                # Linux/Mac
-                subprocess.Popen(['vlc', movie_path])
-            
-            return f"🎬 Playing in VLC:\n{movie_file}\n✅ Movie started!"
-        
-        except Exception as e:
-            return f"VLC error: {str(e)}\n💡 Make sure VLC is installed"
-    
-    def open_website(self, url):
-        """Open website in browser"""
-        try:
-            webbrowser.open(url)
-            site_name = url.split('//')[-1].split('/')[0].replace('www.', '').split('.')[0].title()
-            return f"Opening {site_name}..."
-        except Exception as e:
-            return f"Failed to open website: {str(e)}"
-    
-    def play_youtube_auto(self, query):
-        """Play YouTube video with auto-play using Selenium"""
-        try:
-            # Extract song name
-            words = query.lower().split()
-            remove = ['gaana', 'song', 'music', 'bajao', 'play', 'youtube', 'pe', 'par', 'karo', 'ka', 'ki', 'ke']
-            song_words = [w for w in words if w not in remove]
-            
-            if song_words:
-                song = ' '.join(song_words)
-            else:
-                song = "Tauba Tauba Bad Newz"
-            
-            # Try Selenium auto-play
-            if SELENIUM_AVAILABLE:
-                try:
-                    return self._play_with_selenium(song)
-                except:
-                    return self._play_with_browser(song)
-            else:
-                return self._play_with_browser(song)
-        
-        except Exception as e:
-            return f"YouTube error: {str(e)}"
-    
-    def _play_with_selenium(self, song):
-        """Play YouTube with Selenium (auto-clicks play)"""
-        try:
-            chrome_options = Options()
-            chrome_options.add_argument('--start-maximized')
-            chrome_options.add_argument('--disable-blink-features=AutomationControlled')
-            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-            
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=chrome_options)
-            
-            search_url = f"https://www.youtube.com/results?search_query={song.replace(' ', '+')}"
-            driver.get(search_url)
-            
-            wait = WebDriverWait(driver, 10)
-            video = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'a#video-title')))
-            video.click()
-            
-            time.sleep(2)
-            
-            return f"🎵 Playing: {song}\n✅ YouTube opened and playing!"
-        
-        except Exception as e:
-            raise Exception(f"Selenium error: {str(e)}")
-    
-    def _play_with_browser(self, song):
-        """Fallback: Open YouTube in browser"""
-        search_url = f"https://www.youtube.com/results?search_query={song.replace(' ', '+')}"
-        webbrowser.open(search_url)
-        return f"🎵 Playing: {song}\n✅ YouTube opened! Click first video to play."
-    
-    def open_app(self, query):
-        """Open application"""
-        try:
-            apps = {
-                'chrome': 'chrome', 'firefox': 'firefox', 'edge': 'msedge',
-                'word': 'winword', 'excel': 'excel', 'powerpoint': 'powerpnt',
-                'notepad': 'notepad', 'vlc': 'vlc', 'calculator': 'calc',
-                'paint': 'mspaint', 'cmd': 'cmd', 'powershell': 'powershell',
-            }
-            
-            words = query.lower().split()
-            remove = ['kholo', 'open', 'start', 'launch', 'karo']
-            app_words = [w for w in words if w not in remove]
-            app_name = ' '.join(app_words)
-            
-            app_cmd = None
-            for key, cmd in apps.items():
-                if key in app_name:
-                    app_cmd = cmd
-                    break
-            
-            if not app_cmd:
-                app_cmd = app_name
-            
-            if self.os_type == "Windows":
-                subprocess.Popen(app_cmd, shell=True)
-            else:
-                subprocess.Popen([app_cmd])
-            
-            return f"Opening {app_name}..."
-        except Exception as e:
-            return f"Failed to open app: {str(e)}"
-    
-    def close_app(self, query):
-        """Close application"""
-        try:
-            words = query.lower().split()
-            remove = ['band', 'close', 'exit', 'karo']
-            app_words = [w for w in words if w not in remove]
-            app_name = ' '.join(app_words)
-            
-            killed = False
-            for proc in psutil.process_iter(['name']):
-                try:
-                    if app_name in proc.info['name'].lower():
-                        proc.kill()
-                        killed = True
-                except:
-                    pass
-            
-            if killed:
-                return f"Closed {app_name}"
-            else:
-                return f"{app_name} not found"
-        except Exception as e:
-            return f"Failed to close app: {str(e)}"
-    
-    def media_control(self, query):
-        """Control media playback"""
-        try:
-            q = query.lower()
-            
-            if 'pause' in q or 'stop' in q:
-                pyautogui.press('playpause')
-                return "Media paused"
-            elif 'next' in q:
-                pyautogui.press('nexttrack')
-                return "Next track"
-            elif 'previous' in q or 'pichla' in q:
-                pyautogui.press('prevtrack')
-                return "Previous track"
-            else:
-                return "Media control: pause, next, previous"
-        except Exception as e:
-            return f"Media control error: {str(e)}"
-    
-    def control_volume(self, query):
-        """Control system volume"""
-        try:
-            q = query.lower()
-            
-            if 'badhao' in q or 'up' in q or 'increase' in q:
-                for _ in range(5):
-                    pyautogui.press('volumeup')
-                return "Volume increased"
-            elif 'kam' in q or 'down' in q or 'decrease' in q:
-                for _ in range(5):
-                    pyautogui.press('volumedown')
-                return "Volume decreased"
-            elif 'mute' in q:
-                pyautogui.press('volumemute')
-                return "Volume muted"
-            else:
-                return "Volume control: up, down, mute"
-        except Exception as e:
-            return f"Volume control error: {str(e)}"
-    
-    def power_control(self, query):
-        """Power management"""
-        try:
-            q = query.lower()
-            
-            if 'shutdown' in q:
-                confirm = messagebox.askyesno("Confirm", "Shutdown computer?")
-                if confirm:
-                    if self.os_type == "Windows":
-                        os.system("shutdown /s /t 1")
-                    else:
-                        os.system("shutdown -h now")
-                    return "Shutting down..."
-                return "Shutdown cancelled"
-            
-            elif 'restart' in q:
-                confirm = messagebox.askyesno("Confirm", "Restart computer?")
-                if confirm:
-                    if self.os_type == "Windows":
-                        os.system("shutdown /r /t 1")
-                    else:
-                        os.system("reboot")
-                    return "Restarting..."
-                return "Restart cancelled"
-            
-            elif 'sleep' in q:
-                if self.os_type == "Windows":
-                    os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
-                else:
-                    os.system("systemctl suspend")
-                return "Going to sleep..."
-            
-            elif 'lock' in q:
-                if self.os_type == "Windows":
-                    os.system("rundll32.exe user32.dll,LockWorkStation")
-                else:
-                    os.system("gnome-screensaver-command -l")
-                return "Locking PC..."
-            
-            else:
-                return "Power control: shutdown, restart, sleep, lock"
-        except Exception as e:
-            return f"Power control error: {str(e)}"
 
 
 def main():

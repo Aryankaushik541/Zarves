@@ -7,6 +7,7 @@ JARVIS GUI - Complete Visual Interface
 ✅ Browser Auto-Login (Google)
 ✅ PC Movie Search
 ✅ VLC Auto-Play
+✅ Fixed Quick Actions Panel with Proper Scrolling
 """
 
 import sys
@@ -207,8 +208,8 @@ class JarvisGUI:
         main_frame = tk.Frame(self.root, bg='#0a0a0a')
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # Left panel - Quick Actions
-        left_panel = tk.Frame(main_frame, bg='#1a1a1a', width=300)
+        # Left panel - Quick Actions (FIXED SCROLLING)
+        left_panel = tk.Frame(main_frame, bg='#1a1a1a', width=320)
         left_panel.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
         left_panel.pack_propagate(False)
         
@@ -217,24 +218,43 @@ class JarvisGUI:
                                 font=('Arial', 14, 'bold'), bg='#1a1a1a', fg='#ffffff')
         actions_title.pack(pady=15)
         
-        # Scrollable frame for buttons
-        canvas = tk.Canvas(left_panel, bg='#1a1a1a', highlightthickness=0)
-        scrollbar = ttk.Scrollbar(left_panel, orient="vertical", command=canvas.yview)
+        # Create canvas with scrollbar for proper scrolling
+        canvas_frame = tk.Frame(left_panel, bg='#1a1a1a')
+        canvas_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
+        
+        canvas = tk.Canvas(canvas_frame, bg='#1a1a1a', highlightthickness=0)
+        scrollbar = ttk.Scrollbar(canvas_frame, orient="vertical", command=canvas.yview)
+        
+        # Scrollable frame inside canvas
         scrollable_frame = tk.Frame(canvas, bg='#1a1a1a')
         
+        # Configure canvas scrolling
         scrollable_frame.bind(
             "<Configure>",
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
         
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        
+        # Make canvas width match frame width
+        def configure_canvas_width(event):
+            canvas.itemconfig(canvas_window, width=event.width)
+        
+        canvas.bind('<Configure>', configure_canvas_width)
         canvas.configure(yscrollcommand=scrollbar.set)
         
+        # Pack canvas and scrollbar
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
         
-        # Button categories
-        self._create_button_category(scrollable_frame, "🌐 Web (Auto-Login)", [
+        # Enable mousewheel scrolling
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        
+        # Button categories with proper spacing
+        self._create_button_category(scrollable_frame, "🔐 Auto-Login", [
             ("Gmail (Login)", "gmail login karo"),
             ("Facebook (Login)", "facebook login karo"),
             ("YouTube (Login)", "youtube login karo"),
@@ -246,6 +266,20 @@ class JarvisGUI:
             ("Play in VLC", "movie play karo vlc me"),
         ])
         
+        self._create_button_category(scrollable_frame, "🌐 Web", [
+            ("Gmail", "gmail kholo"),
+            ("Facebook", "facebook kholo"),
+            ("YouTube", "youtube kholo"),
+            ("Google", "google kholo"),
+        ])
+        
+        self._create_button_category(scrollable_frame, "🎵 Music", [
+            ("Play Song", "gaana bajao"),
+            ("Pause", "pause karo"),
+            ("Next", "next"),
+            ("Previous", "previous"),
+        ])
+        
         self._create_button_category(scrollable_frame, "📱 Apps", [
             ("Chrome", "chrome kholo"),
             ("Word", "word kholo"),
@@ -255,14 +289,7 @@ class JarvisGUI:
             ("Calculator", "calculator kholo"),
         ])
         
-        self._create_button_category(scrollable_frame, "🎵 Media", [
-            ("Play Music", "gaana bajao"),
-            ("Pause", "pause karo"),
-            ("Next", "next"),
-            ("Previous", "previous"),
-        ])
-        
-        self._create_button_category(scrollable_frame, "🔊 System", [
+        self._create_button_category(scrollable_frame, "🔊 Volume", [
             ("Volume Up", "volume badhao"),
             ("Volume Down", "volume kam karo"),
             ("Mute", "mute karo"),
@@ -272,6 +299,9 @@ class JarvisGUI:
             ("Lock PC", "lock karo"),
             ("Sleep", "sleep karo"),
         ])
+        
+        # Add some padding at bottom
+        tk.Frame(scrollable_frame, bg='#1a1a1a', height=20).pack()
         
         # Right panel - Chat
         right_panel = tk.Frame(main_frame, bg='#1a1a1a')
@@ -347,26 +377,33 @@ class JarvisGUI:
         voice_btn.pack(side=tk.LEFT, ipadx=15, ipady=10)
     
     def _create_button_category(self, parent, title, buttons):
-        """Create a category of buttons"""
+        """Create a category of buttons with proper spacing"""
+        # Category frame
+        category_frame = tk.Frame(parent, bg='#1a1a1a')
+        category_frame.pack(fill=tk.X, pady=(10, 5))
+        
         # Category label
-        label = tk.Label(parent, text=title, font=('Arial', 12, 'bold'),
-                        bg='#1a1a1a', fg='#00ff00')
-        label.pack(pady=(15, 10), anchor='w', padx=15)
+        label = tk.Label(category_frame, text=title, font=('Arial', 11, 'bold'),
+                        bg='#1a1a1a', fg='#00ff00', anchor='w')
+        label.pack(fill=tk.X, padx=15, pady=(5, 8))
         
         # Buttons
         for btn_text, command in buttons:
             btn = tk.Button(
-                parent,
+                category_frame,
                 text=btn_text,
                 font=('Arial', 10),
                 bg='#2a2a2a',
                 fg='#ffffff',
                 activebackground='#3a3a3a',
+                activeforeground='#00ff00',
                 relief=tk.FLAT,
                 cursor='hand2',
+                anchor='w',
+                padx=15,
                 command=lambda cmd=command: self.execute_command(cmd)
             )
-            btn.pack(fill=tk.X, padx=15, pady=3)
+            btn.pack(fill=tk.X, padx=15, pady=2, ipady=8)
     
     def open_settings(self):
         """Open settings window"""
@@ -374,6 +411,7 @@ class JarvisGUI:
         settings_win.title("⚙️ JARVIS Settings")
         settings_win.geometry("600x500")
         settings_win.configure(bg='#1a1a1a')
+        settings_win.resizable(False, False)
         
         # Title
         title = tk.Label(settings_win, text="⚙️ Settings", font=('Arial', 18, 'bold'),
@@ -566,6 +604,8 @@ class JarvisGUI:
                 return self.open_website('https://www.facebook.com')
             elif 'youtube' in q and ('kholo' in q or 'open' in q):
                 return self.open_website('https://www.youtube.com')
+            elif 'google' in q and ('kholo' in q or 'open' in q):
+                return self.open_website('https://www.google.com')
             
             # YouTube Music (with auto-play)
             elif any(w in q for w in ['gaana', 'song', 'music', 'bajao', 'play']) and 'movie' not in q:

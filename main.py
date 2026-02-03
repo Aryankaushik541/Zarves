@@ -3,8 +3,8 @@
 
 """
 JARVIS - Complete AI Assistant
-Auto-launches beautiful GUI interface
-No terminal needed!
+Beautiful GUI Interface - Auto-Launch
+Just run: python main.py
 """
 
 import sys
@@ -17,13 +17,16 @@ import subprocess
 
 def auto_install_dependencies():
     """Auto-install missing packages"""
+    print("\n" + "="*70)
+    print("🤖 JARVIS - Initializing...")
+    print("="*70)
+    print()
+    
     required = {
         'pyttsx3': 'pyttsx3',
         'speech_recognition': 'SpeechRecognition',
         'pyautogui': 'pyautogui',
         'psutil': 'psutil',
-        'selenium': 'selenium',
-        'webdriver_manager': 'webdriver-manager',
     }
     
     missing = []
@@ -34,59 +37,68 @@ def auto_install_dependencies():
             missing.append(package)
     
     if missing:
-        print(f"\n📦 Installing {len(missing)} missing packages...")
+        print(f"📦 Installing {len(missing)} missing packages...")
+        print()
         for package in missing:
-            print(f"   Installing {package}...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", package, "-q"])
-        print("✅ All dependencies installed!\n")
-        return True
-    return False
+            print(f"   ⏳ Installing {package}...")
+            try:
+                subprocess.check_call([sys.executable, "-m", "pip", "install", package, "-q"])
+                print(f"   ✅ {package} installed!")
+            except:
+                print(f"   ⚠️  {package} installation failed (optional)")
+        print()
+        print("✅ Dependencies ready!")
+        print()
+    
+    return True
 
 # ============================================================================
-# MAIN LAUNCHER
+# MAIN - AUTO-LAUNCH GUI
 # ============================================================================
 
 def main():
-    """Main entry point - launches GUI"""
+    """Main entry point - Auto-launches GUI"""
     
-    print("\n" + "="*70)
-    print("🤖 JARVIS - Your Personal AI Assistant")
-    print("="*70)
-    print()
-    
-    # Install dependencies if needed
-    if auto_install_dependencies():
-        print("🔄 Dependencies installed! Launching GUI...")
-        print()
+    # Install dependencies
+    auto_install_dependencies()
     
     # Launch GUI
     print("🚀 Launching JARVIS GUI...")
     print()
     print("💡 GUI Features:")
     print("   ✅ Beautiful visual interface")
-    print("   ✅ Quick action buttons")
+    print("   ✅ Quick action buttons (Gmail, Facebook, YouTube, etc.)")
     print("   ✅ Voice & text input")
-    print("   ✅ Web support (Gmail, Facebook, YouTube, etc.)")
     print("   ✅ Full PC control")
+    print("   ✅ Real-time status")
     print()
     print("="*70)
     print()
     
     try:
-        # Import and run GUI
+        # Import and run GUI directly
         from gui.app import main as gui_main
         gui_main()
+        
     except ImportError as e:
-        print(f"❌ Error importing GUI: {e}")
+        print(f"❌ Error: GUI module not found")
+        print(f"   Details: {e}")
         print()
-        print("💡 Try running directly:")
-        print("   python run_gui.py")
+        print("💡 Make sure 'gui' folder exists with app.py")
+        print()
+        
     except Exception as e:
         print(f"❌ Error: {e}")
         print()
-        print("💡 Try installing dependencies:")
+        print("💡 Try installing dependencies manually:")
         print("   pip install pyttsx3 SpeechRecognition pyautogui psutil")
+        print()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\n👋 Goodbye!")
+    except Exception as e:
+        print(f"\n❌ Fatal Error: {e}")

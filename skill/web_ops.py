@@ -1,6 +1,8 @@
 import webbrowser
 import json
 import sys
+import random
+import requests
 from typing import List, Dict, Any, Callable
 from core.skill import Skill
 
@@ -49,16 +51,16 @@ class WebSkill(Skill):
                 "type": "function",
                 "function": {
                     "name": "play_youtube",
-                    "description": "Play a song or video on YouTube",
+                    "description": "Play a song or video on YouTube. If query is empty or 'music'/'song', automatically plays a trending song. Use for: 'youtube kholo', 'youtube kholo aur music play karo', 'play X on youtube'",
                     "parameters": { 
                         "type": "object", 
                         "properties": { 
                             "query": {
                                 "type": "string",
-                                "description": "The song name or video to play on YouTube"
+                                "description": "The song name or video to play. Leave empty or use 'music'/'song' to auto-play trending music. Examples: 'Kesariya', 'Arijit Singh', '' (empty for trending), 'music', 'song'"
                             } 
                         }, 
-                        "required": ["query"] 
+                        "required": [] 
                     }
                 }
             }
@@ -89,16 +91,85 @@ class WebSkill(Skill):
         except Exception as e:
             return json.dumps({"status": "error", "error": str(e)})
     
-    def play_youtube(self, query):
+    def _get_trending_song(self):
+        """
+        Fetch a trending song from YouTube
+        """
+        try:
+            # Popular trending Hindi songs (fallback)
+            trending_songs = [
+                "Tauba Tauba Bad Newz",
+                "Satranga Animal",
+                "Arjan Vailly Animal", 
+                "Maan Meri Jaan King",
+                "Kesariya Brahmastra",
+                "Chaleya Jawan",
+                "Apna Bana Le Bhediya",
+                "O Maahi Dunki",
+                "Pehle Bhi Main Vishal Mishra",
+                "Heeriye Jasleen Royal",
+                "Tere Vaaste Zara Hatke",
+                "Ve Kamleya Rocky Aur Rani",
+                "Kahani Suno 2.0",
+                "Hua Main Animal"
+            ]
+            
+            # Try to fetch latest trending from YouTube
+            try:
+                search_query = "trending hindi songs 2024"
+                url = f"https://www.youtube.com/results?search_query={search_query.replace(' ', '+')}"
+                
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+                
+                response = requests.get(url, headers=headers, timeout=5)
+                
+                # Extract video titles
+                import re
+                titles = re.findall(r'"title":{"runs":\[{"text":"([^"]+)"}', response.text)
+                
+                # Filter and get first valid song
+                for title in titles[:10]:
+                    if not any(skip in title.lower() for skip in ['mix', 'playlist', 'channel', 'hours']):
+                        print(f"🎵 Found trending: {title}")
+                        return title
+                        
+            except Exception as e:
+                print(f"⚠️  Could not fetch live trending, using fallback: {e}")
+            
+            # Fallback to popular songs
+            song = random.choice(trending_songs)
+            print(f"🎵 Playing popular song: {song}")
+            return song
+            
+        except Exception as e:
+            print(f"⚠️  Trending fetch error: {e}")
+            return "latest hindi songs 2024"
+    
+    def play_youtube(self, query=""):
         """
         Play YouTube video/music with cross-platform support.
+        Auto-plays trending music if no query provided.
         Works on Windows, macOS, and Linux.
         """
         try:
+            # Check if user wants music/song or left empty
+            should_play_trending = (
+                not query or 
+                query.strip() == "" or 
+                query.lower() in ["music", "song", "gaana", "gana", "kuch bhi", "anything"]
+            )
+            
+            if should_play_trending:
+                print("🎵 No specific song requested, playing trending music...")
+                query = self._get_trending_song()
+                print(f"🎵 Selected: {query}")
+            
             import pywhatkit as kit
             import time
             
-            print(f"YouTube पर खोज रहा हूँ: {query}")
+            print(f"🎵 YouTube पर खोज रहा हूँ: {query}")
             
             # Platform-specific handling
             if sys.platform == "win32":  # Windows
@@ -117,13 +188,19 @@ class WebSkill(Skill):
                 "status": "success", 
                 "action": "play_youtube", 
                 "query": query,
-                "platform": sys.platform
+                "platform": sys.platform,
+                "auto_selected": should_play_trending
             })
             
         except ImportError:
             # Fallback to webbrowser if pywhatkit not installed
             print("pywhatkit नहीं मिला, browser fallback उपयोग कर रहा हूँ...")
             try:
+                # Auto-select trending if needed
+                if not query or query.strip() == "" or query.lower() in ["music", "song", "gaana"]:
+                    query = self._get_trending_song()
+                    print(f"🎵 Auto-selected: {query}")
+                
                 # Create YouTube search URL that auto-plays first result
                 search_query = query.replace(' ', '+')
                 url = f"https://www.youtube.com/results?search_query={search_query}"
@@ -141,6 +218,10 @@ class WebSkill(Skill):
             print(f"YouTube Error: {e}")
             # Final fallback
             try:
+                # Auto-select trending if needed
+                if not query or query.strip() == "":
+                    query = self._get_trending_song()
+                
                 url = f"https://www.youtube.com/results?search_query={query.replace(' ', '+')}"
                 webbrowser.open(url)
                 return json.dumps({

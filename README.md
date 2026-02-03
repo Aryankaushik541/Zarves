@@ -7,8 +7,8 @@ JARVIS is an **intelligent personal AI assistant** that behaves like a real huma
 - ✅ **NATURAL CONVERSATIONS** - Talks like a real person, not a robot!
 - ✅ **EMOTION DETECTION** - Understands if you're happy, frustrated, or excited
 - ✅ **CONTEXT MEMORY** - Remembers previous conversations and tasks
-- ✅ **INSTALLS APPS FROM MS STORE** - "WhatsApp install karo" → Downloads & installs automatically! 📦
-- ✅ **OPENS ANY WINDOWS APP** - This PC, Control Panel, VLC, Word, Excel, and 50+ apps! 🖥️
+- ✅ **CROSS-PLATFORM APP INSTALLER** - Windows (MS Store) + Mac (App Store) + Linux (apt/snap) 📦
+- ✅ **OPENS ANY APP** - This PC, Control Panel, VLC, Word, Excel, and 50+ apps! 🖥️
 - ✅ **AUTO-PLAY MUSIC** - "YouTube kholo" automatically plays trending songs! 🎵
 - ✅ **AUTO-INSTALLS EVERYTHING** - Just run `python main.py` and it handles the rest!
 - ✅ **100% FREE & LOCAL** - Uses Ollama (no API keys, no rate limits!)
@@ -20,31 +20,44 @@ JARVIS is an **intelligent personal AI assistant** that behaves like a real huma
 
 ## 💬 Natural Conversation Examples
 
-### **Example 1: Install Apps from Microsoft Store 📦**
+### **Example 1: Install Apps (Cross-Platform) 📦**
 
+**Windows:**
 ```
 🎤 You: "Jarvis, WhatsApp install karo"
 
 🔊 JARVIS: "Installing WhatsApp from Microsoft Store..."
           [Microsoft Store opens to WhatsApp page]
-          "Microsoft Store opened. Click 'Get' or 'Install' to download WhatsApp."
+          "Click 'Get' or 'Install' to download WhatsApp."
+```
 
-🎤 You: "Spotify install karo"
+**Mac:**
+```
+🎤 You: "Jarvis, Spotify install karo"
 
-🔊 JARVIS: "Installing Spotify..."
-          [Microsoft Store opens to Spotify page]
-          "Done! Click 'Install' to get Spotify."
+🔊 JARVIS: "Installing Spotify from Mac App Store..."
+          [Mac App Store opens to Spotify page]
+          "Click 'Get' or 'Install' to download Spotify."
+```
+
+**Linux:**
+```
+🎤 You: "Jarvis, VLC install karo"
+
+🔊 JARVIS: "Installing VLC via snap..."
+          [Installs automatically]
+          "VLC installed successfully!"
 ```
 
 **Supported Apps (50+):**
-- 📱 **Social**: WhatsApp, Telegram, Discord, Zoom, Teams, Skype
+- 📱 **Social**: WhatsApp, Telegram, Discord, Zoom, Teams, Skype, Slack
 - 🎵 **Entertainment**: Spotify, Netflix, Prime Video, VLC
-- 💼 **Productivity**: Notion, Evernote, OneNote
-- 💻 **Development**: VS Code, Windows Terminal, PowerShell, Git, Python
-- 🎮 **Gaming**: Xbox, Steam, Epic Games
-- 🌐 **Browsers**: Chrome, Firefox, Edge, Brave
+- 💼 **Productivity**: Notion, Evernote, OneNote, Pages, Numbers, Keynote
+- 💻 **Development**: VS Code, Xcode, Windows Terminal, PowerShell, Git, Python
+- 🎮 **Gaming**: Xbox, Steam
+- 🌐 **Browsers**: Chrome, Firefox, Edge, Brave, Safari
 - 📊 **Office**: Word, Excel, PowerPoint, Outlook
-- 🛠️ **Utilities**: WinRAR, 7-Zip, Notepad++, Paint.NET
+- 🛠️ **Utilities**: WinRAR, 7-Zip, Notepad++, Paint.NET, The Unarchiver, Magnet
 
 ### **Example 2: Voice Mode - Just Talk! 🎤**
 
@@ -64,9 +77,7 @@ JARVIS is an **intelligent personal AI assistant** that behaves like a real huma
 🔊 JARVIS: "You're welcome! Happy to help!"
 ```
 
-**No typing needed! Just talk naturally like you're talking to a friend!** 🗣️
-
-### **Example 3: Opens ANY Windows Application**
+### **Example 3: Opens ANY Application**
 
 ```
 🎤 You: "Jarvis, this pc kholo"
@@ -80,10 +91,6 @@ JARVIS is an **intelligent personal AI assistant** that behaves like a real huma
 🎤 You: "vlc kholo"
 
 🔊 JARVIS: "Opening VLC Media Player. Done!"
-
-🎤 You: "word kholo"
-
-🔊 JARVIS: "Opening Microsoft Word. Done!"
 ```
 
 ---
@@ -119,7 +126,7 @@ python main.py
 **That's it!** 🎉
 
 JARVIS automatically:
-- ✅ Checks all dependencies
+- ✅ Detects your platform (Windows/Mac/Linux)
 - ✅ Installs missing packages
 - ✅ Downloads Ollama model
 - ✅ Starts running!
@@ -128,44 +135,39 @@ JARVIS automatically:
 
 ## 🌟 Key Features
 
-### **📦 Microsoft Store App Installer (NEW!)**
+### **📦 Cross-Platform App Installer (NEW!)**
 
-Install any app from Microsoft Store with just a voice command!
+Install apps with voice commands on **any platform**:
 
-```
-🎤 You: "Jarvis, WhatsApp install karo"
-🔊 JARVIS: "Installing WhatsApp from Microsoft Store..."
-          [Opens MS Store to WhatsApp page]
-
-🎤 You: "Spotify download karo"
-🔊 JARVIS: "Installing Spotify..."
-          [Opens MS Store to Spotify page]
-```
-
-**How it works:**
-1. 🔍 Searches for app in Microsoft Store database
-2. 🏪 Opens Microsoft Store to app page
-3. 💡 You click "Get" or "Install" button
-4. ✅ App downloads and installs automatically!
-
-**Supported Categories:**
-- 📱 Social & Communication (WhatsApp, Telegram, Discord, Zoom, Teams)
-- 🎵 Entertainment (Spotify, Netflix, Prime Video, VLC)
-- 💼 Productivity (Notion, Evernote, OneNote)
-- 💻 Development (VS Code, Windows Terminal, Git, Python)
-- 🎮 Gaming (Xbox, Steam, Epic Games)
-- 🌐 Browsers (Chrome, Firefox, Edge, Brave)
-- 📊 Office (Word, Excel, PowerPoint, Outlook)
-- 🛠️ Utilities (WinRAR, 7-Zip, Notepad++, Paint.NET)
-
-**Commands:**
+**Windows (Microsoft Store):**
 ```
 🎤 "Jarvis, WhatsApp install karo"
 🎤 "Jarvis, Spotify download karo"
 🎤 "Jarvis, VS Code install karo"
-🎤 "Jarvis, Netflix install karo"
-🎤 "Jarvis, Chrome download karo"
 ```
+
+**Mac (Mac App Store + Homebrew):**
+```
+🎤 "Jarvis, Telegram install karo"
+🎤 "Jarvis, Notion download karo"
+🎤 "Jarvis, Xcode install karo"
+```
+
+**Linux (apt/snap/flatpak):**
+```
+🎤 "Jarvis, VLC install karo"
+🎤 "Jarvis, Firefox download karo"
+```
+
+**How it works:**
+- **Windows**: Opens Microsoft Store → Click "Get/Install"
+- **Mac**: Opens Mac App Store → Click "Get/Install"
+- **Linux**: Auto-installs via snap/apt
+
+**Fallback Methods:**
+- Windows: winget (if MS Store fails)
+- Mac: Homebrew (if App Store fails)
+- Linux: apt → snap → flatpak
 
 ### **🎤 Voice Mode**
 - Wake Word Detection - Say "Jarvis" to activate
@@ -174,7 +176,7 @@ Install any app from Microsoft Store with just a voice command!
 - Natural Voice Response
 - Emotion Detection
 
-### **🖥️ Opens ANY Windows App (50+)**
+### **🖥️ Opens ANY App (50+)**
 - System Tools (This PC, Control Panel, Settings)
 - Office Apps (Word, Excel, PowerPoint)
 - Media Players (VLC, Spotify)
@@ -199,15 +201,36 @@ Install any app from Microsoft Store with just a voice command!
 
 ## 💬 Usage Examples
 
-### **Installing Apps**
+### **Installing Apps (Cross-Platform)**
+
+**Windows:**
 ```
 🎤 You: "Jarvis, WhatsApp install karo"
-🔊 JARVIS: "Installing WhatsApp..."
+🔊 JARVIS: "Installing WhatsApp from Microsoft Store..."
           [Opens MS Store]
 
 🎤 You: "Spotify download karo"
 🔊 JARVIS: "Installing Spotify..."
           [Opens MS Store]
+```
+
+**Mac:**
+```
+🎤 You: "Jarvis, Telegram install karo"
+🔊 JARVIS: "Installing Telegram from Mac App Store..."
+          [Opens Mac App Store]
+
+🎤 You: "Notion download karo"
+🔊 JARVIS: "Installing Notion..."
+          [Opens Mac App Store]
+```
+
+**Linux:**
+```
+🎤 You: "Jarvis, VLC install karo"
+🔊 JARVIS: "Installing VLC via snap..."
+          [Auto-installs]
+          "VLC installed successfully!"
 ```
 
 ### **Opening Apps**
@@ -230,10 +253,10 @@ Install any app from Microsoft Store with just a voice command!
 
 ## 🛠️ Requirements
 
-- Python 3.8+
-- Ollama (for AI model)
-- Windows 10/11
-- Internet Connection
+- **Python 3.8+**
+- **Ollama** (for AI model)
+- **Windows 10/11 / macOS / Linux**
+- **Internet Connection**
 
 **All dependencies auto-install!**
 
@@ -249,6 +272,33 @@ cd Zarves
 # Run JARVIS (auto-installs everything!)
 python main.py
 ```
+
+---
+
+## 💡 Platform-Specific Features
+
+### **Windows**
+- Microsoft Store app installation
+- Opens 50+ Windows apps
+- System tools (This PC, Control Panel, etc.)
+- Winget fallback
+
+### **Mac**
+- Mac App Store installation
+- Homebrew fallback
+- macOS-specific apps (Xcode, Pages, etc.)
+- Safari, Finder, etc.
+
+### **Linux**
+- snap/apt/flatpak support
+- Auto-detects best package manager
+- Works on Ubuntu, Debian, Fedora, etc.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
 

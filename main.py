@@ -482,55 +482,40 @@ def launch_gui(ollama_ready=False):
 # MAIN - FULLY AUTOMATED
 # ============================================================================
 
+def launch_aadhar_gui():
+    """Launch the Aadhar ATM voice-first GUI."""
+    try:
+        from launch_aadhar_atm import main as aadhar_main
+    except Exception as exc:
+        print(f"❌ Unable to load Aadhar ATM GUI: {exc}")
+        return
+    aadhar_main()
+
+
 def main():
-    """Fully automated main entry point"""
-    
-    print("\n" + "="*70)
-    print("🤖 JARVIS - Personal AI Assistant")
-    print("="*70)
+    """Fully automated main entry point for Aadhar ATM flow."""
+    print("\n" + "=" * 70)
+    print("🏧 Aadhar ATM - Voice + AI Automation")
+    print("=" * 70)
     print()
-    
+
     # Auto-fix environment
     check_and_fix_environment()
-    
+
     # Auto-install dependencies
     auto_install_dependencies()
-    
+
     # Auto-setup Ollama (optional)
-    ollama_ready = setup_ollama()
-    
+    setup_ollama()
+
     print()
-    print("🚀 Starting JARVIS...")
+    print("🚀 Starting Aadhar ATM GUI...")
     print()
-    
-    if ollama_ready:
-        print("✅ Full AI Mode Enabled")
-        print("   • Local AI processing")
-        print("   • Natural conversations")
-        print("   • Smart task execution")
-    else:
-        print("💡 Cloud AI Mode")
-        print("   • Cloud-based processing")
-        print("   • All features available")
-        print("   • Install Ollama for local AI")
-    
+    print("=" * 70)
     print()
-    print("🎯 Features:")
-    print("   ✅ Voice & Text Control")
-    print("   ✅ YouTube Auto-Play")
-    print("   ✅ Browser Automation")
-    print("   ✅ File Management")
-    print("   ✅ System Control")
-    print("   ✅ Code Generation")
-    print()
-    print("="*70)
-    print()
-    
-    # Launch GUI
-    launch_gui(ollama_ready)
+
+    launch_aadhar_gui()
 
 
 if __name__ == "__main__":
-    from launch_aadhar_atm import main as aadhar_main
-
-    aadhar_main()
+    main()

@@ -58,11 +58,17 @@ IMPORTANT INSTRUCTIONS:
    - Use play_youtube tool with the song/video name as query
    - Example: "play despacito" → play_youtube(query="despacito")
 
-3. Always use the available tools when the user's request matches a tool's capability.
+3. For downloading and playing movies:
+   - When user says "download movie X from website Y" or "movie download karo"
+   - Use download_and_play_movie tool with movie_name and website_url
+   - Example: "download Inception from vegamovies" → download_and_play_movie(movie_name="Inception", website_url="https://vegamovies.attorney/")
+   - The tool will automatically download and play in VLC player
 
-4. Be concise and helpful. Respond in the same language the user uses (English/Hindi/Hinglish).
+4. Always use the available tools when the user's request matches a tool's capability.
 
-5. After executing a tool, confirm the action briefly.
+5. Be concise and helpful. Respond in the same language the user uses (English/Hindi/Hinglish).
+
+6. After executing a tool, confirm the action briefly.
 
 Available tools will be provided in the function calling format."""
         

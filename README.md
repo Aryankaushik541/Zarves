@@ -1,12 +1,144 @@
 # 🤖 JARVIS - Your Personal AI Assistant
 
-> **"Auto-Login | PC Movie Search | VLC Auto-Play"**
+> **"Auto-Login | PC Movie Search | VLC Auto-Play | Local AI"**
 
-Complete AI assistant with **browser auto-login**, **PC movie search**, and **VLC auto-play** support!
+Complete AI assistant with **browser auto-login**, **PC movie search**, **VLC auto-play**, and **local AI** support!
 
 ---
 
-## ✨ NEW Features
+## 🚀 Quick Start (Recommended)
+
+### **One-Click Launch:**
+
+**Windows:**
+```bash
+git clone https://github.com/Aryankaushik541/Zarves.git
+cd Zarves
+start_jarvis.bat
+```
+
+**Mac/Linux:**
+```bash
+git clone https://github.com/Aryankaushik541/Zarves.git
+cd Zarves
+chmod +x start_jarvis.sh
+./start_jarvis.sh
+```
+
+**That's it!** The script automatically:
+- ✅ Installs Ollama (if needed)
+- ✅ Starts Ollama server
+- ✅ Downloads AI model
+- ✅ Installs dependencies
+- ✅ Launches JARVIS GUI
+
+---
+
+## 📋 Manual Setup (If Needed)
+
+### **Step 1: Install Ollama**
+
+JARVIS uses Ollama for local AI processing.
+
+**Windows:**
+1. Download: https://ollama.com/download/windows
+2. Run installer
+3. Open PowerShell and run: `ollama serve`
+
+**Mac:**
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+ollama serve
+```
+
+**Linux:**
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+ollama serve
+```
+
+### **Step 2: Download AI Model**
+
+Open a **new terminal** (keep `ollama serve` running):
+```bash
+ollama pull llama3.2
+```
+
+This downloads the AI model (~2GB). Wait for completion.
+
+### **Step 3: Install Dependencies**
+
+```bash
+cd Zarves
+pip install -r requirements.txt
+```
+
+### **Step 4: Launch JARVIS**
+
+```bash
+python main.py
+```
+
+**Expected Output:**
+```
+✅ Connected to Ollama at http://localhost:11434
+✅ Using model: llama3.2
+🚀 Launching JARVIS GUI...
+```
+
+---
+
+## ⚠️ Troubleshooting
+
+### **Problem: "JARVIS engine not initialized"**
+
+**Solution:**
+```bash
+# Make sure Ollama is running:
+ollama serve
+
+# In another terminal, check if model exists:
+ollama list
+
+# Should show llama3.2
+# If not, pull it:
+ollama pull llama3.2
+
+# Restart JARVIS:
+python main.py
+```
+
+### **Problem: "Ollama connection issue"**
+
+**Solution:**
+```bash
+# Check if Ollama is running:
+curl http://localhost:11434/api/tags
+
+# If error, start Ollama:
+ollama serve
+
+# Then restart JARVIS
+```
+
+### **Problem: "Module not found"**
+
+**Solution:**
+```bash
+# Reinstall dependencies:
+pip install --upgrade -r requirements.txt
+
+# If PyQt5 fails on Mac:
+pip install PyQt5 --no-cache-dir
+```
+
+### **Still Having Issues?**
+
+See detailed fixes: [FIXES.md](FIXES.md)
+
+---
+
+## ✨ Features
 
 ### 🔐 **Browser Auto-Login**
 ```
@@ -43,27 +175,21 @@ Say: "Avengers movie play karo VLC me"
 Result: Finds Avengers, opens VLC, plays automatically!
 ```
 
----
+### 🤖 **Local AI Processing**
+```
+✅ Runs completely offline
+✅ No API keys needed
+✅ Fast and private
+✅ Uses Ollama + llama3.2
 
-## 🚀 Quick Start
-
-### **Super Simple - Just 2 Steps:**
-```bash
-# Step 1: Clone
-git clone https://github.com/Aryankaushik541/Zarves.git
-cd Zarves
-
-# Step 2: Run
-python main.py
+Your data stays on your PC!
 ```
 
-**That's it!** Beautiful GUI opens automatically! 🎉
-
 ---
 
-## ⚙️ First Time Setup
+## ⚙️ Configuration (Optional)
 
-### **1. Configure Auto-Login (Optional):**
+### **1. Configure Auto-Login:**
 ```
 1. Click "⚙️ Settings" button (top-right)
 2. Enter Google Email
@@ -73,7 +199,7 @@ python main.py
 Now JARVIS can auto-login to Gmail, YouTube, Facebook!
 ```
 
-### **2. Add Movie Folders (Optional):**
+### **2. Add Movie Folders:**
 ```
 1. Click "⚙️ Settings" button
 2. Scroll to "Movie Search Paths"
@@ -87,6 +213,28 @@ JARVIS will search these folders for movies!
 **Default Paths (Auto-detected):**
 - Windows: C:\Users\YourName\Videos, Downloads, Movies
 - All Drives: D:\Movies, E:\Videos, etc.
+
+### **3. Create .env File (Advanced):**
+
+Create `.env` in project root:
+
+```bash
+# AI Model
+OLLAMA_HOST=http://localhost:11434
+OLLAMA_MODEL=llama3.2
+
+# Voice Settings
+VOICE_ENABLED=true
+VOICE_RATE=150
+VOICE_VOLUME=0.9
+
+# Auto-Login (Optional)
+GOOGLE_EMAIL=your_email@gmail.com
+GOOGLE_PASSWORD=your_password
+
+# Movie Search Paths (Optional)
+MOVIE_PATHS=C:\Users\YourName\Videos,D:\Movies
+```
 
 ---
 
@@ -201,6 +349,20 @@ Result: 🎬 Playing in VLC:
         ✅ Movie started!
 ```
 
+### **4. Local AI Processing:**
+```
+You say: "What's the weather like?"
+
+JARVIS:
+1. Processes query with Ollama (local AI)
+2. Understands intent
+3. Executes appropriate skill
+4. Responds naturally
+
+Result: All processing happens on your PC!
+        No data sent to cloud!
+```
+
 ---
 
 ## 🎨 GUI Interface
@@ -248,360 +410,135 @@ Result: 🎬 Playing in VLC:
 
 ### **Right Panel - Chat:**
 ```
-💬 Conversation
-┌─────────────────────────────────┐
-│ [12:30:45] 👤 You: gmail login │
-│ [12:30:47] 🤖 JARVIS: ✅ Logged│
-│            into Gmail!          │
-│            🌐 Browser opened    │
-└─────────────────────────────────┘
-
-[Type message...] [Send] [🎤 Voice]
+💬 Chat with JARVIS
+   Type or speak your commands
+   Real-time responses
+   Natural conversation
 ```
 
 ---
 
-## 📦 What's Included
+## 📊 System Requirements
 
-### **Files:**
+### **Minimum:**
+- Python 3.8+
+- 4GB RAM
+- 5GB free disk space (for AI model)
+- Windows 10/11, macOS 10.15+, or Linux
+
+### **Recommended:**
+- Python 3.10+
+- 8GB RAM
+- 10GB free disk space
+- SSD for faster AI processing
+
+---
+
+## 🔒 Privacy & Security
+
+### **Your Data is Safe:**
+```
+✅ All AI processing happens locally
+✅ No data sent to cloud
+✅ Credentials stored locally only
+✅ Open source - audit the code
+✅ No telemetry or tracking
+```
+
+### **Credentials:**
+- Stored in `~/.jarvis_config.json`
+- Encrypted (if you enable encryption)
+- Never shared or uploaded
+- You can delete anytime
+
+---
+
+## 🛠️ Development
+
+### **Project Structure:**
 ```
 Zarves/
-├── main.py              ✅ Single entry point
-├── gui/
-│   ├── __init__.py
-│   └── app.py           ✅ Complete GUI with all features
-├── core/                ✅ Core modules
-├── skill/               ✅ Skills folder
-└── README.md            ✅ This file
+├── main.py              # Entry point
+├── core/                # Core engine
+│   ├── engine.py        # AI engine
+│   ├── registry.py      # Skill registry
+│   ├── voice.py         # Voice assistant
+│   └── ...
+├── gui/                 # GUI interface
+│   └── app.py           # Main GUI
+├── skill/               # Skills (plugins)
+│   ├── web_skills.py
+│   ├── media_skills.py
+│   └── ...
+└── requirements.txt     # Dependencies
 ```
 
-### **Features:**
-- ✅ **Browser Auto-Login** (Gmail, YouTube, Facebook)
-- ✅ **PC Movie Search** (All drives, all formats)
-- ✅ **VLC Auto-Play** (Finds & plays automatically)
-- ✅ **YouTube Auto-Play** (Selenium)
-- ✅ Beautiful dark theme GUI
-- ✅ Quick action buttons
-- ✅ Voice & text input
-- ✅ Settings panel
-- ✅ Full PC control
-- ✅ Auto-install dependencies
+### **Add Custom Skills:**
+
+Create a new file in `skill/` folder:
+
+```python
+# skill/my_custom_skill.py
+
+def my_function(param1: str) -> dict:
+    """
+    Description of what this does
+    
+    Args:
+        param1: Description of parameter
+    
+    Returns:
+        dict: Result
+    """
+    # Your code here
+    return {"status": "success", "message": "Done!"}
+```
+
+JARVIS automatically loads it!
 
 ---
 
-## 🔧 Requirements
+## 🤝 Contributing
 
-### **Auto-Installed:**
-- Python 3.7+
-- pyttsx3 (Text-to-speech)
-- SpeechRecognition (Voice input)
-- pyautogui (System control)
-- psutil (Process management)
-- selenium (Auto-login & YouTube)
-- webdriver-manager (ChromeDriver)
-
-**JARVIS installs everything automatically!**
+Contributions welcome! Please:
+1. Fork the repo
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
 ---
 
-## 💡 Tips
+## 📝 License
 
-### **1. Auto-Login Setup:**
-```
-⚙️ Settings → Enter Google credentials → Save
-Now: "gmail login karo" works automatically!
-```
-
-### **2. Movie Folders:**
-```
-⚙️ Settings → Add Folder → Select movie folders → Save
-JARVIS will search these folders for movies!
-```
-
-### **3. Quick Movie Play:**
-```
-Say: "Avengers movie play karo VLC me"
-JARVIS: Searches PC → Finds movie → Opens VLC → Plays!
-```
-
-### **4. Voice Commands:**
-```
-Click Voice button → Speak clearly
-"gmail login karo" → Auto-login!
-"Avengers movie play karo" → Auto-play!
-```
+MIT License - See LICENSE file
 
 ---
 
-## 🎉 Quick Examples
+## 🆘 Support
 
-### **Example 1: Auto-Login Gmail**
-```
-Type: "gmail login karo"
-Click: Send
-
-JARVIS:
-  ✅ Logged into Gmail!
-  🌐 Browser opened with auto-login
-
-[Chrome opens]
-[Goes to Gmail]
-[Enters email automatically]
-[Enters password automatically]
-[Clicks login]
-[You're logged in!]
-```
-
-### **Example 2: Search Movie**
-```
-Type: "Avengers movie search karo"
-Click: Send
-
-JARVIS:
-  🎬 Found 3 movie(s):
-  
-  1. Avengers Endgame.mp4
-  2. Avengers Infinity War.mkv
-  3. The Avengers.avi
-```
-
-### **Example 3: Play Movie in VLC**
-```
-Type: "Avengers movie play karo VLC me"
-Click: Send
-
-JARVIS:
-  🎬 Playing in VLC:
-  Avengers Endgame.mp4
-  ✅ Movie started!
-
-[VLC opens automatically]
-[Movie starts playing]
-```
-
-### **Example 4: Voice Command**
-```
-Click: Voice button
-Say: "Interstellar movie play karo VLC me"
-
-JARVIS:
-  🎬 Playing in VLC:
-  Interstellar.mkv
-  ✅ Movie started!
-
-[Searches PC]
-[Finds Interstellar]
-[Opens VLC]
-[Plays automatically!]
-```
+- **Issues:** https://github.com/Aryankaushik541/Zarves/issues
+- **Fixes Guide:** [FIXES.md](FIXES.md)
+- **Ollama Docs:** https://ollama.com/docs
 
 ---
 
-## 🎬 Movie Search Demo
+## 🎉 Credits
 
-```
-User: "Avengers movie search karo"
-
-JARVIS: 
-  🎬 Found 3 movie(s):
-  
-  1. Avengers Endgame.mp4
-  2. Avengers Infinity War.mkv
-  3. The Avengers.avi
-
-User: "play karo VLC me"
-
-JARVIS:
-  🎬 Playing in VLC:
-  Avengers Endgame.mp4
-  ✅ Movie started!
-
-[VLC opens and plays first movie automatically!]
-```
+Built with:
+- Ollama (Local AI)
+- llama3.2 (AI Model)
+- PyQt5 (GUI)
+- Selenium (Browser automation)
+- pyttsx3 (Voice)
 
 ---
 
-## 🔐 Auto-Login Demo
+## ⭐ Star This Repo!
 
-```
-User: "gmail login karo"
+If you find JARVIS helpful, please star this repo! ⭐
 
-JARVIS:
-  ✅ Logged into Gmail!
-  🌐 Browser opened with auto-login
-
-[Chrome opens]
-[Gmail page loads]
-[Email field fills automatically]
-[Password field fills automatically]
-[Login button clicks automatically]
-[Gmail inbox opens - logged in!]
-```
+It helps others discover this project!
 
 ---
 
-## 🐛 Troubleshooting
-
-### **Problem: Auto-login not working**
-**Solution:**
-```
-1. Click ⚙️ Settings
-2. Enter correct Google email & password
-3. Click Save Settings
-4. Try again: "gmail login karo"
-```
-
-### **Problem: Movie not found**
-**Solution:**
-```
-1. Click ⚙️ Settings
-2. Click "Add Folder"
-3. Select folder containing movies
-4. Click Save Settings
-5. Try again: "movie search karo"
-```
-
-### **Problem: VLC not opening**
-**Solution:**
-```
-1. Install VLC Media Player
-2. Windows: Download from videolan.org
-3. Try again: "movie play karo VLC me"
-```
-
-### **Problem: Selenium not working**
-**Solution:**
-```
-# Auto-installs, but if fails:
-pip install selenium webdriver-manager
-
-# Then run:
-python main.py
-```
-
----
-
-## 📊 Performance
-
-- **Startup Time:** ~2 seconds
-- **Auto-Login:** ~5-8 seconds
-- **Movie Search:** ~2-5 seconds (depends on PC)
-- **VLC Auto-Play:** ~3 seconds
-- **YouTube Auto-Play:** ~3-5 seconds
-- **Memory Usage:** ~100MB (with Selenium)
-- **CPU Usage:** <5% idle
-
----
-
-## 🎯 Supported Formats
-
-### **Video Formats:**
-```
-✅ MP4 (MPEG-4)
-✅ MKV (Matroska)
-✅ AVI (Audio Video Interleave)
-✅ MOV (QuickTime)
-✅ WMV (Windows Media Video)
-✅ FLV (Flash Video)
-✅ WEBM (WebM)
-```
-
-### **Websites (Auto-Login):**
-```
-✅ Gmail
-✅ YouTube
-✅ Facebook
-✅ Twitter
-```
-
----
-
-## 🚀 Get Started Now!
-
-```bash
-git clone https://github.com/Aryankaushik541/Zarves.git
-cd Zarves
-python main.py
-```
-
-**Beautiful GUI opens automatically!** 🎉
-
-### **Then:**
-
-**1. Setup (First Time):**
-```
-Click: ⚙️ Settings
-Enter: Google email & password
-Add: Movie folders
-Click: Save Settings
-```
-
-**2. Use Commands:**
-```
-"gmail login karo" → Auto-login!
-"Avengers movie search karo" → Search PC!
-"movie play karo VLC me" → Auto-play!
-```
-
-**3. Enjoy!** 🎬
-
----
-
-## 🔥 Features Summary
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| **Browser Auto-Login** | ✅ Working | Opens & logs in automatically |
-| **PC Movie Search** | ✅ Working | Searches entire PC storage |
-| **VLC Auto-Play** | ✅ Working | Finds & plays in VLC |
-| **YouTube Auto-Play** | ✅ Working | Opens & plays songs |
-| **Settings Panel** | ✅ Working | Configure credentials & paths |
-| **Voice Commands** | ✅ Working | Speak naturally |
-| **Quick Actions** | ✅ Working | One-click buttons |
-| **Beautiful GUI** | ✅ Working | Dark theme interface |
-| **Auto-Install** | ✅ Working | Dependencies install automatically |
-
----
-
-**Made with ❤️ in India**
-
-**JARVIS - Auto-Login | Movie Search | VLC Play!**
-
----
-
-## 💬 Example Conversations
-
-### **Conversation 1: Auto-Login**
-```
-You: "gmail login karo"
-JARVIS: ✅ Logged into Gmail! 🌐 Browser opened with auto-login
-
-You: "youtube login karo"
-JARVIS: ✅ Logged into YouTube! 🌐 Browser opened with auto-login
-```
-
-### **Conversation 2: Movie Search & Play**
-```
-You: "Avengers movie search karo"
-JARVIS: 🎬 Found 3 movie(s):
-        1. Avengers Endgame.mp4
-        2. Avengers Infinity War.mkv
-        3. The Avengers.avi
-
-You: "play karo VLC me"
-JARVIS: 🎬 Playing in VLC: Avengers Endgame.mp4
-        ✅ Movie started!
-```
-
-### **Conversation 3: Direct Play**
-```
-You: "Interstellar movie play karo VLC me"
-JARVIS: 🎬 Playing in VLC: Interstellar.mkv
-        ✅ Movie started!
-```
-
----
-
-**Perfect! Ab browser auto-login, PC movie search, aur VLC auto-play - sab automatic!** 🎬
-
-**Just one command - python main.py - that's it!** 🚀
+**Made with ❤️ by Aryan Kaushik**

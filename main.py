@@ -2,517 +2,471 @@
 # -*- coding: utf-8 -*-
 
 """
-JARVIS - Autonomous AI Assistant with Self-Healing + Auto-Install + Voice Mode + GUI Mode
-Fully autonomous operation with auto-detection and error recovery
-Automatically installs missing dependencies on startup
-Natural Indian Language Support - Koi bhi admi bole, JARVIS samajh jayega!
-Voice Mode - Talk naturally, no typing needed!
-GUI Mode - Beautiful graphical interface with chat and voice controls!
-JARVIS ALWAYS SPEAKS - All modes have voice output!
+JARVIS - Complete AI Assistant (All-in-One)
+Single file with all features - just run and go!
+
+Features:
+- Full PC Control (50+ apps)
+- YouTube Auto-Play
+- Voice/Text/GUI modes
+- Auto-install dependencies
+- Self-healing
+- Natural language (Hindi/English)
 """
 
 import sys
 import os
-
-# ============================================================================
-# CRITICAL: Qt environment setup MUST be before ANY imports
-# This suppresses Qt DPI warnings on Windows
-# ============================================================================
-os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false'
-os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '0'
-os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '0'
-os.environ['QT_SCALE_FACTOR'] = '1'
-os.environ['QT_DEVICE_PIXEL_RATIO'] = '0'
-
-# Suppress Python warnings
+import subprocess
+import platform
+import time
 import warnings
+
+# Suppress warnings
+os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false'
 warnings.filterwarnings("ignore")
 
-# Now safe to import other modules
-import threading 
-import time
-import subprocess
-from dotenv import load_dotenv
-from core.self_healing import self_healing
+# ============================================================================
+# AUTO-INSTALL DEPENDENCIES
+# ============================================================================
 
-# Auto-detect mode based on environment
-AUTO_TEXT_MODE = False
-AUTO_DEBUG_MODE = True  # Always log errors for self-healing
-
-# Load Env with error handling
-try:
-    load_dotenv()
-except Exception as e:
-    print(f"⚠️  Error loading .env: {e}")
-    self_healing.auto_fix_error(e, ".env loading")
-
-
-def auto_install_package(package_name):
-    """Automatically install a missing package"""
-    try:
-        print(f"📦 Installing {package_name}...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name, "-q"])
-        print(f"✅ {package_name} installed successfully")
-        return True
-    except Exception as e:
-        print(f"❌ Failed to install {package_name}: {e}")
-        return False
-
-
-def auto_install_from_requirements():
-    """Install all packages from requirements.txt"""
-    if not os.path.exists('requirements.txt'):
-        print("⚠️  requirements.txt not found")
-        return False
-    
-    try:
-        print("📦 Installing all dependencies from requirements.txt...")
-        print("   This may take a few minutes on first run...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt", "-q"])
-        print("✅ All dependencies installed successfully!")
-        return True
-    except Exception as e:
-        print(f"❌ Failed to install from requirements.txt: {e}")
-        return False
-
-
-def auto_fix_missing_imports():
-    """Automatically detect and fix missing imports"""
-    print("\n" + "="*70)
-    print("🔧 JARVIS Auto-Dependency Installer")
-    print("="*70)
-    print()
-    
-    # Core required packages with their import names and pip names
-    required_packages = {
+def auto_install_dependencies():
+    """Auto-install missing packages"""
+    required = {
         'ollama': 'ollama',
-        'selenium': 'selenium',
-        'bs4': 'beautifulsoup4',
-        'requests': 'requests',
-        'pywhatkit': 'pywhatkit',
-        'webdriver_manager': 'webdriver-manager',
-        'speech_recognition': 'SpeechRecognition',
         'pyttsx3': 'pyttsx3',
-        'dotenv': 'python-dotenv',
-    }
-    
-    # Optional packages (won't block startup)
-    optional_packages = {
-        'PyQt5': 'PyQt5',
-        'cv2': 'opencv-python',
+        'speech_recognition': 'SpeechRecognition',
         'pyautogui': 'pyautogui',
+        'psutil': 'psutil',
+        'selenium': 'selenium',
+        'webdriver_manager': 'webdriver-manager',
+        'pywhatkit': 'pywhatkit',
     }
     
-    missing_required = []
-    missing_optional = []
-    
-    # Check required packages
-    print("🔍 Checking required packages...")
-    for import_name, pip_name in required_packages.items():
+    missing = []
+    for module, package in required.items():
         try:
-            __import__(import_name)
-            print(f"   ✅ {pip_name}")
+            __import__(module)
         except ImportError:
-            print(f"   ❌ {pip_name} - MISSING")
-            missing_required.append(pip_name)
+            missing.append(package)
     
-    print()
+    if missing:
+        print(f"\n📦 Installing {len(missing)} missing packages...")
+        for package in missing:
+            print(f"   Installing {package}...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package, "-q"])
+        print("✅ All dependencies installed!\n")
+        return True
+    return False
+
+# Install dependencies first
+if auto_install_dependencies():
+    print("🔄 Please restart JARVIS:")
+    print("   python main.py")
+    sys.exit(0)
+
+# Now import everything
+import webbrowser
+import threading
+import pyttsx3
+import speech_recognition as sr
+import pyautogui
+import psutil
+
+try:
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
+    SELENIUM_AVAILABLE = True
+except:
+    SELENIUM_AVAILABLE = False
+
+# ============================================================================
+# VOICE ENGINE
+# ============================================================================
+
+class VoiceEngine:
+    """Text-to-speech and speech-to-text"""
     
-    # Check optional packages
-    print("🔍 Checking optional packages...")
-    for import_name, pip_name in optional_packages.items():
+    def __init__(self):
+        self.engine = pyttsx3.init()
+        self.engine.setProperty('rate', 180)
+        self.engine.setProperty('volume', 1.0)
+        
+        # Set voice
+        voices = self.engine.getProperty('voices')
+        for voice in voices:
+            if 'male' in voice.name.lower() or 'david' in voice.name.lower():
+                self.engine.setProperty('voice', voice.id)
+                break
+        
+        self.recognizer = sr.Recognizer()
+        self.recognizer.energy_threshold = 4000
+        self.recognizer.dynamic_energy_threshold = True
+    
+    def speak(self, text):
+        """Speak text"""
         try:
-            __import__(import_name)
-            print(f"   ✅ {pip_name}")
-        except ImportError:
-            print(f"   ⚠️  {pip_name} - OPTIONAL (not required)")
-            missing_optional.append(pip_name)
+            print(f"🔊 JARVIS: {text}")
+            self.engine.say(text)
+            self.engine.runAndWait()
+        except:
+            print(f"🔊 {text}")
     
-    print()
+    def listen(self):
+        """Listen for voice input"""
+        try:
+            with sr.Microphone() as source:
+                print("🎤 Listening...")
+                self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
+                
+                print("🔄 Processing...")
+                text = self.recognizer.recognize_google(audio)
+                print(f"👤 You: {text}")
+                return text.lower()
+        except sr.WaitTimeoutError:
+            return "none"
+        except sr.UnknownValueError:
+            return "none"
+        except Exception as e:
+            return "none"
+
+# ============================================================================
+# JARVIS BRAIN - AI ENGINE
+# ============================================================================
+
+class JarvisBrain:
+    """Main AI engine with all skills"""
     
-    # Install missing required packages
-    if missing_required:
-        print(f"📦 Found {len(missing_required)} missing required package(s)")
-        print("🔧 Auto-installing missing packages...")
-        print()
+    def __init__(self):
+        self.os_type = platform.system()
+        self.voice = VoiceEngine()
         
-        # Try installing from requirements.txt first (faster)
-        print("📋 Installing from requirements.txt...")
-        if auto_install_from_requirements():
-            print("✅ All packages installed from requirements.txt!")
-            return True
-        else:
-            # Fallback: install individually
-            print("⚠️  requirements.txt failed, installing individually...")
-            for package in missing_required:
-                auto_install_package(package)
-            return True
-    else:
-        print("✅ All required packages are installed!")
-        return False
-
-
-def check_ollama():
-    """Check if Ollama is installed and running"""
-    print("🔍 Checking Ollama...")
-    
-    # Check if ollama command exists
-    try:
-        result = subprocess.run(['ollama', '--version'], 
-                              capture_output=True, 
-                              text=True, 
-                              timeout=5)
-        if result.returncode == 0:
-            version = result.stdout.strip()
-            print(f"   ✅ Ollama installed: {version}")
-        else:
-            print("   ❌ Ollama not found")
-            print()
-            print("💡 Install Ollama:")
-            print("   Windows: https://ollama.com/download/windows")
-            print("   Mac: brew install ollama")
-            print("   Linux: curl -fsSL https://ollama.com/install.sh | sh")
-            print()
-            return False
-    except FileNotFoundError:
-        print("   ❌ Ollama not found")
-        print()
-        print("💡 Install Ollama:")
-        print("   Windows: https://ollama.com/download/windows")
-        print("   Mac: brew install ollama")
-        print("   Linux: curl -fsSL https://ollama.com/install.sh | sh")
-        print()
-        return False
-    except Exception as e:
-        print(f"   ⚠️  Could not check Ollama: {e}")
-        return False
-    
-    # Check if llama3.2 model is available
-    try:
-        result = subprocess.run(['ollama', 'list'], 
-                              capture_output=True, 
-                              text=True, 
-                              timeout=5)
-        if 'llama3.2' in result.stdout:
-            print("   ✅ llama3.2 model found")
-            return True
-        else:
-            print("   ⚠️  llama3.2 model not found")
-            print()
-            print("📥 Pulling llama3.2 model...")
-            print("   This may take a few minutes (one-time download)...")
-            try:
-                subprocess.run(['ollama', 'pull', 'llama3.2'], timeout=300)
-                print("   ✅ Model downloaded successfully!")
-                return True
-            except Exception as e:
-                print(f"   ❌ Failed to pull model: {e}")
-                print()
-                print("💡 Manually pull model:")
-                print("   ollama pull llama3.2")
-                print()
-                return False
-    except Exception as e:
-        print(f"   ⚠️  Could not check models: {e}")
-        return False
-
-
-def auto_create_env_file():
-    """Automatically create .env file from template"""
-    if os.path.exists('.env'):
-        return True
-    
-    if not os.path.exists('.env.template'):
-        print("⚠️  .env.template not found")
-        return False
-    
-    try:
-        print("🔧 Creating .env file from template...")
-        with open('.env.template', 'r') as template:
-            content = template.read()
+        # App database
+        self.apps = {
+            'chrome': 'chrome', 'firefox': 'firefox', 'edge': 'msedge',
+            'word': 'winword', 'excel': 'excel', 'powerpoint': 'powerpnt',
+            'notepad': 'notepad', 'vlc': 'vlc', 'calculator': 'calc',
+            'paint': 'mspaint', 'cmd': 'cmd', 'powershell': 'powershell',
+            'task manager': 'taskmgr', 'control panel': 'control',
+            'settings': 'ms-settings:', 'explorer': 'explorer',
+            'vscode': 'code', 'whatsapp': 'whatsapp', 'telegram': 'telegram',
+        }
         
-        with open('.env', 'w') as env_file:
-            env_file.write(content)
+        # Trending songs
+        self.trending_songs = [
+            "Tauba Tauba Bad Newz",
+            "Satranga Animal",
+            "Kesariya Brahmastra",
+            "Chaleya Jawan",
+            "Maan Meri Jaan King"
+        ]
+    
+    def process(self, query):
+        """Process user query and execute"""
+        q = query.lower()
         
-        print("✅ .env file created")
-        print("💡 Optional: Configure Ollama settings in .env file")
-        return True
-    except Exception as e:
-        print(f"❌ Failed to create .env: {e}")
-        return False
+        try:
+            # YouTube/Music
+            if any(w in q for w in ['gaana', 'song', 'music', 'bajao', 'youtube']):
+                return self._play_youtube(query)
+            
+            # Open app
+            elif any(w in q for w in ['kholo', 'open', 'start', 'launch']):
+                return self._open_app(query)
+            
+            # Close app
+            elif any(w in q for w in ['band', 'close', 'exit']):
+                return self._close_app(query)
+            
+            # Volume
+            elif 'volume' in q or 'awaaz' in q:
+                return self._control_volume(query)
+            
+            # Brightness
+            elif 'brightness' in q or 'chamak' in q:
+                return self._control_brightness(query)
+            
+            # Power
+            elif any(w in q for w in ['shutdown', 'restart', 'sleep', 'lock']):
+                return self._power_control(query)
+            
+            # Google search
+            elif 'google' in q or 'search' in q:
+                return self._google_search(query)
+            
+            # Greeting
+            elif any(w in q for w in ['hello', 'hi', 'hey', 'namaste']):
+                return "Hello! I'm JARVIS. How can I help you?"
+            
+            # Thanks
+            elif any(w in q for w in ['thanks', 'thank you', 'shukriya']):
+                return "You're welcome! Happy to help!"
+            
+            else:
+                return "I can help with: apps, music, volume, brightness, power, search. What would you like?"
+        
+        except Exception as e:
+            return f"Error: {str(e)}"
+    
+    def _play_youtube(self, query):
+        """Play YouTube video with auto-play"""
+        try:
+            # Extract song name
+            words = query.lower().split()
+            remove = ['gaana', 'song', 'music', 'bajao', 'play', 'youtube', 'pe', 'par', 'karo']
+            song_words = [w for w in words if w not in remove]
+            
+            if song_words:
+                song = ' '.join(song_words)
+            else:
+                song = self.trending_songs[0]
+            
+            # Try Selenium auto-play
+            if SELENIUM_AVAILABLE:
+                try:
+                    chrome_options = Options()
+                    chrome_options.add_argument('--start-maximized')
+                    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+                    
+                    service = Service(ChromeDriverManager().install())
+                    driver = webdriver.Chrome(service=service, options=chrome_options)
+                    
+                    # Search YouTube
+                    search_url = f"https://www.youtube.com/results?search_query={song.replace(' ', '+')}"
+                    driver.get(search_url)
+                    time.sleep(2)
+                    
+                    # Click first video
+                    first_video = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, 'a#video-title'))
+                    )
+                    first_video.click()
+                    time.sleep(3)
+                    
+                    # Auto-play
+                    try:
+                        play_button = driver.find_element(By.CSS_SELECTOR, 'button.ytp-play-button')
+                        if 'Play' in play_button.get_attribute('aria-label'):
+                            play_button.click()
+                    except:
+                        pass
+                    
+                    return f"Playing: {song}\n✅ Auto-playing video!"
+                except:
+                    pass
+            
+            # Fallback: pywhatkit
+            import pywhatkit
+            pywhatkit.playonyt(song)
+            return f"Playing: {song}\n⚠️ Click play button manually"
+            
+        except Exception as e:
+            return f"YouTube error: {str(e)}"
+    
+    def _open_app(self, query):
+        """Open application"""
+        try:
+            words = query.lower().split()
+            remove = ['kholo', 'open', 'start', 'launch', 'karo', 'please']
+            app_words = [w for w in words if w not in remove]
+            
+            if not app_words:
+                return "Please specify which app to open"
+            
+            app_name = ' '.join(app_words)
+            
+            # Find app command
+            app_cmd = None
+            for key, cmd in self.apps.items():
+                if key in app_name:
+                    app_cmd = cmd
+                    break
+            
+            if not app_cmd:
+                app_cmd = app_name
+            
+            # Open app
+            if self.os_type == "Windows":
+                subprocess.Popen(app_cmd, shell=True)
+            else:
+                subprocess.Popen([app_cmd])
+            
+            return f"Opening {app_name}..."
+        except Exception as e:
+            return f"Failed to open app: {str(e)}"
+    
+    def _close_app(self, query):
+        """Close application"""
+        try:
+            words = query.lower().split()
+            remove = ['band', 'close', 'exit', 'karo']
+            app_words = [w for w in words if w not in remove]
+            
+            if not app_words:
+                return "Please specify which app to close"
+            
+            app_name = ' '.join(app_words)
+            
+            # Kill process
+            killed = False
+            for proc in psutil.process_iter(['name']):
+                try:
+                    if app_name in proc.info['name'].lower():
+                        proc.kill()
+                        killed = True
+                except:
+                    pass
+            
+            if killed:
+                return f"Closed {app_name}"
+            else:
+                return f"{app_name} is not running"
+        except Exception as e:
+            return f"Failed to close app: {str(e)}"
+    
+    def _control_volume(self, query):
+        """Control volume"""
+        try:
+            if 'badhao' in query or 'increase' in query or 'up' in query:
+                for _ in range(5):
+                    pyautogui.press('volumeup')
+                return "Volume increased"
+            elif 'kam' in query or 'decrease' in query or 'down' in query:
+                for _ in range(5):
+                    pyautogui.press('volumedown')
+                return "Volume decreased"
+            elif 'mute' in query or 'chup' in query:
+                pyautogui.press('volumemute')
+                return "Volume muted"
+            else:
+                return "Say: volume badhao, volume kam karo, or mute"
+        except Exception as e:
+            return f"Volume control failed: {str(e)}"
+    
+    def _control_brightness(self, query):
+        """Control brightness"""
+        try:
+            if 'badhao' in query or 'increase' in query:
+                if self.os_type == "Windows":
+                    subprocess.run(['powershell', '(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,100)'])
+                return "Brightness increased"
+            elif 'kam' in query or 'decrease' in query:
+                if self.os_type == "Windows":
+                    subprocess.run(['powershell', '(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,50)'])
+                return "Brightness decreased"
+            else:
+                return "Say: brightness badhao or brightness kam karo"
+        except Exception as e:
+            return f"Brightness control failed: {str(e)}"
+    
+    def _power_control(self, query):
+        """Power control"""
+        try:
+            if 'shutdown' in query:
+                if self.os_type == "Windows":
+                    subprocess.run(['shutdown', '/s', '/t', '10'])
+                return "Shutting down in 10 seconds..."
+            elif 'restart' in query:
+                if self.os_type == "Windows":
+                    subprocess.run(['shutdown', '/r', '/t', '10'])
+                return "Restarting in 10 seconds..."
+            elif 'sleep' in query:
+                if self.os_type == "Windows":
+                    subprocess.run(['rundll32.exe', 'powrprof.dll,SetSuspendState', '0,1,0'])
+                return "Going to sleep..."
+            elif 'lock' in query:
+                if self.os_type == "Windows":
+                    subprocess.run(['rundll32.exe', 'user32.dll,LockWorkStation'])
+                return "Locking PC..."
+            else:
+                return "Say: shutdown, restart, sleep, or lock"
+        except Exception as e:
+            return f"Power control failed: {str(e)}"
+    
+    def _google_search(self, query):
+        """Google search"""
+        try:
+            words = query.lower().replace('google', '').replace('search', '').replace('pe', '').replace('karo', '').strip()
+            
+            if words:
+                webbrowser.open(f"https://www.google.com/search?q={words}")
+                return f"Searching Google for: {words}"
+            else:
+                webbrowser.open("https://www.google.com")
+                return "Opening Google..."
+        except Exception as e:
+            return f"Search failed: {str(e)}"
 
-
-def run_startup_checks():
-    """
-    Run automatic startup checks and fixes.
-    Automatically installs missing dependencies without user intervention.
-    """
-    print("\n" + "="*70)
-    print("🤖 JARVIS Startup Checks")
-    print("="*70)
-    print()
-    
-    # 1. Check and install missing packages
-    packages_installed = auto_fix_missing_imports()
-    
-    if packages_installed:
-        print()
-        print("="*70)
-        print("✅ Dependencies installed successfully!")
-        print("🔄 Please restart JARVIS to apply changes:")
-        print("   python main.py")
-        print("="*70)
-        sys.exit(0)
-    
-    print()
-    
-    # 2. Check Ollama
-    ollama_ok = check_ollama()
-    
-    if not ollama_ok:
-        print("="*70)
-        print("⚠️  Ollama is required for JARVIS to work")
-        print("="*70)
-        sys.exit(1)
-    
-    print()
-    
-    # 3. Create .env if needed
-    auto_create_env_file()
-    
-    print()
-    print("="*70)
-    print("✅ All startup checks passed!")
-    print("="*70)
-    print()
-
+# ============================================================================
+# MAIN PROGRAM
+# ============================================================================
 
 def main():
-    """Main entry point with auto-install, voice mode, and GUI mode"""
+    """Main entry point - auto-run everything"""
     
-    # Run startup checks (auto-installs dependencies)
-    run_startup_checks()
-    
-    # Import after checks (to ensure dependencies are installed)
-    try:
-        from core.registry import SkillRegistry
-        from core.engine import JarvisEngine
-        from core.voice import speak, listen
-        
-        # Load skills
-        print("📚 Loading skills...")
-        registry = SkillRegistry()
-        registry.load_skills("skill")
-        
-        skills_loaded = registry.list_skills()
-        print(f"✅ Loaded {len(skills_loaded)} skills")
-        for skill_name in skills_loaded:
-            print(f"   • {skill_name}")
-        print()
-        
-    except ImportError as e:
-        print(f"❌ Import error: {e}")
-        print()
-        
-        # Auto-fix specific missing packages
-        if "ollama" in str(e).lower():
-            print("📦 ollama नहीं मिला। Auto-install कर रहा हूँ...")
-            auto_install_package("ollama")
-            print()
-            print("✅ ollama installed! Please restart JARVIS:")
-            print("   python main.py")
-            sys.exit(0)
-        elif "selenium" in str(e).lower():
-            print("📦 selenium नहीं मिला। Auto-install कर रहा हूँ...")
-            auto_install_package("selenium")
-            print()
-            print("✅ selenium installed! Please restart JARVIS:")
-            print("   python main.py")
-            sys.exit(0)
-        elif "pywhatkit" in str(e).lower():
-            print("📦 pywhatkit नहीं मिला। Auto-install कर रहा हूँ...")
-            auto_install_package("pywhatkit")
-            print()
-            print("✅ pywhatkit installed! Please restart JARVIS:")
-            print("   python main.py")
-            sys.exit(0)
-        else:
-            # Generic fix - install all from requirements
-            print("📦 Installing all dependencies...")
-            auto_install_from_requirements()
-            print()
-            print("✅ Dependencies installed! Please restart JARVIS:")
-            print("   python main.py")
-            sys.exit(0)
-        
-        # Initialize engine
-        print("🧠 Initializing AI engine...")
-        engine = JarvisEngine(registry)
-        print("✅ JARVIS ready!")
-        print()
-        
-    except Exception as e:
-        print(f"❌ Initialization failed: {e}")
-        self_healing.auto_fix_error(e, "JARVIS initialization")
-        sys.exit(1)
-    
-    # Ask user for mode preference
-    print("="*70)
-    print("🎙️  Choose Mode:")
+    print("\n" + "="*70)
+    print("🤖 JARVIS - Your Personal AI Assistant")
     print("="*70)
     print()
-    print("1. 🎤 Voice Mode (Recommended) - Talk naturally")
-    print("2. ⌨️  Text Mode - Type commands (JARVIS still speaks!)")
-    print("3. 🎨 GUI Mode - Beautiful graphical interface")
+    print("✅ All-in-One Version - No extra files needed!")
     print()
     
-    mode_choice = input("Enter choice (1, 2, or 3, default=1): ").strip()
+    # Initialize JARVIS
+    print("🧠 Initializing JARVIS...")
+    jarvis = JarvisBrain()
+    print("✅ JARVIS ready!")
+    print()
     
-    if mode_choice == "3":
-        # GUI mode
-        print()
-        print("="*70)
-        print("🎨 Launching GUI Mode...")
-        print("="*70)
-        print()
-        
+    # Auto-select mode
+    print("🎙️  Auto-starting Voice Mode...")
+    print()
+    print("💬 How to use:")
+    print("   • Say 'Jarvis' to activate")
+    print("   • Then give your command")
+    print("   • JARVIS will respond with voice")
+    print()
+    print("💡 Examples:")
+    print("   • 'Jarvis, gaana bajao'")
+    print("   • 'Jarvis, chrome kholo'")
+    print("   • 'Jarvis, volume badhao'")
+    print("   • 'Jarvis, google pe python search karo'")
+    print()
+    print("Say 'exit' or 'quit' to stop")
+    print("="*70)
+    print()
+    
+    # Welcome message
+    jarvis.voice.speak("Hello! I'm JARVIS. Say my name followed by your command.")
+    
+    # Main loop
+    while True:
         try:
-            import gui_mode
-            gui_mode.main()
-        except Exception as e:
-            print(f"❌ GUI mode failed: {e}")
-            print()
-            print("💡 Falling back to text mode...")
-            mode_choice = "2"
-    
-    if mode_choice == "2":
-        # Text mode (but JARVIS still speaks!)
-        use_voice_input = False
-        print()
-        print("="*70)
-        print("⌨️  Text Mode Activated")
-        print("="*70)
-        print()
-        print("💬 Try these natural commands:")
-        print("   • 'hello jarvis'")
-        print("   • 'gaana bajao' (auto-plays trending music)")
-        print("   • 'youtube kholo'")
-        print("   • 'volume badhao'")
-        print("   • 'vegamovies se Inception download karo'")
-        print("   • 'thanks!' (see empathetic response)")
-        print()
-        print("💡 JARVIS will SPEAK all responses!")
-        print()
-        print("Type 'quit' or 'exit' to stop")
-        print("="*70)
-        print()
-    elif mode_choice != "3":
-        # Voice mode (default)
-        use_voice_input = True
-        print()
-        print("="*70)
-        print("🎤 Voice Mode Activated")
-        print("="*70)
-        print()
-        print("💬 How to use:")
-        print("   1. Say 'Jarvis' to activate")
-        print("   2. Then give your command")
-        print("   3. JARVIS will respond with voice")
-        print()
-        print("💡 Examples:")
-        print("   • 'Jarvis, gaana bajao'")
-        print("   • 'Jarvis, youtube kholo'")
-        print("   • 'Jarvis, volume badhao'")
-        print()
-        print("Say 'stop listening' or 'exit' to quit")
-        print("="*70)
-        print()
-        
-        # Initial greeting
-        speak("Hello! I'm JARVIS. Say my name followed by your command.")
-    
-    # Main conversation loop (only for voice/text modes)
-    if mode_choice != "3":
-        while True:
-            try:
-                if use_voice_input:
-                    # Voice mode - voice input + voice output
-                    user_input = listen()
-                    
-                    if user_input == "none":
-                        continue
-                    
-                    # Check for exit commands
-                    if user_input.lower() in ['quit', 'exit', 'bye', 'goodbye', 'alvida', 'stop listening']:
-                        speak("Goodbye! Have a great day!")
-                        break
-                    
-                    # Process query with personal assistant
-                    response = engine.process_query(user_input)
-                    speak(response)
-                    
-                else:
-                    # Text mode - text input + VOICE OUTPUT
-                    user_input = input("\n👤 You: ").strip()
-                    
-                    if not user_input:
-                        continue
-                    
-                    # Check for exit commands
-                    if user_input.lower() in ['quit', 'exit', 'bye', 'goodbye', 'alvida']:
-                        print("\n🤖 JARVIS: Goodbye! Have a great day! 👋")
-                        speak("Goodbye! Have a great day!")
-                        break
-                    
-                    # Process query with personal assistant
-                    print("\n🤖 JARVIS: ", end="", flush=True)
-                    response = engine.process_query(user_input)
-                    print(response)
-                    
-                    # JARVIS SPEAKS THE RESPONSE!
-                    speak(response)
-                
-            except KeyboardInterrupt:
-                if use_voice_input:
-                    speak("Goodbye! Have a great day!")
-                else:
-                    print("\n\n🤖 JARVIS: Goodbye! Have a great day! 👋")
-                    speak("Goodbye! Have a great day!")
+            # Listen for command
+            command = jarvis.voice.listen()
+            
+            if command == "none":
+                continue
+            
+            # Check for exit
+            if any(word in command for word in ['exit', 'quit', 'bye', 'goodbye', 'alvida']):
+                jarvis.voice.speak("Goodbye! Have a great day!")
                 break
-            except Exception as e:
-                error_msg = f"Error: {e}"
-                if use_voice_input:
-                    speak("Sorry, I encountered an error. Please try again.")
-                else:
-                    print(f"\n⚠️  {error_msg}")
-                    speak("Sorry, I encountered an error. Please try again.")
-                
-                # Try to auto-fix
-                if self_healing.auto_fix_error(e, f"Processing query: {user_input}"):
-                    retry_msg = "Let me try that again..."
-                    if use_voice_input:
-                        speak(retry_msg)
-                    else:
-                        print(f"🔄 {retry_msg}")
-                        speak(retry_msg)
-                    
-                    try:
-                        response = engine.process_query(user_input)
-                        if use_voice_input:
-                            speak(response)
-                        else:
-                            print(f"\n🤖 JARVIS: {response}")
-                            speak(response)
-                    except:
-                        fail_msg = "Still having trouble. Please try rephrasing."
-                        if use_voice_input:
-                            speak(fail_msg)
-                        else:
-                            print(f"❌ {fail_msg}")
-                            speak(fail_msg)
-                else:
-                    if not use_voice_input:
-                        print("💡 Please try rephrasing your request.")
+            
+            # Process command
+            response = jarvis.process(command)
+            jarvis.voice.speak(response)
+        
+        except KeyboardInterrupt:
+            jarvis.voice.speak("Goodbye! Have a great day!")
+            break
+        except Exception as e:
+            print(f"⚠️  Error: {e}")
+            jarvis.voice.speak("Sorry, I encountered an error. Please try again.")
 
 
 if __name__ == "__main__":

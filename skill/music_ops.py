@@ -6,6 +6,7 @@ import requests
 import time
 import threading
 import atexit
+import os
 from typing import List, Dict, Any, Callable
 from core.skill import Skill
 
@@ -192,7 +193,7 @@ class MusicSkill(Skill):
     def _auto_play_with_selenium(self, query):
         """
         Use Selenium to automatically click and play the first video
-        Browser will stay open PERMANENTLY using detach option
+        Browser will open in VISIBLE GUI MODE with full window
         """
         try:
             from selenium import webdriver
@@ -203,10 +204,16 @@ class MusicSkill(Skill):
             from webdriver_manager.chrome import ChromeDriverManager
             from selenium.webdriver.chrome.service import Service
             
-            print("🎬 Opening YouTube with auto-play...")
+            print("🎬 Opening YouTube with auto-play in GUI mode...")
             
-            # Setup Chrome options with DETACH to keep browser open
+            # Setup Chrome options for VISIBLE GUI MODE
             chrome_options = Options()
+            
+            # CRITICAL: Ensure GUI mode (NOT headless)
+            # Explicitly disable headless mode
+            chrome_options.headless = False
+            
+            # Window settings for visible browser
             chrome_options.add_argument("--start-maximized")
             chrome_options.add_argument("--disable-blink-features=AutomationControlled")
             
@@ -219,12 +226,34 @@ class MusicSkill(Skill):
             # Disable automation flags
             chrome_options.add_argument("--disable-infobars")
             
+            # Force GUI display (especially for Linux/WSL)
+            if sys.platform.startswith('linux'):
+                # Set DISPLAY environment variable if not set
+                if 'DISPLAY' not in os.environ:
+                    os.environ['DISPLAY'] = ':0'
+                    print("🖥️  Set DISPLAY=:0 for GUI mode")
+            
+            # Disable sandbox for better compatibility
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            
+            # Enable GPU for better performance
+            chrome_options.add_argument("--enable-gpu")
+            
+            # Set window size explicitly
+            chrome_options.add_argument("--window-size=1920,1080")
+            
+            print(f"🖥️  Platform: {sys.platform}")
+            print(f"🖥️  Display: {os.environ.get('DISPLAY', 'Not set')}")
+            
             # Initialize driver
             service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=chrome_options)
             
             # Store driver reference
             self.active_drivers.append(driver)
+            
+            print("✅ Chrome browser opened in GUI mode!")
             
             # Search on YouTube
             search_query = query.replace(' ', '+')
@@ -243,6 +272,11 @@ class MusicSkill(Skill):
                     (By.CSS_SELECTOR, "ytd-video-renderer a#video-title")
                 ))
                 print("✅ Found video, clicking to play...")
+                
+                # Scroll to element to ensure it's visible
+                driver.execute_script("arguments[0].scrollIntoView(true);", video)
+                time.sleep(0.5)
+                
                 video.click()
                 video_clicked = True
                 
@@ -253,26 +287,34 @@ class MusicSkill(Skill):
                         (By.CSS_SELECTOR, "a#thumbnail")
                     ))
                     print("✅ Found video (alt method), clicking to play...")
+                    
+                    # Scroll to element
+                    driver.execute_script("arguments[0].scrollIntoView(true);", video)
+                    time.sleep(0.5)
+                    
                     video.click()
                     video_clicked = True
-                except:
-                    print("⚠️  Could not auto-click, but YouTube is open")
+                except Exception as e:
+                    print(f"⚠️  Could not auto-click: {e}")
+                    print("📺 YouTube is open in browser - manually click first video")
             
             # Wait a bit for video to start loading
             if video_clicked:
                 time.sleep(3)
-                print("✅ Video is playing!")
+                print("✅ Video is playing in GUI browser!")
             
             # IMPORTANT: Don't quit driver - let it detach
             # The browser will stay open independently
-            print("🎵 Browser will stay open. Close it manually when done.")
+            print("🎵 Browser window is open and will stay open until you close it manually.")
             
             return json.dumps({
                 "status": "success",
                 "action": "auto_play_music",
                 "query": query,
-                "method": "selenium_detached",
-                "note": "Browser is now independent and will stay open until you close it manually."
+                "method": "selenium_gui_mode",
+                "platform": sys.platform,
+                "display": os.environ.get('DISPLAY', 'default'),
+                "note": "Browser opened in GUI mode and will stay open until you close it manually."
             })
             
         except ImportError as ie:
@@ -283,6 +325,9 @@ class MusicSkill(Skill):
             print(f"⚠️  Auto-play failed: {e}")
             import traceback
             traceback.print_exc()
+            
+            # Try fallback to webbrowser
+            print("🔄 Falling back to default browser...")
             return None
 
     def play_trending_song(self, language="hindi"):
@@ -361,7 +406,7 @@ class MusicSkill(Skill):
     def _play_on_youtube(self, query):
         """
         Internal method to play on YouTube with AUTO-PLAY support
-        Uses Selenium to automatically click and play the first video
+        Uses Selenium to automatically click and play the first video in GUI mode
         """
         try:
             # Try Selenium auto-play first (best experience)

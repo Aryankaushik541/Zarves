@@ -7,6 +7,7 @@ Fully autonomous operation with auto-detection and error recovery
 Automatically installs missing dependencies on startup
 Natural Indian Language Support - Koi bhi admi bole, JARVIS samajh jayega!
 Voice Mode - Talk naturally, no typing needed!
+JARVIS ALWAYS SPEAKS - Both text and voice modes have voice output!
 """
 
 import sys
@@ -250,121 +251,98 @@ def run_startup_checks():
     print("="*70)
     print()
     
-    # Check and install dependencies
-    deps_installed = auto_fix_missing_imports()
+    # 1. Check and install missing packages
+    packages_installed = auto_fix_missing_imports()
     
-    # Check Ollama
-    ollama_ok = check_ollama()
-    
-    # Create .env if needed
-    auto_create_env_file()
-    
-    print("="*70)
-    
-    if deps_installed:
+    if packages_installed:
         print()
-        print("🔄 Dependencies were installed. Please restart JARVIS:")
+        print("="*70)
+        print("✅ Dependencies installed successfully!")
+        print("🔄 Please restart JARVIS to apply changes:")
         print("   python main.py")
-        print()
+        print("="*70)
         sys.exit(0)
     
+    print()
+    
+    # 2. Check Ollama
+    ollama_ok = check_ollama()
+    
     if not ollama_ok:
-        print()
-        print("⚠️  Ollama setup incomplete. Please:")
-        print("   1. Install Ollama")
-        print("   2. Run: ollama serve")
-        print("   3. Run: ollama pull llama3.2")
-        print("   4. Restart JARVIS")
-        print()
-        
-        # Ask if user wants to continue anyway
-        try:
-            response = input("Continue anyway? (y/n): ").lower()
-            if response != 'y':
-                sys.exit(0)
-        except:
-            pass
+        print("="*70)
+        print("⚠️  Ollama is required for JARVIS to work")
+        print("="*70)
+        sys.exit(1)
     
     print()
-    print("✅ Startup checks complete!")
+    
+    # 3. Create .env if needed
+    auto_create_env_file()
+    
     print()
-
-
-# Run startup checks before importing skills
-run_startup_checks()
-
-# Now import skills (after dependencies are installed)
-try:
-    from core.registry import SkillRegistry
-    from core.engine import JarvisEngine
-    from core.voice import listen, speak
-except ImportError as e:
-    print(f"❌ Failed to load core modules: {e}")
-    print("🔧 Attempting to fix...")
-    auto_install_from_requirements()
+    print("="*70)
+    print("✅ All startup checks passed!")
+    print("="*70)
     print()
-    print("🔄 Please restart JARVIS:")
-    print("   python main.py")
-    sys.exit(1)
 
 
 def main():
-    """Main entry point for JARVIS"""
-    print("\n" + "="*70)
-    print("🤖 JARVIS - Your Personal AI Assistant")
-    print("="*70)
-    print()
-    print("💡 Features:")
-    print("   • Voice Mode - Talk naturally, no typing!")
-    print("   • Natural Conversations - Like talking to a friend")
-    print("   • Emotion Detection - Understands your mood")
-    print("   • Context Memory - Remembers previous tasks")
-    print("   • YouTube Auto-Music - 'youtube kholo' plays trending songs")
-    print("   • Movie Downloader - 'vegamovies se Inception download karo'")
-    print("   • And much more!")
-    print()
-    print("="*70)
-    print()
+    """Main entry point with auto-install and voice mode"""
     
-    # Initialize registry and engine
+    # Run startup checks (auto-installs dependencies)
+    run_startup_checks()
+    
+    # Import after checks (to ensure dependencies are installed)
     try:
-        print("🔧 Initializing JARVIS...")
-        registry = SkillRegistry()
+        from core.registry import SkillRegistry
+        from core.engine import JarvisEngine
+        from core.voice import speak, listen
         
-        # Load all skills from skill directory
-        print("📦 Loading skills...")
-        try:
-            skills_dir = os.path.join(os.path.dirname(__file__), 'skill')
-            registry.load_skills(skills_dir)
-            print(f"✅ Loaded {len(registry.skills)} skills")
-        except Exception as e:
-            print(f"❌ Failed to load skills: {e}")
-            print("🔧 Attempting to fix import error...")
-            
-            # Try to auto-fix
-            if "selenium" in str(e).lower():
-                print("📦 selenium नहीं मिला। Auto-install कर रहा हूँ...")
-                auto_install_package("selenium")
-                auto_install_package("webdriver-manager")
-                print()
-                print("✅ selenium installed! Please restart JARVIS:")
-                print("   python main.py")
-                sys.exit(0)
-            elif "pywhatkit" in str(e).lower():
-                print("📦 pywhatkit नहीं मिला। Auto-install कर रहा हूँ...")
-                auto_install_package("pywhatkit")
-                print()
-                print("✅ pywhatkit installed! Please restart JARVIS:")
-                print("   python main.py")
-                sys.exit(0)
-            else:
-                # Generic fix - install all from requirements
-                print("📦 Installing all dependencies...")
-                auto_install_from_requirements()
-                print()
-                print("✅ Dependencies installed! Please restart JARVIS:")
-                print("   python main.py")
-                sys.exit(0)
+        # Load skills
+        print("📚 Loading skills...")
+        registry = SkillRegistry()
+        registry.load_skills("skill")
+        
+        skills_loaded = registry.list_skills()
+        print(f"✅ Loaded {len(skills_loaded)} skills")
+        for skill_name in skills_loaded:
+            print(f"   • {skill_name}")
+        print()
+        
+    except ImportError as e:
+        print(f"❌ Import error: {e}")
+        print()
+        
+        # Auto-fix specific missing packages
+        if "ollama" in str(e).lower():
+            print("📦 ollama नहीं मिला। Auto-install कर रहा हूँ...")
+            auto_install_package("ollama")
+            print()
+            print("✅ ollama installed! Please restart JARVIS:")
+            print("   python main.py")
+            sys.exit(0)
+        elif "selenium" in str(e).lower():
+            print("📦 selenium नहीं मिला। Auto-install कर रहा हूँ...")
+            auto_install_package("selenium")
+            print()
+            print("✅ selenium installed! Please restart JARVIS:")
+            print("   python main.py")
+            sys.exit(0)
+        elif "pywhatkit" in str(e).lower():
+            print("📦 pywhatkit नहीं मिला। Auto-install कर रहा हूँ...")
+            auto_install_package("pywhatkit")
+            print()
+            print("✅ pywhatkit installed! Please restart JARVIS:")
+            print("   python main.py")
+            sys.exit(0)
+        else:
+            # Generic fix - install all from requirements
+            print("📦 Installing all dependencies...")
+            auto_install_from_requirements()
+            print()
+            print("✅ Dependencies installed! Please restart JARVIS:")
+            print("   python main.py")
+            sys.exit(0)
         
         # Initialize engine
         print("🧠 Initializing AI engine...")
@@ -383,14 +361,14 @@ def main():
     print("="*70)
     print()
     print("1. 🎤 Voice Mode (Recommended) - Talk naturally")
-    print("2. ⌨️  Text Mode - Type commands")
+    print("2. ⌨️  Text Mode - Type commands (JARVIS still speaks!)")
     print()
     
     mode_choice = input("Enter choice (1 or 2, default=1): ").strip()
     
     if mode_choice == "2":
-        # Text mode
-        use_voice = False
+        # Text mode (but JARVIS still speaks!)
+        use_voice_input = False
         print()
         print("="*70)
         print("⌨️  Text Mode Activated")
@@ -404,12 +382,14 @@ def main():
         print("   • 'vegamovies se Inception download karo'")
         print("   • 'thanks!' (see empathetic response)")
         print()
+        print("💡 JARVIS will SPEAK all responses!")
+        print()
         print("Type 'quit' or 'exit' to stop")
         print("="*70)
         print()
     else:
         # Voice mode (default)
-        use_voice = True
+        use_voice_input = True
         print()
         print("="*70)
         print("🎤 Voice Mode Activated")
@@ -435,8 +415,8 @@ def main():
     # Main conversation loop
     while True:
         try:
-            if use_voice:
-                # Voice mode
+            if use_voice_input:
+                # Voice mode - voice input + voice output
                 user_input = listen()
                 
                 if user_input == "none":
@@ -452,7 +432,7 @@ def main():
                 speak(response)
                 
             else:
-                # Text mode
+                # Text mode - text input + VOICE OUTPUT
                 user_input = input("\n👤 You: ").strip()
                 
                 if not user_input:
@@ -461,48 +441,57 @@ def main():
                 # Check for exit commands
                 if user_input.lower() in ['quit', 'exit', 'bye', 'goodbye', 'alvida']:
                     print("\n🤖 JARVIS: Goodbye! Have a great day! 👋")
+                    speak("Goodbye! Have a great day!")
                     break
                 
                 # Process query with personal assistant
                 print("\n🤖 JARVIS: ", end="", flush=True)
                 response = engine.process_query(user_input)
                 print(response)
+                
+                # JARVIS SPEAKS THE RESPONSE!
+                speak(response)
             
         except KeyboardInterrupt:
-            if use_voice:
+            if use_voice_input:
                 speak("Goodbye! Have a great day!")
             else:
                 print("\n\n🤖 JARVIS: Goodbye! Have a great day! 👋")
+                speak("Goodbye! Have a great day!")
             break
         except Exception as e:
             error_msg = f"Error: {e}"
-            if use_voice:
+            if use_voice_input:
                 speak("Sorry, I encountered an error. Please try again.")
             else:
                 print(f"\n⚠️  {error_msg}")
+                speak("Sorry, I encountered an error. Please try again.")
             
             # Try to auto-fix
             if self_healing.auto_fix_error(e, f"Processing query: {user_input}"):
                 retry_msg = "Let me try that again..."
-                if use_voice:
+                if use_voice_input:
                     speak(retry_msg)
                 else:
                     print(f"🔄 {retry_msg}")
+                    speak(retry_msg)
                 
                 try:
                     response = engine.process_query(user_input)
-                    if use_voice:
+                    if use_voice_input:
                         speak(response)
                     else:
                         print(f"\n🤖 JARVIS: {response}")
+                        speak(response)
                 except:
                     fail_msg = "Still having trouble. Please try rephrasing."
-                    if use_voice:
+                    if use_voice_input:
                         speak(fail_msg)
                     else:
                         print(f"❌ {fail_msg}")
+                        speak(fail_msg)
             else:
-                if not use_voice:
+                if not use_voice_input:
                     print("💡 Please try rephrasing your request.")
 
 

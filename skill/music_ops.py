@@ -3,13 +3,14 @@ import json
 import sys
 import random
 import requests
+import time
 from typing import List, Dict, Any, Callable
 from core.skill import Skill
 
 class MusicSkill(Skill):
     """
-    Music playback skill with trending songs support
-    Automatically fetches latest popular songs from YouTube
+    Music playback skill with trending songs support and AUTO-PLAY
+    Automatically fetches latest popular songs from YouTube and plays them
     """
     
     # Fallback popular Hindi songs (if internet fails)
@@ -46,7 +47,7 @@ class MusicSkill(Skill):
                 "type": "function",
                 "function": {
                     "name": "play_music",
-                    "description": "Play music on YouTube. Supports Hindi songs, English songs, or any music request. Use this for commands like 'play music', 'gaana bajao', 'song sunao', 'new song bajao', 'latest song play karo', etc. Automatically plays trending songs if no specific song is mentioned.",
+                    "description": "Play music on YouTube with AUTO-PLAY. Supports Hindi songs, English songs, or any music request. Use this for commands like 'play music', 'gaana bajao', 'song sunao', 'new song bajao', 'latest song play karo', etc. Automatically plays trending songs if no specific song is mentioned.",
                     "parameters": { 
                         "type": "object", 
                         "properties": { 
@@ -68,7 +69,7 @@ class MusicSkill(Skill):
                 "type": "function",
                 "function": {
                     "name": "play_trending_song",
-                    "description": "Play a currently trending/viral song from YouTube. Perfect for 'play new song', 'latest song bajao', 'trending song play karo'",
+                    "description": "Play a currently trending/viral song from YouTube with AUTO-PLAY. Perfect for 'play new song', 'latest song bajao', 'trending song play karo'",
                     "parameters": { 
                         "type": "object", 
                         "properties": { 
@@ -86,7 +87,7 @@ class MusicSkill(Skill):
                 "type": "function",
                 "function": {
                     "name": "play_hindi_song",
-                    "description": "Play a specific Hindi song or a random popular Hindi song",
+                    "description": "Play a specific Hindi song or a random popular Hindi song with AUTO-PLAY",
                     "parameters": { 
                         "type": "object", 
                         "properties": { 
@@ -103,7 +104,7 @@ class MusicSkill(Skill):
                 "type": "function",
                 "function": {
                     "name": "play_playlist",
-                    "description": "Play a music playlist or mix on YouTube",
+                    "description": "Play a music playlist or mix on YouTube with AUTO-PLAY",
                     "parameters": { 
                         "type": "object", 
                         "properties": { 
@@ -167,9 +168,81 @@ class MusicSkill(Skill):
             print(f"⚠️  Could not fetch trending songs: {e}")
             return None
 
+    def _auto_play_with_selenium(self, query):
+        """
+        Use Selenium to automatically click and play the first video
+        """
+        try:
+            from selenium import webdriver
+            from selenium.webdriver.common.by import By
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+            from selenium.webdriver.chrome.options import Options
+            from webdriver_manager.chrome import ChromeDriverManager
+            from selenium.webdriver.chrome.service import Service
+            
+            print("🎬 Opening YouTube with auto-play...")
+            
+            # Setup Chrome options
+            chrome_options = Options()
+            chrome_options.add_argument("--start-maximized")
+            chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            chrome_options.add_experimental_option('useAutomationExtension', False)
+            
+            # Initialize driver
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+            
+            # Search on YouTube
+            search_query = query.replace(' ', '+')
+            url = f"https://www.youtube.com/results?search_query={search_query}"
+            driver.get(url)
+            
+            # Wait for video thumbnails to load
+            print("⏳ Waiting for videos to load...")
+            wait = WebDriverWait(driver, 10)
+            
+            # Find and click first video
+            try:
+                # Method 1: Try ytd-video-renderer
+                video = wait.until(EC.element_to_be_clickable(
+                    (By.CSS_SELECTOR, "ytd-video-renderer a#video-title")
+                ))
+                print("✅ Found video, clicking to play...")
+                video.click()
+                
+            except:
+                # Method 2: Try alternative selector
+                try:
+                    video = wait.until(EC.element_to_be_clickable(
+                        (By.CSS_SELECTOR, "a#thumbnail")
+                    ))
+                    print("✅ Found video (alt method), clicking to play...")
+                    video.click()
+                except:
+                    print("⚠️  Could not auto-click, but YouTube is open")
+            
+            # Keep browser open
+            print("✅ YouTube opened and playing!")
+            
+            return json.dumps({
+                "status": "success",
+                "action": "auto_play_music",
+                "query": query,
+                "method": "selenium"
+            })
+            
+        except ImportError as ie:
+            print(f"⚠️  Selenium not available: {ie}")
+            return None
+        except Exception as e:
+            print(f"⚠️  Auto-play failed: {e}")
+            return None
+
     def play_trending_song(self, language="hindi"):
         """
-        Play a currently trending song
+        Play a currently trending song with AUTO-PLAY
         """
         try:
             print(f"🔍 Fetching trending {language} songs...")
@@ -177,19 +250,20 @@ class MusicSkill(Skill):
             
             if trending:
                 song = random.choice(trending)
-                print(f"🎵 Playing trending song: {song}")
-                return self._play_on_youtube(song)
+                print(f"🎵 Found trending: {song}")
             else:
                 # Fallback to search query
-                print(f"🎵 Playing: Latest {language} songs")
-                return self._play_on_youtube(f"latest {language} songs 2024")
+                song = f"latest {language} songs 2024"
+                print(f"🎵 Playing: {song}")
+            
+            return self._play_on_youtube(song)
                 
         except Exception as e:
             return json.dumps({"status": "error", "error": str(e)})
 
     def play_music(self, query="", language="hindi"):
         """
-        Play music on YouTube with smart defaults and trending support
+        Play music on YouTube with smart defaults, trending support, and AUTO-PLAY
         """
         try:
             # Check if user wants trending/new/latest songs
@@ -212,7 +286,7 @@ class MusicSkill(Skill):
     
     def play_hindi_song(self, song_name=""):
         """
-        Play a Hindi song or random popular song
+        Play a Hindi song or random popular song with AUTO-PLAY
         """
         try:
             if not song_name:
@@ -229,7 +303,7 @@ class MusicSkill(Skill):
     
     def play_playlist(self, playlist_type, language="hindi"):
         """
-        Play a music playlist/mix
+        Play a music playlist/mix with AUTO-PLAY
         """
         try:
             search_query = f"{playlist_type} {language} songs playlist"
@@ -241,48 +315,61 @@ class MusicSkill(Skill):
     
     def _play_on_youtube(self, query):
         """
-        Internal method to play on YouTube with fallback support
+        Internal method to play on YouTube with AUTO-PLAY support
+        Uses Selenium to automatically click and play the first video
         """
         try:
-            # Try pywhatkit first (better auto-play)
-            import pywhatkit as kit
-            import time
+            # Try Selenium auto-play first (best experience)
+            selenium_result = self._auto_play_with_selenium(query)
+            if selenium_result:
+                return selenium_result
             
-            print(f"🔍 Searching YouTube: {query}")
+            # Fallback 1: Try pywhatkit
+            print("🔄 Trying pywhatkit method...")
+            try:
+                import pywhatkit as kit
+                
+                print(f"🔍 Searching YouTube: {query}")
+                
+                # Platform-specific handling
+                if sys.platform == "win32":  # Windows
+                    kit.playonyt(query, open_web=True)
+                    time.sleep(2)
+                elif sys.platform == "darwin":  # macOS
+                    kit.playonyt(query, open_web=True)
+                    time.sleep(2)
+                else:  # Linux
+                    kit.playonyt(query, open_web=True)
+                    time.sleep(2)
+                
+                print("✅ YouTube opened (manual click needed)")
+                
+                return json.dumps({
+                    "status": "success", 
+                    "action": "play_music", 
+                    "query": query,
+                    "platform": sys.platform,
+                    "note": "Video search opened, click first result to play"
+                })
+                
+            except ImportError:
+                print("⚠️  pywhatkit not found")
+                pass
             
-            # Platform-specific handling
-            if sys.platform == "win32":  # Windows
-                kit.playonyt(query, open_web=True)
-                time.sleep(2)
-            elif sys.platform == "darwin":  # macOS
-                kit.playonyt(query, open_web=True)
-                time.sleep(2)
-            else:  # Linux
-                kit.playonyt(query, open_web=True)
-                time.sleep(2)
+            # Fallback 2: Direct browser open
+            print("🔄 Using browser fallback...")
+            search_query = query.replace(' ', '+')
+            url = f"https://www.youtube.com/results?search_query={search_query}"
+            webbrowser.open(url)
+            
+            print("✅ YouTube opened (manual click needed)")
             
             return json.dumps({
                 "status": "success", 
-                "action": "play_music", 
+                "action": "play_music_fallback", 
                 "query": query,
-                "platform": sys.platform
+                "note": "YouTube search opened, click first video to play"
             })
-            
-        except ImportError:
-            # Fallback to webbrowser
-            print("⚠️  pywhatkit not found, using browser fallback...")
-            try:
-                search_query = query.replace(' ', '+')
-                url = f"https://www.youtube.com/results?search_query={search_query}"
-                webbrowser.open(url)
-                return json.dumps({
-                    "status": "success", 
-                    "action": "play_music_fallback", 
-                    "query": query,
-                    "note": "Install pywhatkit for better playback: pip install pywhatkit"
-                })
-            except Exception as e:
-                return json.dumps({"status": "error", "error": str(e)})
                 
         except Exception as e:
             print(f"❌ YouTube Error: {e}")

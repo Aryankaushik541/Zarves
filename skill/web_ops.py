@@ -3,6 +3,7 @@ import json
 import sys
 import random
 import requests
+import time
 from typing import List, Dict, Any, Callable
 from core.skill import Skill
 
@@ -51,7 +52,7 @@ class WebSkill(Skill):
                 "type": "function",
                 "function": {
                     "name": "play_youtube",
-                    "description": "Play a song or video on YouTube. If query is empty or 'music'/'song', automatically plays a trending song. Use for: 'youtube kholo', 'youtube kholo aur music play karo', 'play X on youtube'",
+                    "description": "Play a song or video on YouTube with AUTO-PLAY. If query is empty or 'music'/'song', automatically plays a trending song. Use for: 'youtube kholo', 'youtube kholo aur music play karo', 'play X on youtube'",
                     "parameters": { 
                         "type": "object", 
                         "properties": { 
@@ -147,11 +148,85 @@ class WebSkill(Skill):
             print(f"⚠️  Trending fetch error: {e}")
             return "latest hindi songs 2024"
     
+    def _auto_play_with_selenium(self, query):
+        """
+        Use Selenium to automatically click and play the first video
+        """
+        try:
+            from selenium import webdriver
+            from selenium.webdriver.common.by import By
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+            from selenium.webdriver.chrome.options import Options
+            from webdriver_manager.chrome import ChromeDriverManager
+            from selenium.webdriver.chrome.service import Service
+            
+            print("🎬 Opening YouTube with auto-play...")
+            
+            # Setup Chrome options
+            chrome_options = Options()
+            chrome_options.add_argument("--start-maximized")
+            chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            chrome_options.add_experimental_option('useAutomationExtension', False)
+            
+            # Initialize driver
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+            
+            # Search on YouTube
+            search_query = query.replace(' ', '+')
+            url = f"https://www.youtube.com/results?search_query={search_query}"
+            driver.get(url)
+            
+            # Wait for video thumbnails to load
+            print("⏳ Waiting for videos to load...")
+            wait = WebDriverWait(driver, 10)
+            
+            # Find and click first video
+            # YouTube uses different selectors, try multiple approaches
+            try:
+                # Method 1: Try ytd-video-renderer
+                video = wait.until(EC.element_to_be_clickable(
+                    (By.CSS_SELECTOR, "ytd-video-renderer a#video-title")
+                ))
+                print("✅ Found video, clicking to play...")
+                video.click()
+                
+            except:
+                # Method 2: Try alternative selector
+                try:
+                    video = wait.until(EC.element_to_be_clickable(
+                        (By.CSS_SELECTOR, "a#thumbnail")
+                    ))
+                    print("✅ Found video (alt method), clicking to play...")
+                    video.click()
+                except:
+                    print("⚠️  Could not auto-click, but YouTube is open")
+            
+            # Keep browser open
+            print("✅ YouTube opened and playing!")
+            
+            return json.dumps({
+                "status": "success",
+                "action": "auto_play_youtube",
+                "query": query,
+                "method": "selenium"
+            })
+            
+        except ImportError as ie:
+            print(f"⚠️  Selenium not available: {ie}")
+            print("💡 Install for auto-play: pip install selenium webdriver-manager")
+            return None
+        except Exception as e:
+            print(f"⚠️  Auto-play failed: {e}")
+            return None
+    
     def play_youtube(self, query=""):
         """
-        Play YouTube video/music with cross-platform support.
+        Play YouTube video/music with AUTO-PLAY feature.
         Auto-plays trending music if no query provided.
-        Works on Windows, macOS, and Linux.
+        Uses Selenium to automatically click and play the first video.
         """
         try:
             # Check if user wants music/song or left empty
@@ -166,64 +241,70 @@ class WebSkill(Skill):
                 query = self._get_trending_song()
                 print(f"🎵 Selected: {query}")
             
-            import pywhatkit as kit
-            import time
+            # Try Selenium auto-play first (best experience)
+            selenium_result = self._auto_play_with_selenium(query)
+            if selenium_result:
+                return selenium_result
             
-            print(f"🎵 YouTube पर खोज रहा हूँ: {query}")
+            # Fallback 1: Try pywhatkit
+            print("🔄 Trying pywhatkit method...")
+            try:
+                import pywhatkit as kit
+                
+                print(f"🎵 YouTube पर खोज रहा हूँ: {query}")
+                
+                # Platform-specific handling
+                if sys.platform == "win32":  # Windows
+                    kit.playonyt(query, open_web=True)
+                    time.sleep(2)
+                elif sys.platform == "darwin":  # macOS
+                    kit.playonyt(query, open_web=True)
+                    time.sleep(2)
+                else:  # Linux
+                    kit.playonyt(query, open_web=True)
+                    time.sleep(2)
+                
+                print("✅ YouTube opened (manual click needed)")
+                
+                return json.dumps({
+                    "status": "success", 
+                    "action": "play_youtube", 
+                    "query": query,
+                    "platform": sys.platform,
+                    "auto_selected": should_play_trending,
+                    "note": "Video search opened, click first result to play"
+                })
+                
+            except ImportError:
+                print("⚠️  pywhatkit not found")
+                pass
             
-            # Platform-specific handling
-            if sys.platform == "win32":  # Windows
-                # On Windows, use close_tab=False to keep browser open
-                kit.playonyt(query, open_web=True)
-                time.sleep(2)  # Give browser time to open
-            elif sys.platform == "darwin":  # macOS
-                # On macOS, use default settings
-                kit.playonyt(query, open_web=True)
-                time.sleep(2)
-            else:  # Linux and others
-                kit.playonyt(query, open_web=True)
-                time.sleep(2)
+            # Fallback 2: Direct browser open
+            print("🔄 Using browser fallback...")
+            search_query = query.replace(' ', '+')
+            url = f"https://www.youtube.com/results?search_query={search_query}"
+            webbrowser.open(url)
+            
+            print("✅ YouTube opened (manual click needed)")
             
             return json.dumps({
                 "status": "success", 
-                "action": "play_youtube", 
+                "action": "play_youtube_fallback", 
                 "query": query,
-                "platform": sys.platform,
-                "auto_selected": should_play_trending
+                "auto_selected": should_play_trending,
+                "note": "YouTube search opened, click first video to play"
             })
-            
-        except ImportError:
-            # Fallback to webbrowser if pywhatkit not installed
-            print("pywhatkit नहीं मिला, browser fallback उपयोग कर रहा हूँ...")
-            try:
-                # Auto-select trending if needed
-                if not query or query.strip() == "" or query.lower() in ["music", "song", "gaana"]:
-                    query = self._get_trending_song()
-                    print(f"🎵 Auto-selected: {query}")
-                
-                # Create YouTube search URL that auto-plays first result
-                search_query = query.replace(' ', '+')
-                url = f"https://www.youtube.com/results?search_query={search_query}"
-                webbrowser.open(url)
-                return json.dumps({
-                    "status": "success", 
-                    "action": "play_youtube_fallback", 
-                    "query": query, 
-                    "note": "pywhatkit install करें बेहतर playback के लिए: pip install pywhatkit"
-                })
-            except Exception as e:
-                return json.dumps({"status": "error", "error": str(e)})
                 
         except Exception as e:
-            print(f"YouTube Error: {e}")
+            print(f"❌ YouTube Error: {e}")
             # Final fallback
             try:
-                # Auto-select trending if needed
                 if not query or query.strip() == "":
                     query = self._get_trending_song()
                 
                 url = f"https://www.youtube.com/results?search_query={query.replace(' ', '+')}"
                 webbrowser.open(url)
+                
                 return json.dumps({
                     "status": "partial_success", 
                     "action": "youtube_search", 

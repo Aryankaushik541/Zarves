@@ -8,6 +8,7 @@ Integrates autonomous coder with JARVIS voice/text interface
 
 import sys
 from pathlib import Path
+from typing import List, Dict, Any, Callable
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -20,44 +21,148 @@ class AutonomousCodingSkill(Skill):
     """Autonomous coding skill for full-stack development"""
     
     def __init__(self):
-        super().__init__(
-            name="Autonomous Coding",
-            description="Generate full-stack projects with AI and auto-debugging",
-            version="1.0.0"
-        )
-        
         self.coder = AutonomousCoder()
-        
-        # Register tools
-        self.register_tool(
-            name="generate_react_app",
-            description="Generate complete React application",
-            function=self.generate_react_app
-        )
-        
-        self.register_tool(
-            name="generate_django_app",
-            description="Generate complete Django application",
-            function=self.generate_django_app
-        )
-        
-        self.register_tool(
-            name="generate_mern_app",
-            description="Generate complete MERN stack application",
-            function=self.generate_mern_app
-        )
-        
-        self.register_tool(
-            name="generate_android_app",
-            description="Generate complete Android application",
-            function=self.generate_android_app
-        )
-        
-        self.register_tool(
-            name="debug_project",
-            description="Auto-debug existing project",
-            function=self.debug_project
-        )
+    
+    @property
+    def name(self) -> str:
+        """The name of the skill."""
+        return "Autonomous Coding"
+    
+    def get_tools(self) -> List[Dict[str, Any]]:
+        """Return the list of tool schemas provided by this skill."""
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": "generate_react_app",
+                    "description": "Generate complete React application with AI and auto-debugging",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "project_name": {
+                                "type": "string",
+                                "description": "Name of the React project"
+                            },
+                            "requirements": {
+                                "type": "string",
+                                "description": "Project requirements and features"
+                            },
+                            "output_dir": {
+                                "type": "string",
+                                "description": "Output directory path (optional)"
+                            }
+                        },
+                        "required": ["project_name", "requirements"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "generate_django_app",
+                    "description": "Generate complete Django application with AI and auto-debugging",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "project_name": {
+                                "type": "string",
+                                "description": "Name of the Django project"
+                            },
+                            "requirements": {
+                                "type": "string",
+                                "description": "Project requirements and features"
+                            },
+                            "output_dir": {
+                                "type": "string",
+                                "description": "Output directory path (optional)"
+                            }
+                        },
+                        "required": ["project_name", "requirements"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "generate_mern_app",
+                    "description": "Generate complete MERN stack application with AI and auto-debugging",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "project_name": {
+                                "type": "string",
+                                "description": "Name of the MERN project"
+                            },
+                            "requirements": {
+                                "type": "string",
+                                "description": "Project requirements and features"
+                            },
+                            "output_dir": {
+                                "type": "string",
+                                "description": "Output directory path (optional)"
+                            }
+                        },
+                        "required": ["project_name", "requirements"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "generate_android_app",
+                    "description": "Generate complete Android application with AI and auto-debugging",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "project_name": {
+                                "type": "string",
+                                "description": "Name of the Android project"
+                            },
+                            "requirements": {
+                                "type": "string",
+                                "description": "Project requirements and features"
+                            },
+                            "output_dir": {
+                                "type": "string",
+                                "description": "Output directory path (optional)"
+                            }
+                        },
+                        "required": ["project_name", "requirements"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "debug_project",
+                    "description": "Auto-debug existing project with AI",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "project_dir": {
+                                "type": "string",
+                                "description": "Path to the project directory"
+                            },
+                            "project_type": {
+                                "type": "string",
+                                "description": "Type of project (react, django, mern, android)"
+                            }
+                        },
+                        "required": ["project_dir", "project_type"]
+                    }
+                }
+            }
+        ]
+    
+    def get_functions(self) -> Dict[str, Callable]:
+        """Return a dictionary mapping function names to the actual callables."""
+        return {
+            "generate_react_app": self.generate_react_app,
+            "generate_django_app": self.generate_django_app,
+            "generate_mern_app": self.generate_mern_app,
+            "generate_android_app": self.generate_android_app,
+            "debug_project": self.debug_project
+        }
     
     def generate_react_app(self, project_name: str, requirements: str, output_dir: str = None) -> str:
         """Generate React application"""

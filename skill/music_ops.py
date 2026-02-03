@@ -195,14 +195,20 @@ class MusicSkill(Skill):
     def _find_chrome_path(self):
         """
         Find Chrome/Chromium executable path based on OS
+        PRIORITY: Chrome > Chromium (NOT Edge)
         """
         system = platform.system()
         
         if system == "Windows":
             paths = [
+                # Google Chrome paths (PRIORITY)
                 r"C:\Program Files\Google\Chrome\Application\chrome.exe",
                 r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
                 os.path.expanduser(r"~\AppData\Local\Google\Chrome\Application\chrome.exe"),
+                # Chromium paths
+                r"C:\Program Files\Chromium\Application\chrome.exe",
+                r"C:\Program Files (x86)\Chromium\Application\chrome.exe",
+                # EXPLICITLY EXCLUDE Edge - we don't want it
             ]
         elif system == "Darwin":  # macOS
             paths = [
@@ -212,6 +218,7 @@ class MusicSkill(Skill):
         else:  # Linux
             paths = [
                 "/usr/bin/google-chrome",
+                "/usr/bin/google-chrome-stable",
                 "/usr/bin/chromium-browser",
                 "/usr/bin/chromium",
                 "/snap/bin/chromium",
@@ -219,63 +226,69 @@ class MusicSkill(Skill):
         
         for path in paths:
             if os.path.exists(path):
+                print(f"✅ Found Chrome at: {path}")
                 return path
         
+        print("❌ Chrome not found on system!")
         return None
 
-    def _open_youtube_subprocess(self, query):
+    def _open_youtube_in_chrome(self, query):
         """
-        Open YouTube in Chrome using subprocess - browser stays open permanently
-        This is the MOST RELIABLE method as Chrome runs as independent process
+        FORCE open YouTube in Chrome using subprocess
+        This method GUARANTEES Chrome opens (not Edge or other browsers)
+        Browser stays open permanently as independent process
         """
         try:
             chrome_path = self._find_chrome_path()
             
             if not chrome_path:
-                print("⚠️  Chrome not found, using default browser...")
+                print("❌ Chrome not installed!")
+                print("💡 Please install Google Chrome from: https://www.google.com/chrome/")
+                print("🔄 Falling back to Selenium method...")
                 return None
-            
-            print(f"🌐 Found Chrome at: {chrome_path}")
             
             # Build YouTube URL
             search_query = query.replace(' ', '+')
             url = f"https://www.youtube.com/results?search_query={search_query}"
             
-            print(f"🎬 Opening YouTube in independent Chrome process...")
+            print(f"🎬 Opening YouTube in Chrome (NOT Edge)...")
+            print(f"🌐 Chrome path: {chrome_path}")
             
             # Launch Chrome as independent process
             if platform.system() == "Windows":
-                # Windows: Use CREATE_NEW_PROCESS_GROUP to detach
+                # Windows: Use CREATE_NEW_PROCESS_GROUP to detach completely
                 subprocess.Popen(
                     [chrome_path, "--new-window", "--start-maximized", url],
                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS,
                     stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
+                    stderr=subprocess.DEVNULL,
+                    shell=False  # Don't use shell to avoid Edge interference
                 )
             else:
-                # Linux/Mac: Use nohup-like approach
+                # Linux/Mac: Use start_new_session
                 subprocess.Popen(
                     [chrome_path, "--new-window", "--start-maximized", url],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
-                    start_new_session=True  # Detach from parent process
+                    start_new_session=True
                 )
             
             print("✅ Chrome opened as independent process!")
-            print("🎵 Browser will stay open permanently - close it manually when done")
+            print("🎵 Browser will stay open permanently")
             print("💡 Click the first video to play")
             
             return json.dumps({
                 "status": "success",
-                "action": "open_youtube_subprocess",
+                "action": "open_youtube_chrome",
                 "query": query,
-                "method": "subprocess_independent",
+                "browser": "Google Chrome",
+                "method": "subprocess_detached",
                 "chrome_path": chrome_path,
-                "note": "Chrome opened as independent process. Click first video to play. Browser will stay open until you close it manually."
+                "note": "Chrome opened successfully. Click first video to play. Browser stays open until you close it."
             })
             
         except Exception as e:
-            print(f"⚠️  Subprocess method failed: {e}")
+            print(f"⚠️  Chrome subprocess failed: {e}")
             import traceback
             traceback.print_exc()
             return None
@@ -283,7 +296,7 @@ class MusicSkill(Skill):
     def _auto_play_with_selenium(self, query):
         """
         Use Selenium to automatically click and play the first video
-        Falls back to subprocess if Selenium fails
+        FORCES Chrome browser (not Edge)
         """
         try:
             from selenium import webdriver
@@ -291,125 +304,151 @@ class MusicSkill(Skill):
             from selenium.webdriver.support.ui import WebDriverWait
             from selenium.webdriver.support import expected_conditions as EC
             from selenium.webdriver.chrome.options import Options
-            from webdriver_manager.chrome import ChromeDriverManager
             from selenium.webdriver.chrome.service import Service
             
-            print("🎬 Opening YouTube with auto-play in GUI mode...")
+            # Try to use webdriver-manager
+            try:
+                from webdriver_manager.chrome import ChromeDriverManager
+                driver_path = ChromeDriverManager().install()
+            except:
+                driver_path = None
             
-            # Setup Chrome options for VISIBLE GUI MODE
+            print("🎬 Opening YouTube with Selenium in Chrome...")
+            
+            # Setup Chrome options
             chrome_options = Options()
             
-            # CRITICAL: Ensure GUI mode (NOT headless)
-            chrome_options.headless = False
+            # FORCE Chrome binary path
+            chrome_path = self._find_chrome_path()
+            if chrome_path:
+                chrome_options.binary_location = chrome_path
+                print(f"🌐 Forcing Chrome binary: {chrome_path}")
             
-            # Window settings for visible browser
+            # GUI mode settings
+            chrome_options.headless = False
             chrome_options.add_argument("--start-maximized")
             chrome_options.add_argument("--disable-blink-features=AutomationControlled")
             
-            # CRITICAL: This keeps Chrome open even after driver quits
+            # CRITICAL: Detach mode
             chrome_options.add_experimental_option("detach", True)
-            
             chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
             chrome_options.add_experimental_option('useAutomationExtension', False)
             
-            # Disable automation flags
+            # Compatibility settings
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--disable-infobars")
             
-            # Force GUI display (especially for Linux/WSL)
+            # Linux display settings
             if sys.platform.startswith('linux'):
                 if 'DISPLAY' not in os.environ:
                     os.environ['DISPLAY'] = ':0'
-                    print("🖥️  Set DISPLAY=:0 for GUI mode")
-            
-            # Disable sandbox for better compatibility
-            chrome_options.add_argument("--no-sandbox")
-            chrome_options.add_argument("--disable-dev-shm-usage")
-            chrome_options.add_argument("--enable-gpu")
-            chrome_options.add_argument("--window-size=1920,1080")
-            
-            print(f"🖥️  Platform: {sys.platform}")
             
             # Initialize driver
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=chrome_options)
+            if driver_path:
+                service = Service(driver_path)
+                driver = webdriver.Chrome(service=service, options=chrome_options)
+            else:
+                driver = webdriver.Chrome(options=chrome_options)
             
             # Store driver reference
             self.active_drivers.append(driver)
             
-            print("✅ Chrome browser opened in GUI mode!")
+            print("✅ Chrome browser opened!")
             
             # Search on YouTube
             search_query = query.replace(' ', '+')
             url = f"https://www.youtube.com/results?search_query={search_query}"
             driver.get(url)
             
-            # Wait for video thumbnails to load
+            # Wait for videos to load
             print("⏳ Waiting for videos to load...")
             wait = WebDriverWait(driver, 15)
             
             # Find and click first video
             video_clicked = False
             try:
-                # Method 1: Try ytd-video-renderer
                 video = wait.until(EC.element_to_be_clickable(
                     (By.CSS_SELECTOR, "ytd-video-renderer a#video-title")
                 ))
                 print("✅ Found video, clicking to play...")
                 
-                # Scroll to element to ensure it's visible
                 driver.execute_script("arguments[0].scrollIntoView(true);", video)
                 time.sleep(0.5)
-                
                 video.click()
                 video_clicked = True
                 
             except:
-                # Method 2: Try alternative selector
                 try:
                     video = wait.until(EC.element_to_be_clickable(
                         (By.CSS_SELECTOR, "a#thumbnail")
                     ))
-                    print("✅ Found video (alt method), clicking to play...")
+                    print("✅ Found video (alt method), clicking...")
                     
                     driver.execute_script("arguments[0].scrollIntoView(true);", video)
                     time.sleep(0.5)
-                    
                     video.click()
                     video_clicked = True
                 except Exception as e:
                     print(f"⚠️  Could not auto-click: {e}")
                     print("📺 YouTube is open - manually click first video")
             
-            # Wait for video to start
             if video_clicked:
                 time.sleep(3)
-                print("✅ Video is playing in GUI browser!")
+                print("✅ Video is playing!")
             
-            print("🎵 Browser window will stay open until you close it manually.")
-            
-            # DON'T quit driver - detach option should keep it open
+            print("🎵 Chrome browser will stay open permanently")
             
             return json.dumps({
                 "status": "success",
-                "action": "auto_play_music",
+                "action": "auto_play_selenium",
                 "query": query,
-                "method": "selenium_gui_detached",
-                "note": "Browser opened with detach mode and will stay open."
+                "browser": "Google Chrome",
+                "method": "selenium_detached",
+                "note": "Chrome opened with auto-play. Browser stays open."
             })
             
         except ImportError as ie:
             print(f"⚠️  Selenium not available: {ie}")
-            print("💡 Install with: pip install selenium webdriver-manager")
+            print("💡 Install: pip install selenium webdriver-manager")
             return None
         except Exception as e:
-            print(f"⚠️  Selenium auto-play failed: {e}")
+            print(f"⚠️  Selenium failed: {e}")
             import traceback
             traceback.print_exc()
             return None
 
+    def _force_chrome_webbrowser(self, url):
+        """
+        Force webbrowser module to use Chrome (not Edge)
+        """
+        try:
+            chrome_path = self._find_chrome_path()
+            if not chrome_path:
+                return False
+            
+            # Register Chrome as browser
+            if platform.system() == "Windows":
+                webbrowser.register('chrome', None, 
+                    webbrowser.BackgroundBrowser(chrome_path))
+            else:
+                webbrowser.register('chrome', None,
+                    webbrowser.BackgroundBrowser(chrome_path))
+            
+            # Get Chrome browser and open
+            chrome = webbrowser.get('chrome')
+            chrome.open(url, new=2)  # new=2 opens in new tab
+            
+            print("✅ Opened in Chrome using webbrowser module")
+            return True
+            
+        except Exception as e:
+            print(f"⚠️  Force Chrome webbrowser failed: {e}")
+            return False
+
     def play_trending_song(self, language="hindi"):
         """
-        Play a currently trending song with AUTO-PLAY
+        Play a currently trending song with AUTO-PLAY in Chrome
         """
         try:
             print(f"🔍 Fetching trending {language} songs...")
@@ -429,7 +468,7 @@ class MusicSkill(Skill):
 
     def play_music(self, query="", language="hindi"):
         """
-        Play music on YouTube with smart defaults, trending support, and AUTO-PLAY
+        Play music on YouTube in Chrome with smart defaults and AUTO-PLAY
         """
         try:
             # Check if user wants trending/new/latest songs
@@ -452,7 +491,7 @@ class MusicSkill(Skill):
     
     def play_hindi_song(self, song_name=""):
         """
-        Play a Hindi song or random popular song with AUTO-PLAY
+        Play a Hindi song in Chrome with AUTO-PLAY
         """
         try:
             if not song_name:
@@ -469,7 +508,7 @@ class MusicSkill(Skill):
     
     def play_playlist(self, playlist_type, language="hindi"):
         """
-        Play a music playlist/mix with AUTO-PLAY
+        Play a music playlist in Chrome with AUTO-PLAY
         """
         try:
             search_query = f"{playlist_type} {language} songs playlist"
@@ -481,56 +520,49 @@ class MusicSkill(Skill):
     
     def _play_on_youtube(self, query):
         """
-        Internal method to play on YouTube with multiple fallback methods
-        Priority: Subprocess > Selenium > Pywhatkit > Webbrowser
+        Internal method to play on YouTube - FORCES Chrome browser
+        Priority: Chrome Subprocess > Selenium Chrome > Force Chrome Webbrowser
+        NEVER uses Edge or default browser
         """
         try:
-            # Method 1: Subprocess (MOST RELIABLE - Chrome stays open permanently)
-            print("🚀 Trying subprocess method (most reliable)...")
-            subprocess_result = self._open_youtube_subprocess(query)
-            if subprocess_result:
-                return subprocess_result
+            # Method 1: Chrome Subprocess (BEST - guaranteed Chrome)
+            print("🚀 Method 1: Opening in Chrome via subprocess...")
+            chrome_result = self._open_youtube_in_chrome(query)
+            if chrome_result:
+                return chrome_result
             
-            # Method 2: Selenium auto-play
-            print("🔄 Trying Selenium auto-play...")
+            # Method 2: Selenium with Chrome
+            print("🔄 Method 2: Trying Selenium with Chrome...")
             selenium_result = self._auto_play_with_selenium(query)
             if selenium_result:
                 return selenium_result
             
-            # Method 3: Pywhatkit
-            print("🔄 Trying pywhatkit method...")
-            try:
-                import pywhatkit as kit
-                print(f"🔍 Searching YouTube: {query}")
-                kit.playonyt(query, open_web=True)
-                time.sleep(2)
-                print("✅ YouTube opened (manual click needed)")
-                
-                return json.dumps({
-                    "status": "success", 
-                    "action": "play_music_pywhatkit", 
-                    "query": query,
-                    "note": "Video search opened, click first result to play"
-                })
-            except ImportError:
-                print("⚠️  pywhatkit not found")
-                pass
-            
-            # Method 4: Direct browser (final fallback)
-            print("🔄 Using default browser fallback...")
+            # Method 3: Force Chrome via webbrowser module
+            print("🔄 Method 3: Forcing Chrome via webbrowser...")
             search_query = query.replace(' ', '+')
             url = f"https://www.youtube.com/results?search_query={search_query}"
-            webbrowser.open(url)
             
-            print("✅ YouTube opened in default browser")
+            if self._force_chrome_webbrowser(url):
+                return json.dumps({
+                    "status": "success",
+                    "action": "play_music_chrome_webbrowser",
+                    "query": query,
+                    "browser": "Google Chrome",
+                    "note": "Opened in Chrome. Click first video to play."
+                })
+            
+            # If all Chrome methods fail
+            print("❌ All Chrome methods failed!")
+            print("💡 Please install Google Chrome: https://www.google.com/chrome/")
             
             return json.dumps({
-                "status": "success", 
-                "action": "play_music_webbrowser", 
-                "query": query,
-                "note": "YouTube search opened in default browser, click first video to play"
+                "status": "error",
+                "error": "Chrome not found. Please install Google Chrome.",
+                "install_url": "https://www.google.com/chrome/"
             })
                 
         except Exception as e:
             print(f"❌ YouTube Error: {e}")
+            import traceback
+            traceback.print_exc()
             return json.dumps({"status": "error", "error": str(e)})

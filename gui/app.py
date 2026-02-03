@@ -4,7 +4,7 @@
 """
 JARVIS GUI - Complete Visual Interface
 Beautiful window with all features
-No terminal needed!
+YouTube Auto-Play Support!
 """
 
 import sys
@@ -38,6 +38,7 @@ except ImportError as e:
 try:
     from selenium import webdriver
     from selenium.webdriver.common.by import By
+    from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.webdriver.chrome.options import Options
@@ -99,39 +100,40 @@ class JarvisGUI:
         top_bar = tk.Frame(self.root, bg='#1a1a1a', height=80)
         top_bar.pack(fill=tk.X, padx=0, pady=0)
         
-        # Logo and title
-        title_frame = tk.Frame(top_bar, bg='#1a1a1a')
-        title_frame.pack(side=tk.LEFT, padx=20, pady=15)
+        # Title
+        title = tk.Label(top_bar, text="🤖 JARVIS", font=('Arial', 24, 'bold'),
+                        bg='#1a1a1a', fg='#00ff00')
+        title.pack(side=tk.LEFT, padx=20, pady=20)
         
-        tk.Label(title_frame, text="🤖 JARVIS", font=("Arial", 24, "bold"), 
-                bg='#1a1a1a', fg='#00d4ff').pack(side=tk.LEFT)
-        tk.Label(title_frame, text="Your Personal AI Assistant", font=("Arial", 12), 
-                bg='#1a1a1a', fg='#888888').pack(side=tk.LEFT, padx=10)
+        subtitle = tk.Label(top_bar, text="Your Personal AI Assistant",
+                           font=('Arial', 12), bg='#1a1a1a', fg='#888888')
+        subtitle.pack(side=tk.LEFT, padx=0, pady=20)
         
         # Status indicator
         self.status_frame = tk.Frame(top_bar, bg='#1a1a1a')
-        self.status_frame.pack(side=tk.RIGHT, padx=20, pady=15)
+        self.status_frame.pack(side=tk.RIGHT, padx=20, pady=20)
         
-        self.status_dot = tk.Label(self.status_frame, text="●", font=("Arial", 20), 
-                                   bg='#1a1a1a', fg='#00ff88')
-        self.status_dot.pack(side=tk.LEFT)
+        self.status_dot = tk.Label(self.status_frame, text="●", font=('Arial', 20),
+                                   bg='#1a1a1a', fg='#00ff00')
+        self.status_dot.pack(side=tk.LEFT, padx=5)
         
-        self.status_label = tk.Label(self.status_frame, text="Ready", font=("Arial", 12), 
-                                     bg='#1a1a1a', fg='#00ff88')
+        self.status_label = tk.Label(self.status_frame, text="Ready",
+                                     font=('Arial', 12), bg='#1a1a1a', fg='#00ff00')
         self.status_label.pack(side=tk.LEFT, padx=5)
         
-        # ============ MAIN CONTAINER ============
-        main_container = tk.Frame(self.root, bg='#0a0a0a')
-        main_container.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        # ============ MAIN CONTENT ============
+        main_frame = tk.Frame(self.root, bg='#0a0a0a')
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # ============ LEFT PANEL - QUICK ACTIONS ============
-        left_panel = tk.Frame(main_container, bg='#1a1a1a', width=300)
+        # Left panel - Quick Actions
+        left_panel = tk.Frame(main_frame, bg='#1a1a1a', width=300)
         left_panel.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
         left_panel.pack_propagate(False)
         
         # Quick Actions Title
-        tk.Label(left_panel, text="⚡ Quick Actions", font=("Arial", 14, "bold"), 
-                bg='#1a1a1a', fg='#00d4ff').pack(pady=15)
+        actions_title = tk.Label(left_panel, text="⚡ Quick Actions",
+                                font=('Arial', 14, 'bold'), bg='#1a1a1a', fg='#ffffff')
+        actions_title.pack(pady=15)
         
         # Scrollable frame for buttons
         canvas = tk.Canvas(left_panel, bg='#1a1a1a', highlightthickness=0)
@@ -149,143 +151,158 @@ class JarvisGUI:
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
         
-        # Quick action buttons
-        actions = [
-            ("🌐 Web", [
-                ("Chrome", lambda: self.execute_command("chrome kholo")),
-                ("Gmail", lambda: self.open_website("https://gmail.com")),
-                ("Facebook", lambda: self.open_website("https://facebook.com")),
-                ("YouTube", lambda: self.open_website("https://youtube.com")),
-                ("Twitter", lambda: self.open_website("https://twitter.com")),
-                ("Instagram", lambda: self.open_website("https://instagram.com")),
-                ("WhatsApp Web", lambda: self.open_website("https://web.whatsapp.com")),
-                ("LinkedIn", lambda: self.open_website("https://linkedin.com")),
-            ]),
-            ("📱 Apps", [
-                ("Word", lambda: self.execute_command("word kholo")),
-                ("Excel", lambda: self.execute_command("excel kholo")),
-                ("PowerPoint", lambda: self.execute_command("powerpoint kholo")),
-                ("Notepad", lambda: self.execute_command("notepad kholo")),
-                ("Calculator", lambda: self.execute_command("calculator kholo")),
-                ("Paint", lambda: self.execute_command("paint kholo")),
-                ("VLC", lambda: self.execute_command("vlc kholo")),
-            ]),
-            ("🎵 Media", [
-                ("Play Music", lambda: self.execute_command("gaana bajao")),
-                ("Pause", lambda: self.media_control("pause")),
-                ("Next", lambda: self.media_control("next")),
-                ("Previous", lambda: self.media_control("previous")),
-            ]),
-            ("🔊 System", [
-                ("Volume Up", lambda: self.execute_command("volume badhao")),
-                ("Volume Down", lambda: self.execute_command("volume kam karo")),
-                ("Mute", lambda: self.execute_command("mute karo")),
-                ("Brightness Up", lambda: self.execute_command("brightness badhao")),
-                ("Brightness Down", lambda: self.execute_command("brightness kam karo")),
-            ]),
-            ("⚡ Power", [
-                ("Lock PC", lambda: self.execute_command("lock karo")),
-                ("Sleep", lambda: self.execute_command("sleep karo")),
-                ("Restart", lambda: self.execute_command("restart karo")),
-                ("Shutdown", lambda: self.execute_command("shutdown karo")),
-            ]),
-        ]
+        # Button categories
+        self._create_button_category(scrollable_frame, "🌐 Web", [
+            ("Chrome", "chrome kholo"),
+            ("Gmail", "gmail kholo"),
+            ("Facebook", "facebook kholo"),
+            ("YouTube", "youtube kholo"),
+            ("Twitter", "twitter kholo"),
+            ("Instagram", "instagram kholo"),
+            ("WhatsApp Web", "whatsapp web kholo"),
+            ("LinkedIn", "linkedin kholo"),
+        ])
         
-        for category, items in actions:
-            # Category label
-            tk.Label(scrollable_frame, text=category, font=("Arial", 11, "bold"), 
-                    bg='#1a1a1a', fg='#00d4ff', anchor='w').pack(fill=tk.X, padx=10, pady=(10, 5))
-            
-            # Category buttons
-            for name, command in items:
-                btn = tk.Button(scrollable_frame, text=name, font=("Arial", 10), 
-                              bg='#2a2a2a', fg='#ffffff', activebackground='#00d4ff',
-                              activeforeground='#000000', relief=tk.FLAT, cursor='hand2',
-                              command=command)
-                btn.pack(fill=tk.X, padx=15, pady=2)
-                
-                # Hover effect
-                btn.bind("<Enter>", lambda e, b=btn: b.config(bg='#3a3a3a'))
-                btn.bind("<Leave>", lambda e, b=btn: b.config(bg='#2a2a2a'))
+        self._create_button_category(scrollable_frame, "📱 Apps", [
+            ("Word", "word kholo"),
+            ("Excel", "excel kholo"),
+            ("PowerPoint", "powerpoint kholo"),
+            ("Notepad", "notepad kholo"),
+            ("Calculator", "calculator kholo"),
+            ("Paint", "paint kholo"),
+            ("VLC", "vlc kholo"),
+        ])
         
-        # ============ RIGHT PANEL - CHAT & CONTROLS ============
-        right_panel = tk.Frame(main_container, bg='#1a1a1a')
+        self._create_button_category(scrollable_frame, "🎵 Media", [
+            ("Play Music", "gaana bajao"),
+            ("Pause", "pause karo"),
+            ("Next", "next"),
+            ("Previous", "previous"),
+        ])
+        
+        self._create_button_category(scrollable_frame, "🔊 System", [
+            ("Volume Up", "volume badhao"),
+            ("Volume Down", "volume kam karo"),
+            ("Mute", "mute karo"),
+            ("Brightness Up", "brightness badhao"),
+            ("Brightness Down", "brightness kam karo"),
+        ])
+        
+        self._create_button_category(scrollable_frame, "⚡ Power", [
+            ("Lock PC", "lock karo"),
+            ("Sleep", "sleep karo"),
+            ("Restart", "restart karo"),
+            ("Shutdown", "shutdown karo"),
+        ])
+        
+        # Right panel - Chat
+        right_panel = tk.Frame(main_frame, bg='#1a1a1a')
         right_panel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
         
+        # Chat title
+        chat_title = tk.Label(right_panel, text="💬 Conversation",
+                             font=('Arial', 14, 'bold'), bg='#1a1a1a', fg='#ffffff')
+        chat_title.pack(pady=15)
+        
         # Chat display
-        chat_frame = tk.Frame(right_panel, bg='#1a1a1a')
-        chat_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        tk.Label(chat_frame, text="💬 Conversation", font=("Arial", 12, "bold"), 
-                bg='#1a1a1a', fg='#00d4ff').pack(anchor='w', pady=(0, 10))
-        
         self.chat_display = scrolledtext.ScrolledText(
-            chat_frame, wrap=tk.WORD, font=("Consolas", 11),
-            bg='#0a0a0a', fg='#ffffff', insertbackground='#00d4ff',
-            relief=tk.FLAT, padx=15, pady=15
+            right_panel,
+            wrap=tk.WORD,
+            font=('Consolas', 11),
+            bg='#0a0a0a',
+            fg='#ffffff',
+            insertbackground='#00ff00',
+            relief=tk.FLAT,
+            padx=15,
+            pady=15
         )
-        self.chat_display.pack(fill=tk.BOTH, expand=True)
-        self.chat_display.config(state=tk.DISABLED)
+        self.chat_display.pack(fill=tk.BOTH, expand=True, padx=15, pady=(0, 15))
         
         # Configure tags for colored messages
-        self.chat_display.tag_config("user", foreground="#00d4ff", font=("Consolas", 11, "bold"))
-        self.chat_display.tag_config("jarvis", foreground="#00ff88", font=("Consolas", 11, "bold"))
-        self.chat_display.tag_config("system", foreground="#ffaa00", font=("Consolas", 11, "bold"))
-        self.chat_display.tag_config("error", foreground="#ff4444", font=("Consolas", 11, "bold"))
+        self.chat_display.tag_config('system', foreground='#00ff00')
+        self.chat_display.tag_config('user', foreground='#00aaff')
+        self.chat_display.tag_config('error', foreground='#ff4444')
+        self.chat_display.tag_config('timestamp', foreground='#666666')
         
         # Input area
         input_frame = tk.Frame(right_panel, bg='#1a1a1a')
-        input_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
+        input_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
         
-        # Text input
         self.input_field = tk.Entry(
-            input_frame, font=("Arial", 12), bg='#2a2a2a', fg='#ffffff',
-            insertbackground='#00d4ff', relief=tk.FLAT
+            input_frame,
+            font=('Arial', 12),
+            bg='#2a2a2a',
+            fg='#ffffff',
+            insertbackground='#00ff00',
+            relief=tk.FLAT,
+            bd=0
         )
-        self.input_field.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=10, padx=(0, 10))
-        self.input_field.bind("<Return>", lambda e: self.send_message())
+        self.input_field.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, ipady=10, padx=(0, 10))
+        self.input_field.bind('<Return>', lambda e: self.send_message())
         
         # Send button
-        self.send_btn = tk.Button(
-            input_frame, text="📤 Send", font=("Arial", 11, "bold"),
-            bg='#00d4ff', fg='#000000', activebackground='#00a8cc',
-            relief=tk.FLAT, cursor='hand2', command=self.send_message, width=10
+        send_btn = tk.Button(
+            input_frame,
+            text="Send",
+            font=('Arial', 11, 'bold'),
+            bg='#00ff00',
+            fg='#000000',
+            activebackground='#00cc00',
+            relief=tk.FLAT,
+            cursor='hand2',
+            command=self.send_message
         )
-        self.send_btn.pack(side=tk.LEFT, ipady=8)
+        send_btn.pack(side=tk.LEFT, padx=(0, 10), ipadx=20, ipady=10)
         
         # Voice button
-        self.voice_btn = tk.Button(
-            input_frame, text="🎤 Voice", font=("Arial", 11, "bold"),
-            bg='#2a2a2a', fg='#ffffff', activebackground='#00ff88',
-            relief=tk.FLAT, cursor='hand2', command=self.toggle_voice, width=10
+        voice_btn = tk.Button(
+            input_frame,
+            text="🎤 Voice",
+            font=('Arial', 11, 'bold'),
+            bg='#0088ff',
+            fg='#ffffff',
+            activebackground='#0066cc',
+            relief=tk.FLAT,
+            cursor='hand2',
+            command=self.voice_input
         )
-        self.voice_btn.pack(side=tk.LEFT, padx=(10, 0), ipady=8)
+        voice_btn.pack(side=tk.LEFT, ipadx=15, ipady=10)
+    
+    def _create_button_category(self, parent, title, buttons):
+        """Create a category of buttons"""
+        # Category label
+        label = tk.Label(parent, text=title, font=('Arial', 12, 'bold'),
+                        bg='#1a1a1a', fg='#00ff00')
+        label.pack(pady=(15, 10), anchor='w', padx=15)
+        
+        # Buttons
+        for btn_text, command in buttons:
+            btn = tk.Button(
+                parent,
+                text=btn_text,
+                font=('Arial', 10),
+                bg='#2a2a2a',
+                fg='#ffffff',
+                activebackground='#3a3a3a',
+                relief=tk.FLAT,
+                cursor='hand2',
+                command=lambda cmd=command: self.execute_command(cmd)
+            )
+            btn.pack(fill=tk.X, padx=15, pady=3)
     
     def add_message(self, sender, message, msg_type="user"):
         """Add message to chat display"""
-        self.chat_display.config(state=tk.NORMAL)
-        
         timestamp = time.strftime("%H:%M:%S")
         
-        if msg_type == "user":
-            self.chat_display.insert(tk.END, f"\n[{timestamp}] ", "system")
-            self.chat_display.insert(tk.END, f"👤 You: ", "user")
-            self.chat_display.insert(tk.END, f"{message}\n")
-        elif msg_type == "jarvis":
-            self.chat_display.insert(tk.END, f"\n[{timestamp}] ", "system")
-            self.chat_display.insert(tk.END, f"🤖 JARVIS: ", "jarvis")
-            self.chat_display.insert(tk.END, f"{message}\n")
-        elif msg_type == "system":
-            self.chat_display.insert(tk.END, f"\n[{timestamp}] ", "system")
-            self.chat_display.insert(tk.END, f"ℹ️  {sender}: ", "system")
-            self.chat_display.insert(tk.END, f"{message}\n")
-        elif msg_type == "error":
-            self.chat_display.insert(tk.END, f"\n[{timestamp}] ", "system")
-            self.chat_display.insert(tk.END, f"❌ Error: ", "error")
-            self.chat_display.insert(tk.END, f"{message}\n")
+        self.chat_display.insert(tk.END, f"[{timestamp}] ", 'timestamp')
         
+        if sender == "JARVIS":
+            self.chat_display.insert(tk.END, f"🤖 {sender}: ", 'system')
+        else:
+            self.chat_display.insert(tk.END, f"👤 {sender}: ", 'user')
+        
+        self.chat_display.insert(tk.END, f"{message}\n\n", msg_type)
         self.chat_display.see(tk.END)
-        self.chat_display.config(state=tk.DISABLED)
     
     def update_status(self, status, color):
         """Update status indicator"""
@@ -293,108 +310,110 @@ class JarvisGUI:
         self.status_dot.config(fg=color)
     
     def speak(self, text):
-        """Speak text"""
-        try:
-            if self.voice_engine:
-                self.voice_engine.say(text)
-                self.voice_engine.runAndWait()
-        except:
-            pass
+        """Speak text using TTS"""
+        def _speak():
+            try:
+                if self.voice_engine:
+                    self.voice_engine.say(text)
+                    self.voice_engine.runAndWait()
+            except:
+                pass
+        
+        threading.Thread(target=_speak, daemon=True).start()
     
     def send_message(self):
-        """Send text message"""
+        """Send message from input field"""
         message = self.input_field.get().strip()
-        if not message:
+        if message:
+            self.input_field.delete(0, tk.END)
+            self.add_message("You", message, "user")
+            self.execute_command(message)
+    
+    def voice_input(self):
+        """Get voice input"""
+        if self.listening:
             return
         
-        self.input_field.delete(0, tk.END)
-        self.add_message("You", message, "user")
-        
-        # Process command
-        threading.Thread(target=self._process_command, args=(message,), daemon=True).start()
-    
-    def toggle_voice(self):
-        """Toggle voice input"""
-        if self.listening:
-            self.listening = False
-            self.voice_btn.config(text="🎤 Voice", bg='#2a2a2a')
-            self.update_status("Ready", "#00ff88")
-        else:
+        def _listen():
             self.listening = True
-            self.voice_btn.config(text="⏹️ Stop", bg='#ff4444')
-            threading.Thread(target=self._voice_loop, daemon=True).start()
-    
-    def _voice_loop(self):
-        """Voice input loop"""
-        while self.listening:
+            self.update_status("Listening...", "#0088ff")
+            
             try:
-                self.update_status("Listening...", "#00d4ff")
-                
                 with sr.Microphone() as source:
                     self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
                     audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
                 
-                self.update_status("Processing...", "#ffaa00")
+                self.update_status("Processing...", "#ff8800")
                 text = self.recognizer.recognize_google(audio)
                 
                 self.add_message("You", text, "user")
-                self._process_command(text)
+                self.execute_command(text)
                 
             except sr.WaitTimeoutError:
-                continue
+                self.add_message("JARVIS", "No speech detected. Please try again.", "error")
             except sr.UnknownValueError:
-                continue
+                self.add_message("JARVIS", "Sorry, I couldn't understand that.", "error")
             except Exception as e:
-                self.add_message("Error", str(e), "error")
-                break
+                self.add_message("JARVIS", f"Error: {str(e)}", "error")
+            finally:
+                self.listening = False
+                self.update_status("Ready", "#00ff00")
         
-        self.update_status("Ready", "#00ff88")
-    
-    def _process_command(self, command):
-        """Process user command"""
-        self.update_status("Processing...", "#ffaa00")
-        
-        try:
-            response = self.execute_command(command)
-            self.add_message("JARVIS", response, "jarvis")
-            self.speak(response)
-        except Exception as e:
-            self.add_message("Error", str(e), "error")
-        
-        self.update_status("Ready", "#00ff88")
+        threading.Thread(target=_listen, daemon=True).start()
     
     def execute_command(self, query):
         """Execute command"""
-        q = query.lower()
+        self.update_status("Processing...", "#ff8800")
         
+        def _execute():
+            try:
+                response = self.process_query(query)
+                self.add_message("JARVIS", response, "system")
+                self.speak(response)
+            except Exception as e:
+                error_msg = f"Error: {str(e)}"
+                self.add_message("JARVIS", error_msg, "error")
+            finally:
+                self.update_status("Ready", "#00ff00")
+        
+        threading.Thread(target=_execute, daemon=True).start()
+    
+    def process_query(self, query):
+        """Process user query"""
         try:
-            # Web URLs
+            q = query.lower()
+            
+            # Web
             if 'gmail' in q:
-                return self.open_website("https://gmail.com")
+                return self.open_website('https://mail.google.com')
             elif 'facebook' in q:
-                return self.open_website("https://facebook.com")
-            elif 'youtube' in q and 'bajao' not in q:
-                return self.open_website("https://youtube.com")
+                return self.open_website('https://www.facebook.com')
+            elif 'youtube' in q and ('kholo' in q or 'open' in q):
+                return self.open_website('https://www.youtube.com')
             elif 'twitter' in q:
-                return self.open_website("https://twitter.com")
+                return self.open_website('https://www.twitter.com')
             elif 'instagram' in q:
-                return self.open_website("https://instagram.com")
-            elif 'whatsapp' in q and 'web' in q:
-                return self.open_website("https://web.whatsapp.com")
+                return self.open_website('https://www.instagram.com')
+            elif 'whatsapp' in q:
+                return self.open_website('https://web.whatsapp.com')
             elif 'linkedin' in q:
-                return self.open_website("https://linkedin.com")
+                return self.open_website('https://www.linkedin.com')
             
-            # YouTube/Music
-            elif any(w in q for w in ['gaana', 'song', 'music', 'bajao']):
-                return self.play_youtube(query)
+            # YouTube Music (with auto-play)
+            elif any(w in q for w in ['gaana', 'song', 'music', 'bajao', 'play']) and 'youtube' not in q:
+                return self.play_youtube_auto(query)
             
-            # Open app
+            # Apps
             elif any(w in q for w in ['kholo', 'open', 'start', 'launch']):
                 return self.open_app(query)
             
-            # Close app
-            elif any(w in q for w in ['band', 'close', 'exit']):
+            # Close apps
+            elif 'band' in q or 'close' in q:
                 return self.close_app(query)
+            
+            # Media controls
+            elif any(w in q for w in ['pause', 'next', 'previous', 'stop']):
+                return self.media_control(query)
             
             # Volume
             elif 'volume' in q or 'awaaz' in q:
@@ -427,11 +446,12 @@ class JarvisGUI:
         except Exception as e:
             return f"Failed to open website: {str(e)}"
     
-    def play_youtube(self, query):
-        """Play YouTube video"""
+    def play_youtube_auto(self, query):
+        """Play YouTube video with auto-play using Selenium"""
         try:
+            # Extract song name
             words = query.lower().split()
-            remove = ['gaana', 'song', 'music', 'bajao', 'play', 'youtube', 'pe', 'par', 'karo']
+            remove = ['gaana', 'song', 'music', 'bajao', 'play', 'youtube', 'pe', 'par', 'karo', 'ka', 'ki', 'ke']
             song_words = [w for w in words if w not in remove]
             
             if song_words:
@@ -439,13 +459,56 @@ class JarvisGUI:
             else:
                 song = "Tauba Tauba Bad Newz"
             
-            # Open YouTube search
-            search_url = f"https://www.youtube.com/results?search_query={song.replace(' ', '+')}"
-            webbrowser.open(search_url)
-            
-            return f"Playing: {song}\n✅ YouTube opened!"
+            # Try Selenium auto-play
+            if SELENIUM_AVAILABLE:
+                try:
+                    return self._play_with_selenium(song)
+                except:
+                    # Fallback to browser
+                    return self._play_with_browser(song)
+            else:
+                # Fallback to browser
+                return self._play_with_browser(song)
+        
         except Exception as e:
             return f"YouTube error: {str(e)}"
+    
+    def _play_with_selenium(self, song):
+        """Play YouTube with Selenium (auto-clicks play)"""
+        try:
+            # Setup Chrome options
+            chrome_options = Options()
+            chrome_options.add_argument('--start-maximized')
+            chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            chrome_options.add_experimental_option('useAutomationExtension', False)
+            
+            # Create driver
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+            
+            # Open YouTube search
+            search_url = f"https://www.youtube.com/results?search_query={song.replace(' ', '+')}"
+            driver.get(search_url)
+            
+            # Wait and click first video
+            wait = WebDriverWait(driver, 10)
+            video = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'a#video-title')))
+            video.click()
+            
+            # Wait for video to load and auto-play
+            time.sleep(2)
+            
+            return f"🎵 Playing: {song}\n✅ YouTube opened and playing!"
+        
+        except Exception as e:
+            raise Exception(f"Selenium error: {str(e)}")
+    
+    def _play_with_browser(self, song):
+        """Fallback: Open YouTube in browser"""
+        search_url = f"https://www.youtube.com/results?search_query={song.replace(' ', '+')}"
+        webbrowser.open(search_url)
+        return f"🎵 Playing: {song}\n✅ YouTube opened! Click first video to play."
     
     def open_app(self, query):
         """Open application"""
@@ -501,93 +564,128 @@ class JarvisGUI:
             if killed:
                 return f"Closed {app_name}"
             else:
-                return f"{app_name} is not running"
+                return f"{app_name} not found"
         except Exception as e:
             return f"Failed to close app: {str(e)}"
     
-    def control_volume(self, query):
-        """Control volume"""
+    def media_control(self, query):
+        """Control media playback"""
         try:
-            if 'badhao' in query or 'increase' in query or 'up' in query:
+            q = query.lower()
+            
+            if 'pause' in q or 'stop' in q:
+                pyautogui.press('playpause')
+                return "Media paused"
+            elif 'next' in q:
+                pyautogui.press('nexttrack')
+                return "Next track"
+            elif 'previous' in q or 'pichla' in q:
+                pyautogui.press('prevtrack')
+                return "Previous track"
+            else:
+                return "Media control: pause, next, previous"
+        except Exception as e:
+            return f"Media control error: {str(e)}"
+    
+    def control_volume(self, query):
+        """Control system volume"""
+        try:
+            q = query.lower()
+            
+            if 'badhao' in q or 'up' in q or 'increase' in q:
                 for _ in range(5):
                     pyautogui.press('volumeup')
                 return "Volume increased"
-            elif 'kam' in query or 'decrease' in query or 'down' in query:
+            elif 'kam' in q or 'down' in q or 'decrease' in q:
                 for _ in range(5):
                     pyautogui.press('volumedown')
                 return "Volume decreased"
-            elif 'mute' in query or 'chup' in query:
+            elif 'mute' in q:
                 pyautogui.press('volumemute')
                 return "Volume muted"
+            else:
+                return "Volume control: up, down, mute"
         except Exception as e:
-            return f"Volume control failed: {str(e)}"
+            return f"Volume control error: {str(e)}"
     
     def control_brightness(self, query):
-        """Control brightness"""
+        """Control screen brightness"""
         try:
-            if 'badhao' in query or 'increase' in query:
+            q = query.lower()
+            
+            if 'badhao' in q or 'up' in q or 'increase' in q:
                 if self.os_type == "Windows":
-                    subprocess.run(['powershell', '(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,100)'])
+                    subprocess.run(['powershell', '(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,100)'], shell=True)
                 return "Brightness increased"
-            elif 'kam' in query or 'decrease' in query:
+            elif 'kam' in q or 'down' in q or 'decrease' in q:
                 if self.os_type == "Windows":
-                    subprocess.run(['powershell', '(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,50)'])
+                    subprocess.run(['powershell', '(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,50)'], shell=True)
                 return "Brightness decreased"
+            else:
+                return "Brightness control: up, down"
         except Exception as e:
-            return f"Brightness control failed: {str(e)}"
+            return f"Brightness control error: {str(e)}"
     
     def power_control(self, query):
-        """Power control"""
+        """Power management"""
         try:
-            if 'shutdown' in query:
-                if messagebox.askyesno("Confirm", "Shutdown PC in 10 seconds?"):
+            q = query.lower()
+            
+            if 'shutdown' in q:
+                confirm = messagebox.askyesno("Confirm", "Shutdown computer?")
+                if confirm:
                     if self.os_type == "Windows":
-                        subprocess.run(['shutdown', '/s', '/t', '10'])
-                    return "Shutting down in 10 seconds..."
-            elif 'restart' in query:
-                if messagebox.askyesno("Confirm", "Restart PC in 10 seconds?"):
+                        os.system("shutdown /s /t 1")
+                    else:
+                        os.system("shutdown -h now")
+                    return "Shutting down..."
+                return "Shutdown cancelled"
+            
+            elif 'restart' in q:
+                confirm = messagebox.askyesno("Confirm", "Restart computer?")
+                if confirm:
                     if self.os_type == "Windows":
-                        subprocess.run(['shutdown', '/r', '/t', '10'])
-                    return "Restarting in 10 seconds..."
-            elif 'sleep' in query:
+                        os.system("shutdown /r /t 1")
+                    else:
+                        os.system("reboot")
+                    return "Restarting..."
+                return "Restart cancelled"
+            
+            elif 'sleep' in q:
                 if self.os_type == "Windows":
-                    subprocess.run(['rundll32.exe', 'powrprof.dll,SetSuspendState', '0,1,0'])
+                    os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+                else:
+                    os.system("systemctl suspend")
                 return "Going to sleep..."
-            elif 'lock' in query:
+            
+            elif 'lock' in q:
                 if self.os_type == "Windows":
-                    subprocess.run(['rundll32.exe', 'user32.dll,LockWorkStation'])
+                    os.system("rundll32.exe user32.dll,LockWorkStation")
+                else:
+                    os.system("gnome-screensaver-command -l")
                 return "Locking PC..."
+            
+            else:
+                return "Power control: shutdown, restart, sleep, lock"
         except Exception as e:
-            return f"Power control failed: {str(e)}"
+            return f"Power control error: {str(e)}"
     
     def google_search(self, query):
         """Google search"""
         try:
-            words = query.lower().replace('google', '').replace('search', '').replace('pe', '').replace('karo', '').strip()
+            words = query.lower().split()
+            remove = ['google', 'search', 'pe', 'par', 'karo', 'kar']
+            search_words = [w for w in words if w not in remove]
+            search_query = ' '.join(search_words)
             
-            if words:
-                webbrowser.open(f"https://www.google.com/search?q={words}")
-                return f"Searching Google for: {words}"
+            if search_query:
+                url = f"https://www.google.com/search?q={search_query.replace(' ', '+')}"
+                webbrowser.open(url)
+                return f"Searching Google for: {search_query}"
             else:
-                webbrowser.open("https://www.google.com")
-                return "Opening Google..."
+                return "What do you want to search?"
         except Exception as e:
-            return f"Search failed: {str(e)}"
-    
-    def media_control(self, action):
-        """Media control"""
-        try:
-            if action == "pause":
-                pyautogui.press('playpause')
-                return "Media toggled"
-            elif action == "next":
-                pyautogui.press('nexttrack')
-                return "Next track"
-            elif action == "previous":
-                pyautogui.press('prevtrack')
-                return "Previous track"
-        except Exception as e:
-            return f"Media control failed: {str(e)}"
+            return f"Search error: {str(e)}"
 
 
 def main():

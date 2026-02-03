@@ -6,9 +6,9 @@ JARVIS is an **intelligent personal AI assistant** that behaves like a real huma
 - ✅ **NATURAL CONVERSATIONS** - Talks like a real person, not a robot!
 - ✅ **EMOTION DETECTION** - Understands if you're happy, frustrated, or excited
 - ✅ **CONTEXT MEMORY** - Remembers previous conversations and tasks
+- ✅ **AUTO-PLAY MUSIC** - "YouTube kholo" automatically plays trending songs! 🎵
 - ✅ **AUTO-INSTALLS EVERYTHING** - Just run `python main.py` and it handles the rest!
 - ✅ **100% FREE & LOCAL** - Uses Ollama (no API keys, no rate limits!)
-- ✅ **TRENDING MUSIC** - "YouTube kholo" automatically plays viral songs
 - ✅ **MOVIE DOWNLOADER** - Download and play movies with VLC
 - ✅ **SELF-HEALING** - Fixes its own errors using AI + internet
 - ✅ **HINGLISH SUPPORT** - Speak naturally in Hindi, English, or mixed!
@@ -27,7 +27,12 @@ JARVIS is an **intelligent personal AI assistant** that behaves like a real huma
 👤 You: gaana bajao
 
 🤖 JARVIS: 🎵 Playing trending song for you!
-          [Plays: Tauba Tauba Bad Newz]
+          
+          🎬 Opening YouTube with auto-play...
+          ⏳ Waiting for videos to load...
+          ✅ Found video, clicking to play...
+          ✅ YouTube opened and playing!
+          
           😊 Glad I could help! Anything else?
 
 👤 You: volume badhao
@@ -59,6 +64,10 @@ JARVIS is an **intelligent personal AI assistant** that behaves like a real huma
 👤 You: youtube kholo
 
 🤖 JARVIS: 🎵 Playing trending song: Kesariya
+          
+          🎬 Opening YouTube with auto-play...
+          ✅ YouTube opened and playing!
+          
           Done! What else can I do for you?
 
 👤 You: uska volume kam karo
@@ -129,7 +138,28 @@ JARVIS doesn't talk like a robot. It understands context, emotions, and speaks n
 ✅ "Done! Anything else I can help with? 😊"
 ```
 
-### **2. 😊 Emotion Detection**
+### **2. 🎵 AUTO-PLAY Music (No Manual Clicking!)**
+
+Just say "YouTube kholo" or "gaana bajao" and JARVIS:
+1. ✅ Fetches trending songs from YouTube
+2. ✅ Opens browser automatically
+3. ✅ **Clicks the first video to play** (using Selenium)
+4. ✅ Music starts playing instantly!
+
+**No more manual clicking!** JARVIS does everything automatically! 🚀
+
+```
+👤 You: youtube kholo
+
+🤖 JARVIS: 🎵 No specific song requested, playing trending music...
+          🎵 Found trending: Tauba Tauba Bad Newz
+          🎬 Opening YouTube with auto-play...
+          ⏳ Waiting for videos to load...
+          ✅ Found video, clicking to play...
+          ✅ YouTube opened and playing!
+```
+
+### **3. 😊 Emotion Detection**
 
 JARVIS detects your mood and responds appropriately:
 
@@ -138,7 +168,7 @@ JARVIS detects your mood and responds appropriately:
 - **Excited** → "That's awesome! 🎉"
 - **Neutral** → "Sure, I'm on it."
 
-### **3. 🧠 Context Memory**
+### **4. 🧠 Context Memory**
 
 Remembers previous tasks and conversations:
 
@@ -154,17 +184,6 @@ Remembers previous tasks and conversations:
 
 👤 You: woh movie download karo
 🤖 JARVIS: [Remembers which movie you mentioned earlier]
-```
-
-### **4. 🎵 Auto-Trending Music**
-
-Just say "YouTube kholo" and JARVIS automatically plays the latest viral song:
-
-```
-👤 You: youtube kholo
-
-🤖 JARVIS: 🎵 Playing trending song: Tauba Tauba Bad Newz
-          ✅ YouTube opened and playing!
 ```
 
 ### **5. 🎬 Smart Movie Downloader**
@@ -186,6 +205,10 @@ Speak naturally in Hindi, English, or mixed:
 👤 You: bhai youtube pe latest song bajao
 
 🤖 JARVIS: 🎵 Playing latest song for you!
+          
+          🎬 Opening YouTube with auto-play...
+          ✅ YouTube opened and playing!
+          
           Done! Aur kya chahiye?
 ```
 
@@ -206,11 +229,13 @@ Speak naturally in Hindi, English, or mixed:
 - **Proactive Suggestions** - Offers help based on time and context
 - **Multi-language** - Hindi, English, Hinglish
 
-### **🎵 Smart Music Player**
+### **🎵 Smart Music Player with AUTO-PLAY**
 - **Auto-Trending** - "YouTube kholo" plays latest viral song
+- **Automatic Playback** - Uses Selenium to click and play video
 - **Multi-language** - Hindi, English, Punjabi, Tamil, etc.
 - **Smart Defaults** - "gaana bajao" → plays trending song
 - **Specific Songs** - "Kesariya bajao" → plays exact song
+- **No Manual Clicking** - Everything happens automatically!
 
 ### **🎬 Movie Downloader**
 - **Web Automation** - Downloads from vegamovies, etc.
@@ -241,7 +266,7 @@ Speak naturally in Hindi, English, or mixed:
 
 👤 You: what can you do?
 🤖 JARVIS: I can:
-          - Play music on YouTube (trending or specific songs)
+          - Play music on YouTube (auto-plays trending songs!)
           - Download movies from websites
           - Search Google and open websites
           - Control system (volume, brightness)
@@ -249,18 +274,24 @@ Speak naturally in Hindi, English, or mixed:
 
 👤 You: gaana bajao
 🤖 JARVIS: 🎵 Playing trending song for you!
+          [Auto-plays music on YouTube]
 ```
 
-### **YouTube & Music**
+### **YouTube & Music (AUTO-PLAY!)**
 ```
 👤 You: youtube kholo
 🤖 JARVIS: 🎵 Playing trending song: Tauba Tauba Bad Newz
+          🎬 Opening YouTube with auto-play...
+          ✅ YouTube opened and playing!
 
 👤 You: play Kesariya
 🤖 JARVIS: 🎵 Playing: Kesariya
+          🎬 Opening YouTube with auto-play...
+          ✅ YouTube opened and playing!
 
 👤 You: latest song bajao
 🤖 JARVIS: 🎵 Playing: Satranga Animal
+          [Auto-plays automatically!]
 ```
 
 ### **Movie Download**
@@ -276,7 +307,7 @@ Speak naturally in Hindi, English, or mixed:
 ### **Follow-up Commands**
 ```
 👤 You: youtube kholo
-🤖 JARVIS: [Opens YouTube with trending song]
+🤖 JARVIS: [Opens YouTube with trending song auto-playing]
 
 👤 You: uska volume badhao
 🤖 JARVIS: ✅ Done!
@@ -293,11 +324,11 @@ When you run `python main.py`, JARVIS automatically installs:
 
 ### Required Packages
 - ✅ `ollama` - Local LLM
-- ✅ `selenium` - Web automation (movie downloader)
+- ✅ `selenium` - Web automation (for auto-play feature!)
+- ✅ `webdriver-manager` - ChromeDriver auto-install
 - ✅ `beautifulsoup4` - Web scraping
 - ✅ `requests` - HTTP requests
 - ✅ `pywhatkit` - YouTube automation
-- ✅ `webdriver-manager` - ChromeDriver auto-install
 - ✅ `python-dotenv` - Environment variables
 
 ### Optional Packages
@@ -327,6 +358,15 @@ python main.py
 pip install -r requirements.txt
 ```
 
+### Issue: "Auto-play not working"
+```bash
+# Make sure Selenium is installed
+pip install selenium webdriver-manager
+
+# Chrome browser must be installed
+# JARVIS will auto-download ChromeDriver
+```
+
 ### Issue: "VLC player not found" (for movies)
 ```bash
 # Windows
@@ -352,9 +392,9 @@ JARVIS/
 │   ├── voice.py               # Speech recognition
 │   └── registry.py            # Skill management
 ├── skill/
-│   ├── web_ops.py             # YouTube auto-music
+│   ├── web_ops.py             # YouTube auto-play with Selenium
 │   ├── movie_downloader.py    # Movie download & play
-│   ├── music_ops.py           # Trending music player
+│   ├── music_ops.py           # Trending music player with auto-play
 │   ├── system_ops.py          # System control
 │   └── [18+ other skills]
 ├── main.py                    # Auto-install + Entry point
@@ -387,6 +427,7 @@ python main.py  # Auto-installs any new dependencies
 - Python 3.8+
 - 4GB RAM
 - 5GB disk space (for Ollama model)
+- Chrome browser (for auto-play feature)
 - Internet connection
 
 ### **Recommended**
@@ -410,12 +451,14 @@ python main.py  # Auto-installs any new dependencies
 4. **Mix Languages** - Hindi, English, Hinglish - sab chalega!
 5. **First Run** - Takes 2-5 minutes (downloads model + packages)
 6. **Subsequent Runs** - Starts in seconds
+7. **Auto-Play** - Just say "YouTube kholo" and music starts automatically!
 
 ---
 
 ## ✅ Quick Checklist
 
 - [ ] Ollama installed
+- [ ] Chrome browser installed (for auto-play)
 - [ ] Repository cloned
 - [ ] Run `python main.py`
 - [ ] Wait for auto-install (first time only)
@@ -433,7 +476,7 @@ You'll know JARVIS is ready when you see:
 ✅ llama3.2 model found
 ✅ Startup checks complete!
 
-🤖 JARVIS - Your Autonomous AI Assistant
+🤖 JARVIS - Your Personal AI Assistant
 ======================================================================
 ✅ Loaded 8 skills
 ✅ JARVIS ready!
@@ -462,7 +505,7 @@ MIT License - Free to use and modify!
 ## 🙏 Credits
 
 - **Ollama** - Local LLM
-- **Selenium** - Web automation
+- **Selenium** - Web automation & auto-play
 - **PyWhatKit** - YouTube integration
 - **BeautifulSoup** - Web scraping
 
@@ -470,4 +513,4 @@ MIT License - Free to use and modify!
 
 **Made with ❤️ by the JARVIS community**
 
-**Bilkul insaan ki tarah baat karo, JARVIS samajh jayega!** 🚀
+**Bilkul insaan ki tarah baat karo, JARVIS samajh jayega aur music bhi automatically play kar dega!** 🚀🎵

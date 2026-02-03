@@ -3,6 +3,7 @@
 > **"Main sirf assist nahi karta. Main samajhta hoon, yaad rakhta hoon, aur bilkul insaan ki tarah baat karta hoon."**
 
 JARVIS is an **intelligent personal AI assistant** that behaves like a real human:
+- ✅ **🎤 VOICE MODE** - Talk naturally, no typing needed! Just say "Jarvis" and speak!
 - ✅ **NATURAL CONVERSATIONS** - Talks like a real person, not a robot!
 - ✅ **EMOTION DETECTION** - Understands if you're happy, frustrated, or excited
 - ✅ **CONTEXT MEMORY** - Remembers previous conversations and tasks
@@ -18,7 +19,49 @@ JARVIS is an **intelligent personal AI assistant** that behaves like a real huma
 
 ## 💬 Natural Conversation Examples
 
-### **Example 1: Just Like Talking to a Friend**
+### **Example 1: Voice Mode - Just Talk! 🎤**
+
+```
+🎤 You: "Jarvis, gaana bajao"
+
+🔊 JARVIS: "Playing trending song for you! Opening YouTube with auto-play..."
+          [YouTube opens and music starts playing automatically]
+          "Done! What else can I do for you?"
+
+🎤 You: "volume badhao"
+
+🔊 JARVIS: "Done! Anything else?"
+
+🎤 You: "thanks!"
+
+🔊 JARVIS: "You're welcome! Happy to help!"
+```
+
+**No typing needed! Just talk naturally like you're talking to a friend!** 🗣️
+
+### **Example 2: Opens ANY Windows Application**
+
+```
+🎤 You: "Jarvis, this pc kholo"
+
+🔊 JARVIS: "Opening This PC. Done!"
+
+🎤 You: "control panel kholo"
+
+🔊 JARVIS: "Opening Control Panel. Done!"
+
+🎤 You: "vlc kholo"
+
+🔊 JARVIS: "Opening VLC Media Player. Done!"
+
+🎤 You: "word kholo"
+
+🔊 JARVIS: "Opening Microsoft Word. Done!"
+```
+
+### **Example 3: Text Mode (Alternative)**
+
+If you prefer typing:
 
 ```
 👤 You: hello jarvis
@@ -30,8 +73,6 @@ JARVIS is an **intelligent personal AI assistant** that behaves like a real huma
 🤖 JARVIS: 🎵 Playing trending song for you!
           
           🎬 Opening YouTube with auto-play...
-          ⏳ Waiting for videos to load...
-          ✅ Found video, clicking to play...
           ✅ YouTube opened and playing!
           
           😊 Glad I could help! Anything else?
@@ -39,65 +80,34 @@ JARVIS is an **intelligent personal AI assistant** that behaves like a real huma
 👤 You: volume badhao
 
 🤖 JARVIS: ✅ Done! What else can I do for you?
-
-👤 You: thanks!
-
-🤖 JARVIS: You're welcome! Happy to help! 😊
 ```
 
-### **Example 2: Opens ANY Windows Application**
+### **Example 4: Understands Your Emotions**
 
 ```
-👤 You: this pc kholo
+🎤 You: "Jarvis, this is not working properly"
 
-🤖 JARVIS: 🔧 Opening system tool: This PC
-          ✅ Opened successfully!
-
-👤 You: control panel kholo
-
-🤖 JARVIS: 🔧 Opening system tool: Control Panel
-          ✅ Opened successfully!
-
-👤 You: vlc kholo
-
-🤖 JARVIS: ✅ Found: C:\Program Files\VideoLAN\VLC\vlc.exe
-          ✅ Opened successfully!
-
-👤 You: word kholo
-
-🤖 JARVIS: ✅ Found: C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE
-          ✅ Opened successfully!
-```
-
-### **Example 3: Understands Your Emotions**
-
-```
-👤 You: this is not working properly
-
-🤖 JARVIS: I understand your frustration. Let me try to fix this.
+🔊 JARVIS: "I understand your frustration. Let me try to fix this."
           [Attempts fix]
-          I hope this helps! Let me know if you need anything else.
+          "I hope this helps! Let me know if you need anything else."
 
-👤 You: perfect! that worked
+🎤 You: "perfect! that worked"
 
-🤖 JARVIS: I'm glad I could help! 😊
+🔊 JARVIS: "I'm glad I could help!"
 ```
 
-### **Example 4: Remembers Context**
+### **Example 5: Remembers Context**
 
 ```
-👤 You: youtube kholo
+🎤 You: "Jarvis, youtube kholo"
 
-🤖 JARVIS: 🎵 Playing trending song: Kesariya
-          
-          🎬 Opening YouTube with auto-play...
-          ✅ YouTube opened and playing!
-          
-          Done! What else can I do for you?
+🔊 JARVIS: "Playing trending song: Kesariya. Opening YouTube with auto-play..."
+          [YouTube opens and plays]
+          "Done! What else can I do for you?"
 
-👤 You: uska volume kam karo
+🎤 You: "uska volume kam karo"
 
-🤖 JARVIS: ✅ Done! Anything else?
+🔊 JARVIS: "Done! Anything else?"
           [Knows "uska" = YouTube video]
 ```
 
@@ -140,6 +150,7 @@ JARVIS automatically:
 - ✅ Installs missing packages from requirements.txt
 - ✅ Downloads Ollama model (llama3.2) if needed
 - ✅ Creates .env configuration file
+- ✅ Asks if you want Voice Mode or Text Mode
 - ✅ Starts running!
 
 **First run takes 2-5 minutes** (downloads model + installs packages)  
@@ -149,7 +160,45 @@ JARVIS automatically:
 
 ## 🎯 What Makes JARVIS Special?
 
-### **1. 🗣️ Natural Conversations (Like a Real Person!)**
+### **1. 🎤 Voice Mode - Talk Naturally!**
+
+**No typing needed!** Just talk to JARVIS like you're talking to a friend:
+
+```
+🎙️  Choose Mode:
+1. 🎤 Voice Mode (Recommended) - Talk naturally
+2. ⌨️  Text Mode - Type commands
+
+Enter choice (1 or 2, default=1): 1
+
+🎤 Voice Mode Activated
+
+💬 How to use:
+   1. Say 'Jarvis' to activate
+   2. Then give your command
+   3. JARVIS will respond with voice
+
+💡 Examples:
+   • 'Jarvis, gaana bajao'
+   • 'Jarvis, youtube kholo'
+   • 'Jarvis, volume badhao'
+```
+
+**Features:**
+- ✅ **Wake Word Detection** - Say "Jarvis" to activate
+- ✅ **Continuous Mode** - After wake word, no need to repeat "Jarvis" for 30 seconds
+- ✅ **Hindi + English Support** - Speak in Hindi, English, or Hinglish
+- ✅ **Natural Voice Response** - JARVIS speaks back to you
+- ✅ **Emotion Detection** - Understands your tone and mood
+
+**How it works:**
+1. Say **"Jarvis"** (wake word)
+2. JARVIS activates and says "I'm listening"
+3. Give your command (no need to say "Jarvis" again for 30 seconds)
+4. JARVIS responds with voice
+5. Continue conversation naturally!
+
+### **2. 🗣️ Natural Conversations (Like a Real Person!)**
 
 JARVIS doesn't talk like a robot. It understands context, emotions, and speaks naturally:
 
@@ -163,59 +212,59 @@ JARVIS doesn't talk like a robot. It understands context, emotions, and speaks n
 ✅ "Done! Anything else I can help with? 😊"
 ```
 
-### **2. 🖥️ Opens ANY Windows Application (50+ Apps!)**
+### **3. 🖥️ Opens ANY Windows Application (50+ Apps!)**
 
 Just say the app name and JARVIS opens it instantly! No need to search or click:
 
 #### **System Tools & Settings**
 ```
-👤 You: this pc kholo          → Opens This PC (My Computer)
-👤 You: control panel kholo    → Opens Control Panel
-👤 You: settings kholo         → Opens Windows Settings
-👤 You: task manager kholo     → Opens Task Manager
-👤 You: device manager kholo   → Opens Device Manager
-👤 You: disk management kholo  → Opens Disk Management
-👤 You: registry editor kholo  → Opens Registry Editor
-👤 You: services kholo         → Opens Services
-👤 You: event viewer kholo     → Opens Event Viewer
+🎤 You: "Jarvis, this pc kholo"          → Opens This PC (My Computer)
+🎤 You: "Jarvis, control panel kholo"    → Opens Control Panel
+🎤 You: "Jarvis, settings kholo"         → Opens Windows Settings
+🎤 You: "Jarvis, task manager kholo"     → Opens Task Manager
+🎤 You: "Jarvis, device manager kholo"   → Opens Device Manager
+🎤 You: "Jarvis, disk management kholo"  → Opens Disk Management
+🎤 You: "Jarvis, registry editor kholo"  → Opens Registry Editor
+🎤 You: "Jarvis, services kholo"         → Opens Services
+🎤 You: "Jarvis, event viewer kholo"     → Opens Event Viewer
 ```
 
 #### **Office Applications**
 ```
-👤 You: word kholo             → Opens Microsoft Word
-👤 You: excel kholo            → Opens Microsoft Excel
-👤 You: powerpoint kholo       → Opens PowerPoint
-👤 You: outlook kholo          → Opens Outlook
+🎤 You: "Jarvis, word kholo"             → Opens Microsoft Word
+🎤 You: "Jarvis, excel kholo"            → Opens Microsoft Excel
+🎤 You: "Jarvis, powerpoint kholo"       → Opens PowerPoint
+🎤 You: "Jarvis, outlook kholo"          → Opens Outlook
 ```
 
 #### **Media & Entertainment**
 ```
-👤 You: vlc kholo              → Opens VLC Media Player
-👤 You: spotify kholo          → Opens Spotify
-👤 You: steam kholo            → Opens Steam
+🎤 You: "Jarvis, vlc kholo"              → Opens VLC Media Player
+🎤 You: "Jarvis, spotify kholo"          → Opens Spotify
+🎤 You: "Jarvis, steam kholo"            → Opens Steam
 ```
 
 #### **Browsers & Communication**
 ```
-👤 You: chrome kholo           → Opens Google Chrome
-👤 You: firefox kholo          → Opens Firefox
-👤 You: edge kholo             → Opens Microsoft Edge
-👤 You: discord kholo          → Opens Discord
+🎤 You: "Jarvis, chrome kholo"           → Opens Google Chrome
+🎤 You: "Jarvis, firefox kholo"          → Opens Firefox
+🎤 You: "Jarvis, edge kholo"             → Opens Microsoft Edge
+🎤 You: "Jarvis, discord kholo"          → Opens Discord
 ```
 
 #### **Development Tools**
 ```
-👤 You: vscode kholo           → Opens Visual Studio Code
-👤 You: cmd kholo              → Opens Command Prompt
-👤 You: powershell kholo       → Opens PowerShell
+🎤 You: "Jarvis, vscode kholo"           → Opens Visual Studio Code
+🎤 You: "Jarvis, cmd kholo"              → Opens Command Prompt
+🎤 You: "Jarvis, powershell kholo"       → Opens PowerShell
 ```
 
 #### **Utilities**
 ```
-👤 You: notepad kholo          → Opens Notepad
-👤 You: calculator kholo       → Opens Calculator
-👤 You: paint kholo            → Opens Paint
-👤 You: snipping tool kholo    → Opens Snipping Tool
+🎤 You: "Jarvis, notepad kholo"          → Opens Notepad
+🎤 You: "Jarvis, calculator kholo"       → Opens Calculator
+🎤 You: "Jarvis, paint kholo"            → Opens Paint
+🎤 You: "Jarvis, snipping tool kholo"    → Opens Snipping Tool
 ```
 
 **And many more!** JARVIS can open:
@@ -233,7 +282,7 @@ Just say the app name and JARVIS opens it instantly! No need to search or click:
 3. 🔍 Uses Windows shell commands for system tools
 4. ✅ Opens the app automatically!
 
-### **3. 🎵 AUTO-PLAY Music (No Manual Clicking!)**
+### **4. 🎵 AUTO-PLAY Music (No Manual Clicking!)**
 
 Just say "YouTube kholo" or "gaana bajao" and JARVIS:
 1. ✅ Fetches trending songs from YouTube
@@ -244,17 +293,14 @@ Just say "YouTube kholo" or "gaana bajao" and JARVIS:
 **No more manual clicking!** JARVIS does everything automatically! 🚀
 
 ```
-👤 You: youtube kholo
+🎤 You: "Jarvis, youtube kholo"
 
-🤖 JARVIS: 🎵 No specific song requested, playing trending music...
-          🎵 Found trending: Tauba Tauba Bad Newz
-          🎬 Opening YouTube with auto-play...
-          ⏳ Waiting for videos to load...
-          ✅ Found video, clicking to play...
-          ✅ YouTube opened and playing!
+🔊 JARVIS: "Playing trending song: Tauba Tauba Bad Newz. Opening YouTube with auto-play..."
+          [YouTube opens and music starts playing]
+          "Done! What else can I do for you?"
 ```
 
-### **4. 😊 Emotion Detection**
+### **5. 😊 Emotion Detection**
 
 JARVIS detects your mood and responds appropriately:
 
@@ -263,53 +309,59 @@ JARVIS detects your mood and responds appropriately:
 - **Excited** → "That's awesome! 🎉"
 - **Neutral** → "Sure, I'm on it."
 
-### **5. 🧠 Context Memory**
+### **6. 🧠 Context Memory**
 
 Remembers previous tasks and conversations:
 
 ```
-👤 You: play Kesariya on youtube
-🤖 JARVIS: [Plays Kesariya]
+🎤 You: "Jarvis, play Kesariya on youtube"
+🔊 JARVIS: [Plays Kesariya]
 
-👤 You: uska volume badhao
-🤖 JARVIS: [Increases volume - knows "uska" = YouTube]
+🎤 You: "uska volume badhao"
+🔊 JARVIS: [Increases volume - knows "uska" = YouTube]
 
-👤 You: screenshot lo
-🤖 JARVIS: [Takes screenshot]
+🎤 You: "screenshot lo"
+🔊 JARVIS: [Takes screenshot]
 
-👤 You: woh movie download karo
-🤖 JARVIS: [Remembers which movie you mentioned earlier]
+🎤 You: "woh movie download karo"
+🔊 JARVIS: [Remembers which movie you mentioned earlier]
 ```
 
-### **6. 🎬 Smart Movie Downloader**
+### **7. 🎬 Smart Movie Downloader**
 
 Download and play movies with one command:
 
 ```
-👤 You: vegamovies se Inception download karo
+🎤 You: "Jarvis, vegamovies se Inception download karo"
 
-🤖 JARVIS: 🎬 Downloading Inception. I'll let you know when it's ready!
+🔊 JARVIS: "Downloading Inception. I'll let you know when it's ready!"
           [Downloads and opens in VLC automatically]
 ```
 
-### **7. 🌐 Multi-language (Hinglish!)**
+### **8. 🌐 Multi-language (Hinglish!)**
 
 Speak naturally in Hindi, English, or mixed:
 
 ```
-👤 You: bhai youtube pe latest song bajao
+🎤 You: "Jarvis, bhai youtube pe latest song bajao"
 
-🤖 JARVIS: 🎵 Playing latest song for you!
-          
-          🎬 Opening YouTube with auto-play...
-          ✅ YouTube opened and playing!
-          
-          Done! Aur kya chahiye?
+🔊 JARVIS: "Playing latest song for you! Opening YouTube with auto-play..."
+          [YouTube opens and plays]
+          "Done! Aur kya chahiye?"
 ```
 
 ---
 
 ## 🌟 Key Features
+
+### **🎤 Voice Mode (Primary Feature)**
+- **Wake Word Detection** - Say "Jarvis" to activate
+- **Continuous Listening** - No need to repeat wake word for 30 seconds
+- **Hindi + English Support** - Speak in any language
+- **Natural Voice Response** - JARVIS speaks back to you
+- **Emotion Detection** - Understands your tone
+- **Context Awareness** - Remembers conversation
+- **No Typing Needed** - Just talk naturally!
 
 ### **🔧 Auto-Install Everything**
 - **Zero Manual Setup** - No pip install commands needed!
@@ -365,7 +417,29 @@ Speak naturally in Hindi, English, or mixed:
 
 ## 💬 Usage Examples
 
-### **Natural Conversation**
+### **Voice Mode (Recommended) 🎤**
+```
+🎤 You: "Jarvis, hello"
+🔊 JARVIS: "Hello! How can I help you today?"
+
+🎤 You: "gaana bajao"
+🔊 JARVIS: "Playing trending song for you!"
+          [Auto-plays music on YouTube]
+
+🎤 You: "this pc kholo"
+🔊 JARVIS: "Opening This PC. Done!"
+
+🎤 You: "vlc kholo"
+🔊 JARVIS: "Opening VLC Media Player. Done!"
+
+🎤 You: "volume badhao"
+🔊 JARVIS: "Done! Anything else?"
+
+🎤 You: "thanks"
+🔊 JARVIS: "You're welcome! Happy to help!"
+```
+
+### **Text Mode (Alternative) ⌨️**
 ```
 👤 You: hello jarvis
 🤖 JARVIS: Hello! How can I help you today?
@@ -386,68 +460,60 @@ Speak naturally in Hindi, English, or mixed:
 
 ### **Opening Windows Applications**
 ```
-👤 You: this pc kholo
-🤖 JARVIS: 🔧 Opening system tool: This PC
-          ✅ Opened successfully!
+🎤 You: "Jarvis, this pc kholo"
+🔊 JARVIS: "Opening This PC. Done!"
 
-👤 You: control panel kholo
-🤖 JARVIS: 🔧 Opening system tool: Control Panel
-          ✅ Opened successfully!
+🎤 You: "control panel kholo"
+🔊 JARVIS: "Opening Control Panel. Done!"
 
-👤 You: vlc kholo
-🤖 JARVIS: ✅ Found: C:\Program Files\VideoLAN\VLC\vlc.exe
-          ✅ Opened successfully!
+🎤 You: "vlc kholo"
+🔊 JARVIS: "Opening VLC Media Player. Done!"
 
-👤 You: word kholo
-🤖 JARVIS: ✅ Found: C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE
-          ✅ Opened successfully!
+🎤 You: "word kholo"
+🔊 JARVIS: "Opening Microsoft Word. Done!"
 
-👤 You: task manager kholo
-🤖 JARVIS: 🔧 Opening system tool: Task Manager
-          ✅ Opened successfully!
+🎤 You: "task manager kholo"
+🔊 JARVIS: "Opening Task Manager. Done!"
 
-👤 You: settings kholo
-🤖 JARVIS: 🔧 Opening system tool: Settings
-          ✅ Opened successfully!
+🎤 You: "settings kholo"
+🔊 JARVIS: "Opening Windows Settings. Done!"
 ```
 
 ### **YouTube & Music (AUTO-PLAY!)**
 ```
-👤 You: youtube kholo
-🤖 JARVIS: 🎵 Playing trending song: Tauba Tauba Bad Newz
-          🎬 Opening YouTube with auto-play...
-          ✅ YouTube opened and playing!
+🎤 You: "Jarvis, youtube kholo"
+🔊 JARVIS: "Playing trending song: Tauba Tauba Bad Newz. Opening YouTube with auto-play..."
+          [YouTube opens and plays]
 
-👤 You: play Kesariya
-🤖 JARVIS: 🎵 Playing: Kesariya
-          🎬 Opening YouTube with auto-play...
-          ✅ YouTube opened and playing!
+🎤 You: "play Kesariya"
+🔊 JARVIS: "Playing Kesariya. Opening YouTube with auto-play..."
+          [YouTube opens and plays]
 
-👤 You: latest song bajao
-🤖 JARVIS: 🎵 Playing: Satranga Animal
+🎤 You: "latest song bajao"
+🔊 JARVIS: "Playing Satranga Animal..."
           [Auto-plays automatically!]
 ```
 
 ### **Movie Download**
 ```
-👤 You: vegamovies se Inception download karo
-🤖 JARVIS: 🎬 Downloading Inception. I'll let you know when it's ready!
+🎤 You: "Jarvis, vegamovies se Inception download karo"
+🔊 JARVIS: "Downloading Inception. I'll let you know when it's ready!"
           [Downloads and plays in VLC]
 
-👤 You: Avatar 1080p quality mein download karo
-🤖 JARVIS: [Downloads Avatar in 1080p]
+🎤 You: "Avatar 1080p quality mein download karo"
+🔊 JARVIS: [Downloads Avatar in 1080p]
 ```
 
 ### **Follow-up Commands**
 ```
-👤 You: youtube kholo
-🤖 JARVIS: [Opens YouTube with trending song auto-playing]
+🎤 You: "Jarvis, youtube kholo"
+🔊 JARVIS: [Opens YouTube with trending song auto-playing]
 
-👤 You: uska volume badhao
-🤖 JARVIS: ✅ Done!
+🎤 You: "uska volume badhao"
+🔊 JARVIS: "Done!"
 
-👤 You: screenshot lo
-🤖 JARVIS: 📸 Screenshot saved!
+🎤 You: "screenshot lo"
+🔊 JARVIS: "Screenshot saved!"
 ```
 
 ---
@@ -464,11 +530,13 @@ When you run `python main.py`, JARVIS automatically installs:
 - ✅ `requests` - HTTP requests
 - ✅ `pywhatkit` - YouTube automation
 - ✅ `python-dotenv` - Environment variables
+- ✅ `SpeechRecognition` - Voice input (for Voice Mode!)
+- ✅ `pyttsx3` - Text-to-speech (for Voice Mode!)
 
 ### Optional Packages
-- ⚠️ `SpeechRecognition` - Voice input (optional)
-- ⚠️ `pyttsx3` - Text-to-speech (optional)
 - ⚠️ `PyQt5` - GUI (optional)
+- ⚠️ `opencv-python` - Computer vision (optional)
+- ⚠️ `pyautogui` - Screen automation (optional)
 
 ---
 
@@ -501,6 +569,18 @@ pip install selenium webdriver-manager
 # JARVIS will auto-download ChromeDriver
 ```
 
+### Issue: "Voice mode not working"
+```bash
+# Make sure microphone is connected
+# Check microphone permissions in Windows Settings
+
+# Install voice packages manually if needed
+pip install SpeechRecognition pyttsx3
+
+# Test microphone
+python -c "import speech_recognition as sr; print('Mic test:', sr.Microphone.list_microphone_names())"
+```
+
 ### Issue: "VLC player not found" (for movies)
 ```bash
 # Windows
@@ -529,8 +609,8 @@ JARVIS/
 ├── core/
 │   ├── engine.py              # Ollama LLM + Personal Assistant
 │   ├── personal_assistant.py  # Natural conversation & emotion detection
+│   ├── voice.py               # Voice input/output (Speech Recognition + TTS)
 │   ├── self_healing.py        # Autonomous error fixing
-│   ├── voice.py               # Speech recognition
 │   └── registry.py            # Skill management
 ├── skill/
 │   ├── system_ops.py          # Windows app opener (50+ apps!)
@@ -539,7 +619,7 @@ JARVIS/
 │   ├── music_ops.py           # Trending music player with auto-play
 │   ├── system_ops.py          # System control
 │   └── [18+ other skills]
-├── main.py                    # Auto-install + Entry point
+├── main.py                    # Auto-install + Voice/Text Mode + Entry point
 └── requirements.txt           # All dependencies
 ```
 
@@ -570,6 +650,7 @@ python main.py  # Auto-installs any new dependencies
 - 4GB RAM
 - 5GB disk space (for Ollama model)
 - Chrome browser (for auto-play feature)
+- Microphone (for Voice Mode)
 - Internet connection
 
 ### **Recommended**
@@ -577,6 +658,7 @@ python main.py  # Auto-installs any new dependencies
 - 8GB RAM
 - 10GB disk space
 - Good internet (for trending music & downloads)
+- Quality microphone (for better voice recognition)
 
 ### **Supported Platforms**
 - ✅ Windows 10/11
@@ -587,14 +669,16 @@ python main.py  # Auto-installs any new dependencies
 
 ## 💡 Pro Tips
 
-1. **Talk Naturally** - JARVIS understands natural language, no need for commands
-2. **Use Follow-ups** - "usko volume badhao" works after "youtube kholo"
-3. **Express Emotions** - JARVIS responds empathetically
-4. **Mix Languages** - Hindi, English, Hinglish - sab chalega!
-5. **First Run** - Takes 2-5 minutes (downloads model + packages)
-6. **Subsequent Runs** - Starts in seconds
-7. **Auto-Play** - Just say "YouTube kholo" and music starts automatically!
-8. **Open Any App** - Just say the app name: "VLC kholo", "Word kholo", "This PC kholo"
+1. **Use Voice Mode** - Much more natural than typing! Just say "Jarvis" and talk
+2. **Continuous Mode** - After saying "Jarvis" once, no need to repeat for 30 seconds
+3. **Talk Naturally** - JARVIS understands natural language, no need for commands
+4. **Use Follow-ups** - "usko volume badhao" works after "youtube kholo"
+5. **Express Emotions** - JARVIS responds empathetically
+6. **Mix Languages** - Hindi, English, Hinglish - sab chalega!
+7. **First Run** - Takes 2-5 minutes (downloads model + packages)
+8. **Subsequent Runs** - Starts in seconds
+9. **Auto-Play** - Just say "YouTube kholo" and music starts automatically!
+10. **Open Any App** - Just say the app name: "VLC kholo", "Word kholo", "This PC kholo"
 
 ---
 
@@ -602,10 +686,12 @@ python main.py  # Auto-installs any new dependencies
 
 - [ ] Ollama installed
 - [ ] Chrome browser installed (for auto-play)
+- [ ] Microphone connected (for Voice Mode)
 - [ ] Repository cloned
 - [ ] Run `python main.py`
+- [ ] Choose Voice Mode (option 1)
 - [ ] Wait for auto-install (first time only)
-- [ ] Start talking naturally!
+- [ ] Say "Jarvis" and start talking!
 
 ---
 
@@ -621,10 +707,17 @@ You'll know JARVIS is ready when you see:
 
 🤖 JARVIS - Your Personal AI Assistant
 ======================================================================
-✅ Loaded 8 skills
+✅ Loaded 19 skills
 ✅ JARVIS ready!
 
-🎤 JARVIS is listening...
+🎙️  Choose Mode:
+1. 🎤 Voice Mode (Recommended) - Talk naturally
+2. ⌨️  Text Mode - Type commands
+
+Enter choice (1 or 2, default=1): 1
+
+🎤 Voice Mode Activated
+Say 'Jarvis' to activate...
 ```
 
 ---
@@ -636,6 +729,7 @@ Contributions welcome! Feel free to:
 - Improve conversation intelligence
 - Enhance emotion detection
 - Add more features
+- Improve voice recognition
 
 ---
 
@@ -651,9 +745,11 @@ MIT License - Free to use and modify!
 - **Selenium** - Web automation & auto-play
 - **PyWhatKit** - YouTube integration
 - **BeautifulSoup** - Web scraping
+- **SpeechRecognition** - Voice input
+- **pyttsx3** - Text-to-speech
 
 ---
 
 **Made with ❤️ by the JARVIS community**
 
-**Bilkul insaan ki tarah baat karo, JARVIS samajh jayega! Koi bhi Windows app khol sakta hai aur music bhi automatically play kar dega!** 🚀🎵🖥️
+**Bas "Jarvis" bolo aur baat karo! Koi bhi Windows app khol sakta hai aur music bhi automatically play kar dega! Ab typing ki zarurat nahi!** 🚀🎵🖥️🎤

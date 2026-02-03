@@ -11,6 +11,7 @@ try:
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.webdriver.chrome.options import Options
     from selenium.webdriver.chrome.service import Service
+    from selenium.webdriver.common.keys import Keys
     SELENIUM_AVAILABLE = True
 except ImportError:
     SELENIUM_AVAILABLE = False
@@ -52,13 +53,14 @@ class YouTubePlayerSkill(Skill):
                 "type": "function",
                 "function": {
                     "name": "play_youtube_video",
-                    "description": "Play a specific video on YouTube with AUTO-PLAY (no manual clicking needed). Use this when user says 'youtube kholo', 'gaana bajao', 'play song', 'video chalao', etc. Automatically clicks play button using Selenium.",
+                    "description": "Play a specific video on YouTube with AUTO-PLAY (no manual clicking needed). Use this when user says 'youtube kholo', 'gaana bajao', 'play song', 'video chalao', 'music bajao', etc. Automatically clicks play button using Selenium.",
                     "parameters": { 
                         "type": "object", 
                         "properties": { 
                             "query": {
                                 "type": "string",
-                                "description": "Song name or video to search and play. Examples: 'Kesariya', 'Tauba Tauba', 'trending song', 'latest hindi song'. If empty, plays trending song."
+                                "description": "Song name or video to search and play. Examples: 'Kesariya', 'Tauba Tauba', 'trending song', 'latest hindi song'. If empty, plays trending song.",
+                                "default": ""
                             },
                             "autoplay": {
                                 "type": "boolean",
@@ -117,6 +119,8 @@ class YouTubePlayerSkill(Skill):
             return None
         
         try:
+            print("🔧 Setting up Chrome driver...")
+            
             # Chrome options for better performance
             chrome_options = Options()
             chrome_options.add_argument("--start-maximized")
@@ -126,43 +130,55 @@ class YouTubePlayerSkill(Skill):
             
             # Disable notifications
             prefs = {
-                "profile.default_content_setting_values.notifications": 2
+                "profile.default_content_setting_values.notifications": 2,
+                "profile.default_content_setting_values.media_stream_mic": 1,
+                "profile.default_content_setting_values.media_stream_camera": 1
             }
             chrome_options.add_experimental_option("prefs", prefs)
             
             # Create driver
+            print("🚀 Launching Chrome...")
             driver = webdriver.Chrome(options=chrome_options)
             
             # Remove webdriver flag
             driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
             
+            print("✅ Chrome driver ready!")
             return driver
             
         except Exception as e:
             print(f"❌ Failed to setup Chrome driver: {e}")
-            print("💡 Make sure Chrome and ChromeDriver are installed")
+            print("💡 Make sure Chrome browser is installed")
+            print("💡 ChromeDriver will be auto-downloaded by Selenium")
             return None
 
-    def _click_play_button(self, driver, max_wait=10):
+    def _click_play_button(self, driver, max_wait=15):
         """
         Automatically click the play button on YouTube video
+        Uses multiple methods to ensure video plays
         """
         try:
             print("🎬 Waiting for video to load...")
             
             # Wait for page to load
-            time.sleep(3)
+            time.sleep(4)
+            
+            print("🔍 Attempting auto-play...")
             
             # Method 1: Click on video player to play
             try:
-                print("🖱️  Attempting to click video player...")
+                print("  📍 Method 1: Clicking video player...")
                 video_player = WebDriverWait(driver, max_wait).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, "video.html5-main-video"))
                 )
                 
+                # Scroll to video
+                driver.execute_script("arguments[0].scrollIntoView(true);", video_player)
+                time.sleep(1)
+                
                 # Click video to play
                 driver.execute_script("arguments[0].click();", video_player)
-                print("✅ Video clicked! Should start playing...")
+                print("  ✅ Video player clicked!")
                 time.sleep(2)
                 
                 # Check if playing
@@ -171,20 +187,35 @@ class YouTubePlayerSkill(Skill):
                 )
                 
                 if is_playing:
-                    print("✅ Video is playing!")
+                    print("  ✅ SUCCESS! Video is playing!")
                     return True
-                else:
-                    print("⚠️  Video not playing, trying play button...")
                     
             except Exception as e:
-                print(f"⚠️  Video click failed: {e}")
+                print(f"  ⚠️  Method 1 failed: {e}")
             
-            # Method 2: Click play button if video is paused
+            # Method 2: Use JavaScript to play video directly
             try:
-                print("🖱️  Looking for play button...")
+                print("  📍 Method 2: JavaScript play command...")
+                driver.execute_script(
+                    "document.querySelector('video.html5-main-video').play();"
+                )
+                time.sleep(2)
                 
-                # Try to find and click play button
-                play_button = driver.find_element(By.CSS_SELECTOR, "button.ytp-play-button")
+                # Check if playing
+                is_playing = driver.execute_script(
+                    "return document.querySelector('video.html5-main-video').paused === false"
+                )
+                
+                if is_playing:
+                    print("  ✅ SUCCESS! Video is playing via JavaScript!")
+                    return True
+                    
+            except Exception as e:
+                print(f"  ⚠️  Method 2 failed: {e}")
+            
+            # Method 3: Click play button if video is paused
+            try:
+                print("  📍 Method 3: Clicking play button...")
                 
                 # Check if video is paused
                 is_paused = driver.execute_script(
@@ -192,45 +223,59 @@ class YouTubePlayerSkill(Skill):
                 )
                 
                 if is_paused:
-                    print("▶️  Clicking play button...")
+                    # Find and click play button
+                    play_button = driver.find_element(By.CSS_SELECTOR, "button.ytp-play-button")
                     play_button.click()
-                    time.sleep(1)
-                    print("✅ Play button clicked!")
+                    time.sleep(2)
+                    print("  ✅ SUCCESS! Play button clicked!")
                     return True
                 else:
-                    print("✅ Video already playing!")
+                    print("  ✅ SUCCESS! Video already playing!")
                     return True
                     
             except Exception as e:
-                print(f"⚠️  Play button click failed: {e}")
-            
-            # Method 3: Use JavaScript to play video
-            try:
-                print("🎮 Using JavaScript to play video...")
-                driver.execute_script(
-                    "document.querySelector('video.html5-main-video').play();"
-                )
-                time.sleep(1)
-                print("✅ Video started via JavaScript!")
-                return True
-                
-            except Exception as e:
-                print(f"⚠️  JavaScript play failed: {e}")
+                print(f"  ⚠️  Method 3 failed: {e}")
             
             # Method 4: Press spacebar to play
             try:
-                print("⌨️  Pressing spacebar to play...")
-                from selenium.webdriver.common.keys import Keys
+                print("  📍 Method 4: Pressing spacebar...")
                 video_player = driver.find_element(By.CSS_SELECTOR, "video.html5-main-video")
                 video_player.send_keys(Keys.SPACE)
-                time.sleep(1)
-                print("✅ Spacebar pressed!")
-                return True
+                time.sleep(2)
                 
+                # Check if playing
+                is_playing = driver.execute_script(
+                    "return document.querySelector('video.html5-main-video').paused === false"
+                )
+                
+                if is_playing:
+                    print("  ✅ SUCCESS! Video playing after spacebar!")
+                    return True
+                    
             except Exception as e:
-                print(f"⚠️  Spacebar method failed: {e}")
+                print(f"  ⚠️  Method 4 failed: {e}")
             
-            print("⚠️  All auto-play methods failed. Video opened but not playing.")
+            # Method 5: Click anywhere on player
+            try:
+                print("  📍 Method 5: Clicking player container...")
+                player = driver.find_element(By.ID, "movie_player")
+                player.click()
+                time.sleep(2)
+                
+                # Check if playing
+                is_playing = driver.execute_script(
+                    "return document.querySelector('video.html5-main-video').paused === false"
+                )
+                
+                if is_playing:
+                    print("  ✅ SUCCESS! Video playing after container click!")
+                    return True
+                    
+            except Exception as e:
+                print(f"  ⚠️  Method 5 failed: {e}")
+            
+            print("  ⚠️  All auto-play methods failed.")
+            print("  💡 Video opened but may need manual play button click.")
             return False
             
         except Exception as e:
@@ -276,6 +321,7 @@ class YouTubePlayerSkill(Skill):
             driver = self._setup_driver()
             if not driver:
                 # Fallback to browser
+                print("⚠️  Falling back to browser...")
                 webbrowser.open(youtube_url)
                 return {
                     "success": True,
@@ -284,17 +330,20 @@ class YouTubePlayerSkill(Skill):
                     "autoplay": False
                 }
             
+            # Store driver for later cleanup
+            self.driver = driver
+            
             # Open YouTube search
             print(f"🌐 Opening: {youtube_url}")
             driver.get(youtube_url)
             
             # Wait for search results
             print("⏳ Waiting for search results...")
-            time.sleep(3)
+            time.sleep(4)
             
             # Click first video
             try:
-                print("🖱️  Clicking first video...")
+                print("🖱️  Looking for first video...")
                 
                 # Find first video thumbnail
                 first_video = WebDriverWait(driver, 10).until(
@@ -316,27 +365,28 @@ class YouTubePlayerSkill(Skill):
                         print("\n" + "="*60)
                         print("✅ SUCCESS! Video is playing!")
                         print("="*60)
-                        
-                        # Keep browser open
                         print("\n💡 Browser will stay open. Close manually when done.")
+                        print("💡 Press Ctrl+C in terminal to stop JARVIS.\n")
                         
                         return {
                             "success": True,
-                            "message": f"Playing: {video_title}",
+                            "message": f"✅ Playing: {video_title}",
                             "query": query,
                             "video_title": video_title,
-                            "autoplay": True
+                            "autoplay": True,
+                            "note": "Video is auto-playing! Browser will stay open."
                         }
                     else:
                         print("\n⚠️  Auto-play failed. Video opened but not playing.")
-                        print("💡 Click play button manually.")
+                        print("💡 Click play button manually in the browser.\n")
                         
                         return {
                             "success": True,
                             "message": f"Video opened: {video_title}. Click play to start.",
                             "query": query,
                             "video_title": video_title,
-                            "autoplay": False
+                            "autoplay": False,
+                            "note": "Auto-play failed. Click play button manually."
                         }
                 
             except Exception as e:
@@ -378,3 +428,15 @@ class YouTubePlayerSkill(Skill):
         Search and play specific video
         """
         return self.play_youtube_video(query=search_query, autoplay=True)
+    
+    def __del__(self):
+        """
+        Cleanup: Close driver when skill is destroyed
+        """
+        if self.driver:
+            try:
+                # Don't close driver - let user close browser manually
+                # self.driver.quit()
+                pass
+            except:
+                pass

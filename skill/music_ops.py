@@ -7,6 +7,8 @@ import time
 import threading
 import atexit
 import os
+import subprocess
+import platform
 from typing import List, Dict, Any, Callable
 from core.skill import Skill
 
@@ -190,10 +192,98 @@ class MusicSkill(Skill):
             print(f"⚠️  Could not fetch trending songs: {e}")
             return None
 
+    def _find_chrome_path(self):
+        """
+        Find Chrome/Chromium executable path based on OS
+        """
+        system = platform.system()
+        
+        if system == "Windows":
+            paths = [
+                r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+                os.path.expanduser(r"~\AppData\Local\Google\Chrome\Application\chrome.exe"),
+            ]
+        elif system == "Darwin":  # macOS
+            paths = [
+                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+                "/Applications/Chromium.app/Contents/MacOS/Chromium",
+            ]
+        else:  # Linux
+            paths = [
+                "/usr/bin/google-chrome",
+                "/usr/bin/chromium-browser",
+                "/usr/bin/chromium",
+                "/snap/bin/chromium",
+            ]
+        
+        for path in paths:
+            if os.path.exists(path):
+                return path
+        
+        return None
+
+    def _open_youtube_subprocess(self, query):
+        """
+        Open YouTube in Chrome using subprocess - browser stays open permanently
+        This is the MOST RELIABLE method as Chrome runs as independent process
+        """
+        try:
+            chrome_path = self._find_chrome_path()
+            
+            if not chrome_path:
+                print("⚠️  Chrome not found, using default browser...")
+                return None
+            
+            print(f"🌐 Found Chrome at: {chrome_path}")
+            
+            # Build YouTube URL
+            search_query = query.replace(' ', '+')
+            url = f"https://www.youtube.com/results?search_query={search_query}"
+            
+            print(f"🎬 Opening YouTube in independent Chrome process...")
+            
+            # Launch Chrome as independent process
+            if platform.system() == "Windows":
+                # Windows: Use CREATE_NEW_PROCESS_GROUP to detach
+                subprocess.Popen(
+                    [chrome_path, "--new-window", "--start-maximized", url],
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+            else:
+                # Linux/Mac: Use nohup-like approach
+                subprocess.Popen(
+                    [chrome_path, "--new-window", "--start-maximized", url],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    start_new_session=True  # Detach from parent process
+                )
+            
+            print("✅ Chrome opened as independent process!")
+            print("🎵 Browser will stay open permanently - close it manually when done")
+            print("💡 Click the first video to play")
+            
+            return json.dumps({
+                "status": "success",
+                "action": "open_youtube_subprocess",
+                "query": query,
+                "method": "subprocess_independent",
+                "chrome_path": chrome_path,
+                "note": "Chrome opened as independent process. Click first video to play. Browser will stay open until you close it manually."
+            })
+            
+        except Exception as e:
+            print(f"⚠️  Subprocess method failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
     def _auto_play_with_selenium(self, query):
         """
         Use Selenium to automatically click and play the first video
-        Browser will open in VISIBLE GUI MODE with full window
+        Falls back to subprocess if Selenium fails
         """
         try:
             from selenium import webdriver
@@ -210,7 +300,6 @@ class MusicSkill(Skill):
             chrome_options = Options()
             
             # CRITICAL: Ensure GUI mode (NOT headless)
-            # Explicitly disable headless mode
             chrome_options.headless = False
             
             # Window settings for visible browser
@@ -228,7 +317,6 @@ class MusicSkill(Skill):
             
             # Force GUI display (especially for Linux/WSL)
             if sys.platform.startswith('linux'):
-                # Set DISPLAY environment variable if not set
                 if 'DISPLAY' not in os.environ:
                     os.environ['DISPLAY'] = ':0'
                     print("🖥️  Set DISPLAY=:0 for GUI mode")
@@ -236,15 +324,10 @@ class MusicSkill(Skill):
             # Disable sandbox for better compatibility
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
-            
-            # Enable GPU for better performance
             chrome_options.add_argument("--enable-gpu")
-            
-            # Set window size explicitly
             chrome_options.add_argument("--window-size=1920,1080")
             
             print(f"🖥️  Platform: {sys.platform}")
-            print(f"🖥️  Display: {os.environ.get('DISPLAY', 'Not set')}")
             
             # Initialize driver
             service = Service(ChromeDriverManager().install())
@@ -288,7 +371,6 @@ class MusicSkill(Skill):
                     ))
                     print("✅ Found video (alt method), clicking to play...")
                     
-                    # Scroll to element
                     driver.execute_script("arguments[0].scrollIntoView(true);", video)
                     time.sleep(0.5)
                     
@@ -296,25 +378,23 @@ class MusicSkill(Skill):
                     video_clicked = True
                 except Exception as e:
                     print(f"⚠️  Could not auto-click: {e}")
-                    print("📺 YouTube is open in browser - manually click first video")
+                    print("📺 YouTube is open - manually click first video")
             
-            # Wait a bit for video to start loading
+            # Wait for video to start
             if video_clicked:
                 time.sleep(3)
                 print("✅ Video is playing in GUI browser!")
             
-            # IMPORTANT: Don't quit driver - let it detach
-            # The browser will stay open independently
-            print("🎵 Browser window is open and will stay open until you close it manually.")
+            print("🎵 Browser window will stay open until you close it manually.")
+            
+            # DON'T quit driver - detach option should keep it open
             
             return json.dumps({
                 "status": "success",
                 "action": "auto_play_music",
                 "query": query,
-                "method": "selenium_gui_mode",
-                "platform": sys.platform,
-                "display": os.environ.get('DISPLAY', 'default'),
-                "note": "Browser opened in GUI mode and will stay open until you close it manually."
+                "method": "selenium_gui_detached",
+                "note": "Browser opened with detach mode and will stay open."
             })
             
         except ImportError as ie:
@@ -322,12 +402,9 @@ class MusicSkill(Skill):
             print("💡 Install with: pip install selenium webdriver-manager")
             return None
         except Exception as e:
-            print(f"⚠️  Auto-play failed: {e}")
+            print(f"⚠️  Selenium auto-play failed: {e}")
             import traceback
             traceback.print_exc()
-            
-            # Try fallback to webbrowser
-            print("🔄 Falling back to default browser...")
             return None
 
     def play_trending_song(self, language="hindi"):
@@ -342,7 +419,6 @@ class MusicSkill(Skill):
                 song = random.choice(trending)
                 print(f"🎵 Found trending: {song}")
             else:
-                # Fallback to search query
                 song = f"latest {language} songs 2024"
                 print(f"🎵 Playing: {song}")
             
@@ -405,73 +481,56 @@ class MusicSkill(Skill):
     
     def _play_on_youtube(self, query):
         """
-        Internal method to play on YouTube with AUTO-PLAY support
-        Uses Selenium to automatically click and play the first video in GUI mode
+        Internal method to play on YouTube with multiple fallback methods
+        Priority: Subprocess > Selenium > Pywhatkit > Webbrowser
         """
         try:
-            # Try Selenium auto-play first (best experience)
+            # Method 1: Subprocess (MOST RELIABLE - Chrome stays open permanently)
+            print("🚀 Trying subprocess method (most reliable)...")
+            subprocess_result = self._open_youtube_subprocess(query)
+            if subprocess_result:
+                return subprocess_result
+            
+            # Method 2: Selenium auto-play
+            print("🔄 Trying Selenium auto-play...")
             selenium_result = self._auto_play_with_selenium(query)
             if selenium_result:
                 return selenium_result
             
-            # Fallback 1: Try pywhatkit
+            # Method 3: Pywhatkit
             print("🔄 Trying pywhatkit method...")
             try:
                 import pywhatkit as kit
-                
                 print(f"🔍 Searching YouTube: {query}")
-                
-                # Platform-specific handling
-                if sys.platform == "win32":  # Windows
-                    kit.playonyt(query, open_web=True)
-                    time.sleep(2)
-                elif sys.platform == "darwin":  # macOS
-                    kit.playonyt(query, open_web=True)
-                    time.sleep(2)
-                else:  # Linux
-                    kit.playonyt(query, open_web=True)
-                    time.sleep(2)
-                
+                kit.playonyt(query, open_web=True)
+                time.sleep(2)
                 print("✅ YouTube opened (manual click needed)")
                 
                 return json.dumps({
                     "status": "success", 
-                    "action": "play_music", 
+                    "action": "play_music_pywhatkit", 
                     "query": query,
-                    "platform": sys.platform,
                     "note": "Video search opened, click first result to play"
                 })
-                
             except ImportError:
                 print("⚠️  pywhatkit not found")
                 pass
             
-            # Fallback 2: Direct browser open
-            print("🔄 Using browser fallback...")
+            # Method 4: Direct browser (final fallback)
+            print("🔄 Using default browser fallback...")
             search_query = query.replace(' ', '+')
             url = f"https://www.youtube.com/results?search_query={search_query}"
             webbrowser.open(url)
             
-            print("✅ YouTube opened (manual click needed)")
+            print("✅ YouTube opened in default browser")
             
             return json.dumps({
                 "status": "success", 
-                "action": "play_music_fallback", 
+                "action": "play_music_webbrowser", 
                 "query": query,
-                "note": "YouTube search opened, click first video to play"
+                "note": "YouTube search opened in default browser, click first video to play"
             })
                 
         except Exception as e:
             print(f"❌ YouTube Error: {e}")
-            # Final fallback
-            try:
-                url = f"https://www.youtube.com/results?search_query={query.replace(' ', '+')}"
-                webbrowser.open(url)
-                return json.dumps({
-                    "status": "partial_success", 
-                    "action": "youtube_search", 
-                    "query": query,
-                    "error": str(e)
-                })
-            except Exception as e2:
-                return json.dumps({"status": "error", "error": str(e2)})
+            return json.dumps({"status": "error", "error": str(e)})

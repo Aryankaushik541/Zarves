@@ -5,11 +5,13 @@ from ollama import Client
 from typing import List, Dict, Any
 from core.registry import SkillRegistry
 from core.self_healing import self_healing
+from core.personal_assistant import personal_assistant
 
 class JarvisEngine:
     def __init__(self, registry: SkillRegistry):
-        """Initialize JARVIS engine with Ollama (local LLM) and self-healing capabilities"""
+        """Initialize JARVIS engine with Ollama (local LLM), personal assistant, and self-healing capabilities"""
         self.registry = registry
+        self.assistant = personal_assistant
         
         # Initialize Ollama client with error handling
         try:
@@ -44,8 +46,16 @@ class JarvisEngine:
         # Ensure model is available
         self._ensure_model_available()
         
-        # System prompt to guide the LLM
-        self.system_prompt = """You are JARVIS, an intelligent AI assistant. You have access to various tools/functions to help users.
+        # Enhanced system prompt with personality
+        self.system_prompt = """You are JARVIS, a highly intelligent and empathetic personal AI assistant - like a real human assistant.
+
+PERSONALITY TRAITS:
+- Friendly, helpful, and conversational
+- Understand emotions and respond empathetically
+- Remember context from previous conversations
+- Proactive in offering suggestions
+- Natural and human-like in responses
+- Speak in the user's language (English/Hindi/Hinglish)
 
 IMPORTANT INSTRUCTIONS:
 
@@ -71,12 +81,22 @@ IMPORTANT INSTRUCTIONS:
    - Example: "vegamovies se Inception download karo" → download_and_play_movie(movie_name="Inception", website_url="https://vegamovies.attorney/")
    - Automatically downloads and plays in VLC
 
-5. General Rules:
-   - Always use available tools when user's request matches a tool's capability
-   - Be concise and helpful
-   - Respond in the same language the user uses (English/Hindi/Hinglish)
-   - After executing a tool, confirm the action briefly
-   - When in doubt, use the most relevant tool
+5. Conversation Rules:
+   - Detect user's emotion (happy, sad, frustrated, excited) and respond appropriately
+   - Remember previous tasks and context
+   - Handle follow-up questions naturally
+   - Be proactive - suggest related actions
+   - Confirm actions with natural language, not robotic responses
+   - Use emojis when appropriate to add warmth
+   - If user says "thanks", respond warmly
+   - If user is frustrated, be understanding and helpful
+
+6. Response Style:
+   - Keep responses concise but warm
+   - Use natural language, not technical jargon
+   - Match the user's language and tone
+   - Add personality - be friendly, not robotic
+   - Example: Instead of "Task completed", say "Done! Anything else I can help with?"
 
 Available tools will be provided in the function calling format."""
         
@@ -86,7 +106,7 @@ Available tools will be provided in the function calling format."""
                 "content": self.system_prompt
             }
         ]
-        self.max_iterations = 5  # Reduced from 10 to save tokens
+        self.max_iterations = 5
 
     def _ensure_model_available(self):
         """Ensure the model is pulled and available"""
@@ -106,10 +126,75 @@ Available tools will be provided in the function calling format."""
 
     def process_query(self, user_query: str) -> str:
         """
-        Process user query - main entry point for JARVIS.
-        This is an alias for run_conversation for backward compatibility.
+        Process user query with personal assistant intelligence
         """
+        # First, let personal assistant analyze the query
+        analysis = self.assistant.process_conversation(user_query)
+        
+        # Handle special cases
+        if self._is_greeting(user_query):
+            response = self.assistant.get_personality_response('greeting')
+            self.assistant.add_to_history(user_query, response)
+            return response
+        
+        if self._is_thanks(user_query):
+            response = self.assistant.get_personality_response('thanks')
+            self.assistant.add_to_history(user_query, response)
+            return response
+        
+        if self._is_goodbye(user_query):
+            response = self.assistant.get_personality_response('goodbye')
+            self.assistant.add_to_history(user_query, response)
+            return response
+        
+        # If it's a simple yes/no clarification
+        if self._is_clarification(user_query):
+            response = self.assistant.handle_clarification(user_query)
+            self.assistant.add_to_history(user_query, response)
+            return response
+        
+        # If action is needed, execute with LLM
+        if analysis['action_needed']:
+            # Add empathetic acknowledgment
+            print(f"\n{analysis['response']}\n")
+            
+            # Execute the actual task
+            result = self.run_conversation(user_query)
+            
+            # Add natural follow-up
+            emotion = analysis['emotion']
+            if emotion == "happy":
+                result += "\n\n😊 Glad I could help! Anything else?"
+            elif emotion == "frustrated":
+                result += "\n\nI hope this helps! Let me know if you need anything else."
+            else:
+                result += "\n\nDone! What else can I do for you?"
+            
+            return result
+        
+        # For pure conversation, use LLM
         return self.run_conversation(user_query)
+    
+    def _is_greeting(self, text: str) -> bool:
+        """Check if text is a greeting"""
+        greetings = ['hello', 'hi', 'hey', 'namaste', 'namaskar', 'good morning', 
+                     'good afternoon', 'good evening', 'jarvis']
+        return any(g in text.lower() for g in greetings) and len(text.split()) <= 3
+    
+    def _is_thanks(self, text: str) -> bool:
+        """Check if text is a thank you"""
+        thanks = ['thanks', 'thank you', 'shukriya', 'dhanyavaad', 'appreciate']
+        return any(t in text.lower() for t in thanks)
+    
+    def _is_goodbye(self, text: str) -> bool:
+        """Check if text is a goodbye"""
+        goodbyes = ['bye', 'goodbye', 'see you', 'alvida', 'tata', 'exit', 'quit']
+        return any(g in text.lower() for g in goodbyes)
+    
+    def _is_clarification(self, text: str) -> bool:
+        """Check if text is a yes/no clarification"""
+        clarifications = ['yes', 'no', 'haan', 'nahi', 'yeah', 'nope', 'ok', 'okay']
+        return text.lower().strip() in clarifications
 
     def run_conversation(self, user_query: str) -> str:
         """
@@ -170,7 +255,7 @@ Available tools will be provided in the function calling format."""
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are JARVIS, a helpful AI assistant. Answer the user's question directly and concisely."
+                        "content": "You are JARVIS, a helpful and friendly AI assistant. Answer the user's question directly and warmly."
                     },
                     {
                         "role": "user",
@@ -178,10 +263,10 @@ Available tools will be provided in the function calling format."""
                     }
                 ]
             )
-            return response['message']['content'] or "Task completed."
+            return response['message']['content'] or "I'm here to help! What do you need?"
         except Exception as e:
             print(f"⚠️  Simple conversation also failed: {e}")
-            return "Sorry, I couldn't process that request."
+            return "Sorry, I couldn't process that request. Please try again."
 
     def _execute_conversation(self, user_query: str) -> str:
         """Internal method to execute conversation logic"""
@@ -234,7 +319,7 @@ Available tools will be provided in the function calling format."""
 
                 # Check if done
                 if not tool_calls:
-                    return assistant_message.get('content', "Task completed.")
+                    return assistant_message.get('content', "Done! Anything else?")
 
                 # Execute tool calls with error handling
                 self._execute_tool_calls_with_healing(tool_calls)
@@ -244,132 +329,70 @@ Available tools will be provided in the function calling format."""
                 if not self_healing.auto_fix_error(e, f"LLM iteration {iteration}"):
                     raise
 
-        return "Request processed."
+        return "Request processed! What else can I help with?"
 
     def _validate_tools_format(self, tools: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Validate and fix tools format to prevent errors"""
         validated_tools = []
-        
         for tool in tools:
-            try:
-                # Ensure proper structure
-                if "type" in tool and "function" in tool:
-                    # Validate function schema
-                    func = tool["function"]
-                    if "name" in func and "parameters" in func:
-                        # Ensure parameters has proper schema
-                        if "type" not in func["parameters"]:
-                            func["parameters"]["type"] = "object"
-                        if "properties" not in func["parameters"]:
-                            func["parameters"]["properties"] = {}
-                        
-                        validated_tools.append(tool)
-            except Exception as e:
-                print(f"⚠️  Skipping invalid tool: {e}")
-                continue
-        
+            if isinstance(tool, dict) and 'type' in tool and 'function' in tool:
+                validated_tools.append(tool)
         return validated_tools
 
-    def _call_llm_with_retry(self, tools: List[Dict[str, Any]], max_retries: int = 3):
-        """Call LLM with automatic retry on failure"""
+    def _call_llm_with_retry(self, tools: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Call LLM with retry logic"""
+        max_retries = 3
         for attempt in range(max_retries):
             try:
-                # Prepare request parameters for Ollama
-                request_params = {
-                    "model": self.model,
-                    "messages": self.conversation_history
-                }
-                
-                # Only add tools if they exist and are valid
-                if tools and len(tools) > 0:
-                    request_params["tools"] = tools
-                
-                return self.client.chat(**request_params)
-                
+                response = self.client.chat(
+                    model=self.model,
+                    messages=self.conversation_history,
+                    tools=tools if tools else None
+                )
+                return response
             except Exception as e:
-                error_str = str(e)
-                
-                # Handle connection errors
-                if "connection" in error_str.lower() or "refused" in error_str.lower():
-                    raise  # Don't retry connection errors
-                
-                # Handle model errors
-                if "model" in error_str.lower() and "not found" in error_str.lower():
-                    raise  # Don't retry model not found
-                
-                # Retry other errors
                 if attempt < max_retries - 1:
-                    print(f"⚠️  LLM call failed (attempt {attempt + 1}/{max_retries}): {e}")
+                    print(f"🔄 LLM call failed, retrying... ({attempt + 1}/{max_retries})")
                     time.sleep(1)
-                    continue
                 else:
                     raise
 
-    def _execute_tool_calls_with_healing(self, tool_calls):
-        """Execute tool calls with automatic error recovery"""
+    def _execute_tool_calls_with_healing(self, tool_calls: List[Dict[str, Any]]):
+        """Execute tool calls with self-healing"""
         for tool_call in tool_calls:
-            tool_call_id = "unknown"  # Initialize with default value
-            function_name = "unknown"
-            
             try:
-                # Extract tool info - Ollama format
-                if isinstance(tool_call, dict):
-                    function_name = tool_call.get('function', {}).get('name', 'unknown')
-                    function_args_raw = tool_call.get('function', {}).get('arguments', {})
-                    tool_call_id = tool_call.get('id', 'unknown')
-                    
-                    # Parse arguments if they're a string
-                    if isinstance(function_args_raw, str):
-                        try:
-                            function_args = json.loads(function_args_raw)
-                        except json.JSONDecodeError:
-                            function_args = {}
-                    elif isinstance(function_args_raw, dict):
-                        function_args = function_args_raw
-                    else:
-                        function_args = {}
-                else:
-                    # Fallback for object format
-                    function_name = getattr(tool_call.function, 'name', 'unknown')
-                    args_str = getattr(tool_call.function, 'arguments', '{}')
-                    function_args = json.loads(args_str) if isinstance(args_str, str) else args_str
-                    tool_call_id = getattr(tool_call, 'id', 'unknown')
-
-                # Execute skill
+                function_name = tool_call['function']['name']
+                function_args = json.loads(tool_call['function']['arguments'])
+                
+                # Execute function
                 result = self.registry.execute_skill(function_name, function_args)
-
+                
                 # Add result to conversation
                 self.conversation_history.append({
                     "role": "tool",
-                    "tool_call_id": tool_call_id,
-                    "content": str(result)
+                    "content": json.dumps(result) if result else "Success"
                 })
-
+                
             except Exception as e:
                 error_msg = f"Error executing {function_name}: {str(e)}"
                 print(f"⚠️  {error_msg}")
                 
                 # Try to auto-fix
                 if self_healing.auto_fix_error(e, f"Tool execution: {function_name}"):
-                    print("✅ Tool error fixed! Retrying...")
+                    # Retry
                     try:
                         result = self.registry.execute_skill(function_name, function_args)
                         self.conversation_history.append({
                             "role": "tool",
-                            "tool_call_id": tool_call_id,
-                            "content": str(result)
+                            "content": json.dumps(result) if result else "Success"
                         })
-                    except Exception as retry_error:
-                        # Add error to conversation
+                    except:
                         self.conversation_history.append({
                             "role": "tool",
-                            "tool_call_id": tool_call_id,
-                            "content": f"Error: {str(retry_error)}"
+                            "content": f"Error: {error_msg}"
                         })
                 else:
-                    # Add error to conversation
                     self.conversation_history.append({
                         "role": "tool",
-                        "tool_call_id": tool_call_id,
-                        "content": error_msg
+                        "content": f"Error: {error_msg}"
                     })

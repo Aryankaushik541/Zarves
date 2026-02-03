@@ -1,8 +1,16 @@
 import os
 import json
 import time
-from ollama import Client
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+
+# Try to import Ollama, but don't fail if not available
+try:
+    from ollama import Client
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+    print("⚠️  Ollama not installed. Install with: pip install ollama")
+
 from core.registry import SkillRegistry
 from core.self_healing import self_healing
 from core.personal_assistant import personal_assistant
@@ -12,39 +20,17 @@ class JarvisEngine:
         """Initialize JARVIS engine with Ollama (local LLM), personal assistant, and self-healing capabilities"""
         self.registry = registry
         self.assistant = personal_assistant
+        self.client = None
+        self.model = None
+        self.ollama_ready = False
         
-        # Initialize Ollama client with error handling
-        try:
-            # Get Ollama host from environment or use default
-            ollama_host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
-            
-            self.client = Client(host=ollama_host)
-            
-            # Test connection and pull model if needed
-            try:
-                models = self.client.list()
-                print(f"✅ Connected to Ollama at {ollama_host}")
-                print(f"📦 Available models: {len(models.get('models', []))}")
-            except Exception as e:
-                print(f"⚠️  Ollama connection issue: {e}")
-                print(f"💡 Make sure Ollama is running: ollama serve")
-                raise
-            
-        except Exception as e:
-            print(f"❌ Failed to initialize Ollama client: {e}")
-            print(f"💡 Install Ollama: curl -fsSL https://ollama.com/install.sh | sh")
-            print(f"💡 Start Ollama: ollama serve")
-            if self_healing.auto_fix_error(e, "Ollama client initialization"):
-                # Retry after fix
-                self.client = Client(host=os.environ.get("OLLAMA_HOST", "http://localhost:11434"))
-            else:
-                raise
-        
-        # Use local model - llama3.2 is fast and efficient
-        self.model = os.environ.get("OLLAMA_MODEL", "llama3.2")
-        
-        # Ensure model is available
-        self._ensure_model_available()
+        # Try to initialize Ollama
+        if OLLAMA_AVAILABLE:
+            self._init_ollama()
+        else:
+            print("❌ Ollama not available. Running in limited mode.")
+            print("💡 Install Ollama: https://ollama.com/download")
+            print("💡 Then run: ollama serve && ollama pull llama3.2")
         
         # Enhanced system prompt with personality
         self.system_prompt = """You are JARVIS, a highly intelligent and empathetic personal AI assistant - like a real human assistant.
@@ -108,6 +94,40 @@ Available tools will be provided in the function calling format."""
         ]
         self.max_iterations = 5
 
+    def _init_ollama(self):
+        """Initialize Ollama client with error handling"""
+        try:
+            # Get Ollama host from environment or use default
+            ollama_host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+            
+            self.client = Client(host=ollama_host)
+            
+            # Test connection and pull model if needed
+            try:
+                models = self.client.list()
+                print(f"✅ Connected to Ollama at {ollama_host}")
+                print(f"📦 Available models: {len(models.get('models', []))}")
+                
+                # Use local model - llama3.2 is fast and efficient
+                self.model = os.environ.get("OLLAMA_MODEL", "llama3.2")
+                
+                # Ensure model is available
+                self._ensure_model_available()
+                
+                self.ollama_ready = True
+                
+            except Exception as e:
+                print(f"⚠️  Ollama connection issue: {e}")
+                print(f"💡 Make sure Ollama is running: ollama serve")
+                print(f"💡 Then pull model: ollama pull llama3.2")
+                self.ollama_ready = False
+            
+        except Exception as e:
+            print(f"❌ Failed to initialize Ollama client: {e}")
+            print(f"💡 Install Ollama: curl -fsSL https://ollama.com/install.sh | sh")
+            print(f"💡 Start Ollama: ollama serve")
+            self.ollama_ready = False
+
     def _ensure_model_available(self):
         """Ensure the model is pulled and available"""
         try:
@@ -128,6 +148,10 @@ Available tools will be provided in the function calling format."""
         """
         Process user query with personal assistant intelligence
         """
+        # If Ollama is not ready, use simple responses
+        if not self.ollama_ready:
+            return self._handle_without_ollama(user_query)
+        
         # First, let personal assistant analyze the query
         analysis = self.assistant.process_conversation(user_query)
         
@@ -175,6 +199,44 @@ Available tools will be provided in the function calling format."""
         # For pure conversation, use LLM
         return self.run_conversation(user_query)
     
+    def _handle_without_ollama(self, user_query: str) -> str:
+        """Handle queries when Ollama is not available"""
+        # Simple pattern matching for basic commands
+        query_lower = user_query.lower()
+        
+        if any(word in query_lower for word in ['hello', 'hi', 'hey', 'namaste']):
+            return "Hello! I'm JARVIS. However, I'm running in limited mode because Ollama is not available. Please install Ollama to unlock full capabilities."
+        
+        if any(word in query_lower for word in ['thanks', 'thank you']):
+            return "You're welcome! 😊"
+        
+        if any(word in query_lower for word in ['bye', 'goodbye']):
+            return "Goodbye! Have a great day! 👋"
+        
+        # Try to execute basic skills directly
+        try:
+            # Check if it's a simple command
+            if 'youtube' in query_lower or 'music' in query_lower or 'song' in query_lower:
+                # Try to extract song name
+                result = self.registry.execute_skill('play_youtube', {'query': user_query})
+                return f"Playing on YouTube: {user_query}"
+            
+            if 'google' in query_lower and 'search' in query_lower:
+                result = self.registry.execute_skill('google_search', {'query': user_query})
+                return f"Searching Google for: {user_query}"
+            
+            if 'open' in query_lower:
+                # Extract website name
+                for word in ['google', 'youtube', 'facebook', 'gmail']:
+                    if word in query_lower:
+                        result = self.registry.execute_skill('open_website', {'url': f'https://{word}.com'})
+                        return f"Opening {word}..."
+            
+        except Exception as e:
+            print(f"⚠️  Skill execution error: {e}")
+        
+        return "⚠️ JARVIS is running in limited mode. Please install and start Ollama:\n\n1. Install: https://ollama.com/download\n2. Run: ollama serve\n3. Pull model: ollama pull llama3.2\n4. Restart JARVIS"
+    
     def _is_greeting(self, text: str) -> bool:
         """Check if text is a greeting"""
         greetings = ['hello', 'hi', 'hey', 'namaste', 'namaskar', 'good morning', 
@@ -201,6 +263,9 @@ Available tools will be provided in the function calling format."""
         Run a conversation with self-healing error handling.
         Automatically recovers from errors and retries.
         """
+        if not self.ollama_ready:
+            return self._handle_without_ollama(user_query)
+        
         retry_count = 0
         max_retries = 3
         
@@ -248,6 +313,9 @@ Available tools will be provided in the function calling format."""
 
     def _fallback_simple_conversation(self, user_query: str) -> str:
         """Fallback to simple conversation without tools when errors occur"""
+        if not self.ollama_ready:
+            return self._handle_without_ollama(user_query)
+        
         try:
             print("🔄 Using simple conversation mode (no tools)...")
             response = self.client.chat(

@@ -1,16 +1,44 @@
-# 🤖 JARVIS - Self-Evolving AI That Writes Its Own Code
+# 🤖 JARVIS - Autonomous AI That Fixes Itself Using Internet + AI
 
-> **"I don't just assist. I create, I fix, I evolve myself, and I control your entire system."**
+> **"I don't just assist. I search the web, fix my own code, play trending songs, and evolve myself."**
 
-JARVIS is an **advanced self-coding AI** that can:
+JARVIS is an **advanced autonomous AI** that can:
 - ✅ **100% FREE & LOCAL** - Uses Ollama (no API keys, no rate limits!)
-- ✅ **Write and fix its own code** using AI
+- ✅ **Internet-Powered Self-Healing** - Searches web + uses AI to fix its own errors
+- ✅ **Real-time Web Search** - Fetches live data from internet
+- ✅ **Trending Music** - Plays latest viral songs from YouTube
 - ✅ **Continuous listening mode** - say "Jarvis" once, then give commands naturally
 - ✅ **Create new skills** on demand with AI-generated code
-- ✅ **Auto-heal errors** and improve itself
+- ✅ **Auto-heal errors** using Ollama AI + StackOverflow solutions
 - ✅ **Control your entire system** with natural language (Windows/Mac/Linux)
-- ✅ **Play music** with smart Hindi song selection
 - ✅ **Understand Hinglish** - speak naturally in Hindi or English
+
+---
+
+## 🌟 Key Features
+
+### 🔧 **Autonomous Self-Healing**
+- **Ollama AI** analyzes errors and generates fixes
+- **Internet Search** finds solutions from StackOverflow, documentation
+- **Automatic Code Repair** - fixes itself without human intervention
+- **Backup System** - creates backups before applying fixes
+
+### 🌐 **Internet Integration**
+- **Real-time Search** - DuckDuckGo API for instant answers
+- **Web Scraping** - Extracts content from any webpage
+- **YouTube Search** - Finds videos and trending content
+- **Live Data** - Weather, news, prices, anything current
+
+### 🎵 **Smart Music Player**
+- **Trending Songs** - Automatically plays latest viral hits
+- **Multi-language** - Hindi, English, Punjabi, Tamil, etc.
+- **Smart Defaults** - "play music" → plays trending song
+- **Playlist Support** - Romantic, party, workout playlists
+
+### 🗣️ **Natural Language**
+- **Hinglish Support** - "Jarvis, gaana bajao", "YouTube kholo"
+- **Continuous Mode** - Say "Jarvis" once, then talk naturally for 30 seconds
+- **Context Aware** - Understands follow-up commands
 
 ---
 
@@ -48,361 +76,63 @@ cd Zarves
 
 # 2. Setup environment
 python -m venv venv
-venv\\Scripts\\activate  # Windows
-# source venv/bin/activate  # Mac/Linux
+
+# Windows
+venv\Scripts\activate
+
+# Mac/Linux
+source venv/bin/activate
 
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Run JARVIS (no API key needed!)
+# 4. Run JARVIS
 python main.py
 ```
 
-### **That's it! No API keys, completely FREE!** 🎉
-
-> **📖 Detailed Ollama Setup:** See [OLLAMA_SETUP.md](OLLAMA_SETUP.md) for complete guide
-
 ---
 
-### First Commands:
-```
-✅ "Jarvis play music"           → Plays Hindi song + activates continuous mode
-✅ "play another song"           → No "Jarvis" needed in continuous mode!
-✅ "open Chrome"                 → Still no "Jarvis" needed!
-✅ "stop listening"              → Exit continuous mode
+## 🎯 Usage Examples
 
-✅ "Jarvis improve your code"    → AI improves its own code
-✅ "Jarvis create weather skill" → AI writes new skill from scratch
-✅ "Jarvis fix the error"        → AI analyzes and fixes errors
+### **Internet Search**
+```
+"Jarvis, Bitcoin ki price kya hai?"
+"Jarvis, aaj ka weather kaisa hai?"
+"Jarvis, latest AI news batao"
+"Jarvis, Python tutorial dhundo"
 ```
 
----
-
-## 🌟 Revolutionary Features
-
-### 🆓 **100% Free & Local with Ollama** ⭐ NEW!
-
-**No more API keys! No rate limits! Completely private!**
-
-```bash
-✅ FREE - No API costs, no subscriptions
-✅ UNLIMITED - Use as much as you want
-✅ PRIVATE - All data stays on your computer
-✅ OFFLINE - Works without internet (after model download)
-✅ FAST - Local execution means quick responses
+### **Music (Trending Songs)**
+```
+"Jarvis, gaana bajao"              → Plays trending Hindi song
+"Jarvis, new song play karo"       → Latest viral hit
+"Jarvis, Kesariya bajao"           → Specific song
+"Jarvis, English song sunao"       → Trending English song
+"Jarvis, romantic playlist"        → Romantic songs mix
 ```
 
-**Why Ollama?**
-- 🚫 No GROQ_API_KEY needed
-- 🚫 No rate limits (14,400 tokens/min)
-- 🚫 No cloud dependency
-- ✅ Your own AI server
-- ✅ Multiple models available
-- ✅ Easy to setup
-
-**Supported Models:**
-- `llama3.2` (2GB) - **Recommended** - Fast & efficient
-- `llama3.1` (4.7GB) - More powerful
-- `mistral` (4.1GB) - Alternative model
-- `codellama` (3.8GB) - Best for coding
-
----
-
-### 🎤 **Continuous Listening Mode** ⭐ NEW!
-
-**Say "Jarvis" once, then talk naturally for 30 seconds!**
-
-```bash
-YOU: "Jarvis play music"
-JARVIS: 🎵 Playing Kesariya...
-        ✅ Continuous mode activated!
-        💡 Ab aap bina 'Jarvis' bole commands de sakte ho
-
-YOU: "play another song"  # No "Jarvis" needed!
-JARVIS: 🎵 Playing Tum Hi Ho...
-
-YOU: "open YouTube"       # Still no "Jarvis"!
-JARVIS: ✅ Opening YouTube...
-
-YOU: "stop listening"
-JARVIS: ✅ Continuous mode deactivated
+### **System Control**
+```
+"Jarvis, volume badao"
+"Jarvis, screenshot lo"
+"Jarvis, calculator kholo"
+"Jarvis, brightness kam karo"
 ```
 
-**Features:**
-- ✅ Activate with any "Jarvis" command
-- ✅ 30-second window for continuous commands
-- ✅ Natural conversation flow
-- ✅ Exit with "stop listening" or auto-timeout
-- ✅ Works in Hindi/English/Hinglish
-
----
-
-### 🤖 **Advanced Self-Coding AI** ⭐ REVOLUTIONARY!
-
-**JARVIS can write, fix, and improve its own code using AI!**
-
-#### **1. Auto-Fix Errors**
-```bash
-# When error occurs:
-JARVIS: 🤖 Advanced Self-Coder analyzing error...
-        ✅ AI successfully fixed the error!
-        💡 Restart JARVIS to apply changes
+### **Web Operations**
+```
+"Jarvis, YouTube kholo"
+"Jarvis, Google pe AI search karo"
+"Jarvis, is website ka content batao: example.com"
 ```
 
-#### **2. Create New Skills**
-```bash
-YOU: "Jarvis create a weather skill"
-JARVIS: 🤖 Creating new skill: weather
-        📝 Generating AI code...
-        ✅ New skill created: skill/weather_ops.py
-        💡 Restart to use new skill!
-```
-
-#### **3. Improve Existing Code**
-```bash
-YOU: "Jarvis improve your engine code"
-JARVIS: 🤖 Improving code: core/engine.py
-        🎯 Improvement: performance
-        ✅ Code successfully improved!
-        💾 Backup created
-```
-
-#### **4. Analyze Code Quality**
-```bash
-YOU: "Jarvis analyze your code quality"
-JARVIS: 📊 Code Analysis:
-        • Total lines: 335
-        • Comment ratio: 15.2%
-        • Suggestions: Add error handling, split large functions
-```
-
-**Self-Coding Commands:**
-```bash
-"Jarvis improve your code"              → AI improves performance
-"Jarvis create [name] skill"            → AI writes new skill
-"Jarvis fix error in [file]"            → AI fixes specific file
-"Jarvis analyze code quality"           → AI analyzes code
-"Jarvis show improvement history"       → See all AI changes
-```
-
-**How It Works:**
-1. **Error Detection** → JARVIS detects error in code
-2. **AI Analysis** → LLM analyzes error and generates fix
-3. **Code Validation** → Validates syntax before applying
-4. **Backup Creation** → Creates backup of original code
-5. **Apply Fix** → Writes improved code to file
-6. **Test & Verify** → Logs fix for future reference
-
----
-
-### 🎵 **Smart Music Playback** ⭐ NEW!
-
-**Play Hindi songs with natural commands!**
-
-```bash
-# Random Hindi Song
-"Jarvis play music"           → Plays random popular Hindi song
-"Jarvis gaana bajao"          → Same as above
-"Jarvis kuch bhi bajao"       → Surprise me!
-
-# Specific Song
-"Jarvis play Kesariya"        → Plays Kesariya
-"Jarvis play Arijit Singh"    → Plays Arijit Singh songs
-
-# Playlists
-"Jarvis play romantic songs"  → Romantic playlist
-"Jarvis play party songs"     → Party playlist
-"Jarvis play latest songs"    → Latest Hindi songs
-
-# Other Languages
-"Jarvis play English songs"   → English music
-"Jarvis play Punjabi songs"   → Punjabi music
-```
-
-**Features:**
-- ✅ 20+ popular Hindi songs pre-loaded
-- ✅ Random song selection
-- ✅ Auto-adds "hindi song" to searches
-- ✅ Multi-language support
-- ✅ Playlist support
-- ✅ Cross-platform (Windows/Mac/Linux)
-
----
-
-### 🔧 **Self-Healing System**
-
-**JARVIS automatically fixes errors without user intervention!**
-
-**Auto-Fixes:**
-- ✅ Missing packages → Auto-installs
-- ✅ Missing files → Creates directories
-- ✅ Ollama connection → Guides setup
-- ✅ Code errors → AI generates fixes
-- ✅ Import errors → Installs dependencies
-- ✅ Attribute errors → Suggests fixes
-
-**Example:**
-```bash
-# Error occurs
-❌ ModuleNotFoundError: No module named 'pywhatkit'
-
-# JARVIS auto-fixes
-🔧 Attempting to fix import error...
-📦 pywhatkit नहीं मिला। Auto-install कर रहा हूँ...
-✅ pywhatkit successfully install हो गया!
-
-# Continues working
-✅ Task completed!
-```
-
----
-
-### 🖥️ **Complete System Control**
-
-**Control your entire Windows/Mac/Linux system with natural language!**
-
-#### **Application Control**
-```bash
-"Jarvis open Chrome"              → Opens Chrome
-"Jarvis close Chrome"             → Closes Chrome
-"Jarvis calculator kholo"         → Opens calculator
-"Jarvis notepad band karo"        → Closes notepad
-```
-
-#### **Volume Control**
-```bash
-"Jarvis volume 50"                → Sets volume to 50%
-"Jarvis awaz badha"               → Increases volume
-"Jarvis mute karo"                → Mutes system
-"Jarvis unmute karo"              → Unmutes system
-```
-
-#### **System Operations**
-```bash
-"Jarvis shutdown"                 → Shuts down PC
-"Jarvis restart"                  → Restarts PC
-"Jarvis lock screen"              → Locks screen
-"Jarvis sleep mode"               → Sleep mode
-```
-
-#### **File Operations**
-```bash
-"Jarvis create file test.txt"    → Creates file
-"Jarvis delete file test.txt"    → Deletes file
-"Jarvis read file test.txt"      → Reads file
-"Jarvis write to file"            → Writes to file
-```
-
----
-
-### 🌐 **Web & Search**
-
-```bash
-"Jarvis Google search Python"    → Google search
-"Jarvis YouTube kholo"            → Opens YouTube
-"Jarvis open github.com"          → Opens website
-"Jarvis play Kesariya"            → Plays on YouTube
-```
-
----
-
-### 🕒 **Date & Time**
-
-```bash
-"Jarvis time kya hua?"            → Current time
-"Jarvis date batao"               → Current date
-"Jarvis day kaunsa hai?"          → Current day
-```
-
----
-
-### 🌍 **Natural Indian Language Support**
-
-**Speak naturally in Hindi, English, or Hinglish!**
-
-```bash
-# Pure Hindi
-"जार्विस, गूगल खोलो"
-"जार्विस, आवाज़ बढ़ाओ"
-
-# Hinglish (Most Natural!)
-"Jarvis YouTube kholo"
-"Jarvis gaana bajao"
-"Jarvis awaz badha"
-"Jarvis calculator band karo"
-
-# Pure English
-"Jarvis open Chrome"
-"Jarvis increase volume"
-```
-
-**Supported Variations:**
-- ✅ "kholo" / "open" / "खोलो"
-- ✅ "band karo" / "close" / "बंद करो"
-- ✅ "awaz" / "volume" / "आवाज़"
-- ✅ "gaana" / "song" / "गाना"
-- ✅ And many more!
-
----
-
-## 📋 Complete Command List
-
-### 🎤 Continuous Mode
-| Command | Action |
-|---------|--------|
-| `Jarvis [any command]` | Activates continuous mode + executes command |
-| `[command]` | Execute without "Jarvis" (in continuous mode) |
-| `stop listening` | Exit continuous mode |
-| `band karo` | Exit continuous mode (Hindi) |
-| `so jao` | Exit continuous mode (Hindi) |
-
-### 🤖 Self-Coding AI
-| Command | Action |
-|---------|--------|
-| `Jarvis improve your code` | AI improves its own code |
-| `Jarvis create [name] skill` | AI creates new skill |
-| `Jarvis fix error in [file]` | AI fixes code error |
-| `Jarvis analyze code quality` | AI analyzes code |
-| `Jarvis show improvements` | Show AI fix history |
-
-### 🎵 Music
-| Command | Action |
-|---------|--------|
-| `Jarvis play music` | Random Hindi song |
-| `Jarvis play [song]` | Specific song |
-| `Jarvis play [mood] songs` | Playlist |
-| `Jarvis gaana bajao` | Random Hindi song |
-
-### 🖥️ System Control
-| Command | Action |
-|---------|--------|
-| `Jarvis open [app]` | Open application |
-| `Jarvis close [app]` | Close application |
-| `Jarvis volume [0-100]` | Set volume |
-| `Jarvis mute` | Mute system |
-| `Jarvis shutdown` | Shutdown PC |
-| `Jarvis restart` | Restart PC |
-| `Jarvis lock screen` | Lock screen |
-
-### 🌐 Web
-| Command | Action |
-|---------|--------|
-| `Jarvis Google search [query]` | Google search |
-| `Jarvis YouTube kholo` | Open YouTube |
-| `Jarvis open [website]` | Open website |
-
-### 📁 Files
-| Command | Action |
-|---------|--------|
-| `Jarvis create file [name]` | Create file |
-| `Jarvis delete file [name]` | Delete file |
-| `Jarvis read file [name]` | Read file |
-
-### 🕒 Time
-| Command | Action |
-|---------|--------|
-| `Jarvis time kya hua?` | Current time |
-| `Jarvis date batao` | Current date |
+### **Self-Healing (Automatic)**
+When JARVIS encounters an error:
+1. 🌐 Searches internet for solutions (StackOverflow, docs)
+2. 🤖 Uses Ollama AI to analyze error + web solutions
+3. 🔧 Generates and validates fix
+4. 💾 Creates backup and applies fix
+5. ✅ Continues working without interruption
 
 ---
 
@@ -411,307 +141,251 @@ JARVIS: 📊 Code Analysis:
 ```
 JARVIS/
 ├── core/
-│   ├── engine.py                    # Main AI engine with Ollama LLM
-│   ├── voice.py                     # Voice input/output + continuous mode
-│   ├── registry.py                  # Skill management
-│   ├── self_healing.py              # Auto error fixing
-│   ├── advanced_self_coder.py       # AI code generation ⭐ NEW!
-│   ├── indian_language.py           # Hindi/Hinglish support
-│   └── npu_accelerator.py           # NPU optimization
-│
+│   ├── engine.py              # Ollama LLM integration
+│   ├── advanced_self_coder.py # AI code generation + Internet search
+│   ├── self_healing.py        # Autonomous error fixing
+│   ├── voice.py               # Speech recognition
+│   └── registry.py            # Skill management
 ├── skill/
-│   ├── self_improvement_ops.py      # Self-coding commands ⭐ NEW!
-│   ├── music_ops.py                 # Music playback ⭐ NEW!
-│   ├── advanced_system_control.py   # System control
-│   ├── web_ops.py                   # Web operations
-│   ├── file_ops.py                  # File operations
-│   ├── datetime_ops.py              # Date/time
-│   └── [more skills...]
-│
+│   ├── internet_search_skill.py  # Web search & scraping
+│   ├── music_ops.py              # Trending music player
+│   ├── web_ops.py                # Browser control
+│   ├── system_ops.py             # System control
+│   └── [18+ other skills]
 ├── gui/
-│   └── app.py                       # PyQt5 GUI
-│
-├── main.py                          # Entry point
-├── OLLAMA_SETUP.md                  # Detailed Ollama guide
-└── README.md                        # This file
+│   └── app.py                 # PyQt5 interface
+└── main.py                    # Entry point
 ```
 
 ---
 
-## 🎯 How It Works
+## 🔥 Advanced Features
 
-### **1. Ollama Local LLM**
-```
-User Command
-  ↓
-JARVIS Engine
-  ↓
-Ollama Server (http://localhost:11434)
-  ↓
-Local LLM Model (llama3.2)
-  ↓
-Response Generation
-  ↓
-Tool Execution
-  ↓
-Voice/Text Output
+### **1. Internet-Powered Error Fixing**
+
+When an error occurs:
+```python
+# JARVIS automatically:
+1. Searches DuckDuckGo for error solutions
+2. Scrapes StackOverflow for fixes
+3. Feeds solutions to Ollama AI
+4. Generates comprehensive fix
+5. Validates and applies fix
+6. Creates backup before changes
 ```
 
-### **2. Continuous Listening Flow**
-```
-User: "Jarvis play music"
-  ↓
-Wake word detected → Activate continuous mode
-  ↓
-Execute command → Play music
-  ↓
-Listen for 30 seconds without wake word
-  ↓
-User: "play another song" (no "Jarvis" needed!)
-  ↓
-Execute command → Play another song
-  ↓
-Timeout or "stop listening" → Deactivate
+### **2. Trending Music Detection**
+
+```python
+# Automatically fetches trending songs:
+1. Scrapes YouTube trending page
+2. Filters music videos
+3. Selects random trending song
+4. Auto-plays on YouTube
 ```
 
-### **3. Self-Coding AI Flow**
+### **3. Real-time Web Search**
+
+```python
+# Live internet data:
+- DuckDuckGo Instant Answers
+- Google search scraping
+- Webpage content extraction
+- YouTube video search
 ```
-Error Detected
-  ↓
-Self-Healing System
-  ↓
-Try Basic Fix (fast)
-  ↓
-If failed → Advanced Self-Coder
-  ↓
-LLM Analyzes Error
-  ↓
+
+### **4. Continuous Listening Mode**
+
+```
+User: "Jarvis, YouTube kholo"
+JARVIS: ✅ Opens YouTube
+        💡 Continuous mode active (30 sec)
+
+User: "gaana bajao"  # No need to say "Jarvis" again!
+JARVIS: 🎵 Plays trending song
+```
+
+---
+
+## 🛠️ Configuration
+
+### **Environment Variables** (`.env`)
+
+```bash
+# Ollama Configuration
+OLLAMA_HOST=http://localhost:11434
+OLLAMA_MODEL=llama3.2
+
+# Voice Settings
+VOICE_ENABLED=true
+WAKE_WORD=jarvis
+
+# Features
+AUTO_FIX=true
+INTERNET_SEARCH=true
+TRENDING_MUSIC=true
+```
+
+---
+
+## 📊 System Requirements
+
+### **Minimum**
+- Python 3.8+
+- 4GB RAM
+- 5GB disk space (for Ollama model)
+- Internet connection (for web search & trending music)
+
+### **Recommended**
+- Python 3.10+
+- 8GB RAM
+- NVIDIA GPU (for faster Ollama inference)
+- 10GB disk space
+
+### **Supported Platforms**
+- ✅ Windows 10/11
+- ✅ macOS 10.15+
+- ✅ Linux (Ubuntu 20.04+)
+
+---
+
+## 🎓 How It Works
+
+### **Self-Healing Process**
+
+```mermaid
+Error Occurs
+    ↓
+Search Internet (DuckDuckGo + StackOverflow)
+    ↓
+Feed Solutions to Ollama AI
+    ↓
 Generate Fix Code
-  ↓
+    ↓
 Validate Syntax
-  ↓
+    ↓
 Create Backup
-  ↓
+    ↓
 Apply Fix
-  ↓
-Log Success
+    ↓
+Continue Working ✅
+```
+
+### **Music Intelligence**
+
+```mermaid
+User: "gaana bajao"
+    ↓
+Detect Intent (trending/specific)
+    ↓
+Scrape YouTube Trending
+    ↓
+Filter Music Videos
+    ↓
+Select Random Song
+    ↓
+Auto-play on YouTube 🎵
 ```
 
 ---
 
-## 🔧 Configuration
+## 🚀 Skills Available
 
-### **Environment Variables (.env)**
-```bash
-# Ollama Configuration (Optional - defaults work fine!)
-OLLAMA_HOST=http://localhost:11434  # Default Ollama server
-OLLAMA_MODEL=llama3.2               # Default model
-
-# Other Optional Settings
-AUTO_TEXT_MODE=False                # Force text mode
-AUTO_DEBUG_MODE=True                # Enable debug logging
-```
-
-### **Supported Ollama Models**
-- `llama3.2` (2GB) - **Default** - Fast & efficient
-- `llama3.1` (4.7GB) - More powerful
-- `mistral` (4.1GB) - Alternative model
-- `codellama` (3.8GB) - Best for coding tasks
-
-**Change model:**
-```bash
-# In .env file
-OLLAMA_MODEL=mistral
-
-# Or pull and use different model
-ollama pull llama3.1
-```
-
----
-
-## 📊 Performance
-
-### **Ollama vs Cloud APIs**
-
-| Feature | Ollama (Local) | Groq (Cloud) |
-|---------|----------------|--------------|
-| **Cost** | 100% FREE | Free tier limited |
-| **Privacy** | 100% local | Data sent to cloud |
-| **Speed** | Fast (depends on hardware) | Very fast |
-| **Rate Limits** | NONE | 14,400 tokens/min |
-| **Internet** | Optional (after download) | Required |
-| **Setup** | Local installation | API key needed |
-
-### **Model Performance**
-
-**Hardware:** Intel i5, 16GB RAM, No GPU
-
-| Model | Response Time | Quality |
-|-------|---------------|---------|
-| `llama3.2` | ~2-3 seconds | ⭐⭐⭐ |
-| `llama3.1` | ~5-7 seconds | ⭐⭐⭐⭐ |
-| `mistral` | ~4-6 seconds | ⭐⭐⭐⭐ |
-
-**Hardware:** Intel i7, 32GB RAM, RTX 3060
-
-| Model | Response Time | Quality |
-|-------|---------------|---------|
-| `llama3.2` | ~1-2 seconds | ⭐⭐⭐ |
-| `llama3.1` | ~2-3 seconds | ⭐⭐⭐⭐ |
-| `mistral` | ~2-3 seconds | ⭐⭐⭐⭐ |
+| Skill | Description | Internet Required |
+|-------|-------------|-------------------|
+| **Internet Search** | Real-time web search, scraping | ✅ Yes |
+| **Trending Music** | Latest viral songs | ✅ Yes |
+| **Web Control** | Open websites, search | ❌ No |
+| **System Control** | Volume, brightness, apps | ❌ No |
+| **File Operations** | Create, read, delete files | ❌ No |
+| **Screenshot** | Capture screen | ❌ No |
+| **DateTime** | Time, date, alarms | ❌ No |
+| **Weather** | Current weather | ✅ Yes |
+| **Email** | Send emails | ✅ Yes |
+| **Code Generator** | Write code | ❌ No |
+| **Self-Improvement** | Fix own code | ✅ Yes (optional) |
 
 ---
 
 ## 🐛 Troubleshooting
 
-### **Issue: "Connection refused to Ollama"**
+### **Ollama Connection Failed**
 ```bash
-❌ Error: Connection refused to http://localhost:11434
+# Start Ollama server
+ollama serve
 
-Solution:
-1. Start Ollama server: ollama serve
-2. Check if running: curl http://localhost:11434
-3. Restart JARVIS
+# Check if running
+curl http://localhost:11434/api/tags
 ```
 
-### **Issue: "Model not found"**
+### **Internet Search Not Working**
 ```bash
-❌ Error: Model llama3.2 not found
+# Install dependencies
+pip install requests beautifulsoup4 lxml
 
-Solution:
-1. Pull model: ollama pull llama3.2
-2. Verify: ollama list
-3. Restart JARVIS
+# Check internet connection
+ping google.com
 ```
 
-### **Issue: Import Error**
+### **Music Not Playing**
 ```bash
-❌ ModuleNotFoundError: No module named 'ollama'
+# Install pywhatkit
+pip install pywhatkit
 
-Solution:
-pip install ollama
-# Or reinstall all dependencies
-pip install -r requirements.txt
+# Or use browser fallback (automatic)
 ```
 
-### **Issue: Slow responses**
+### **Voice Recognition Issues**
 ```bash
-⚠️  Responses are slow
+# Install PyAudio
+pip install pyaudio
 
-Solution:
-1. Use faster model: ollama pull llama3.2
-2. Enable GPU acceleration (auto-detected)
-3. Close other applications
-```
-
----
-
-## 🚀 Advanced Usage
-
-### **Create Custom Skill with AI**
-```bash
-YOU: "Jarvis create a translator skill"
-JARVIS: 🤖 Creating new skill: translator
-        📝 Description: Translate text between languages
-        🔧 Functions: translate_text, detect_language
-        ✅ Skill created: skill/translator_ops.py
-```
-
-### **Improve Specific File**
-```bash
-YOU: "Jarvis improve core/engine.py for performance"
-JARVIS: 🤖 Improving code: core/engine.py
-        🎯 Improvement: performance
-        💾 Backup: core/engine.py.backup_20260202_153045
-        ✅ Code improved!
-```
-
-### **Continuous Mode + Music**
-```bash
-YOU: "Jarvis play music"
-JARVIS: 🎵 Playing Kesariya Brahmastra
-        ✅ Continuous mode activated!
-
-YOU: "play romantic songs"  # No "Jarvis"!
-JARVIS: 🎵 Playing romantic hindi songs playlist
-
-YOU: "open YouTube"  # Still no "Jarvis"!
-JARVIS: ✅ Opening YouTube
-
-YOU: "stop listening"
-JARVIS: ✅ Continuous mode deactivated
-```
-
----
-
-## 📝 Development
-
-### **Add New Skill Manually**
-```python
-# skill/my_skill.py
-from core.skill import Skill
-
-class MySkill(Skill):
-    @property
-    def name(self) -> str:
-        return "my_skill"
-    
-    def get_tools(self):
-        return [...]  # Tool definitions
-    
-    def get_functions(self):
-        return {...}  # Function mappings
-```
-
-### **Or Use AI to Create Skill**
-```bash
-"Jarvis create my_skill with functions: do_something, do_another"
+# Windows: Download wheel from
+# https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio
 ```
 
 ---
 
 ## 🤝 Contributing
 
-Contributions welcome! JARVIS can even help you contribute:
+We welcome contributions! Here's how:
 
-```bash
-"Jarvis improve the README"
-"Jarvis create a new feature"
-"Jarvis fix bugs in the code"
-```
-
----
-
-## 📜 License
-
-MIT License - See LICENSE file
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
 
 ---
 
-## 🙏 Credits
+## 📝 License
 
-- **Ollama** - Free local LLM server
-- **Meta** - Llama models
+This project is licensed under the MIT License - see [LICENSE](LICENSE) file.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Ollama** - Free local LLM runtime
+- **DuckDuckGo** - Privacy-focused search API
+- **YouTube** - Music and video platform
+- **StackOverflow** - Developer community
 - **PyQt5** - GUI framework
 - **SpeechRecognition** - Voice input
-- **pyttsx3** - Text-to-speech
+
+---
+
+## 📧 Contact
+
+- **GitHub**: [@Aryankaushik541](https://github.com/Aryankaushik541)
+- **Project**: [Zarves](https://github.com/Aryankaushik541/Zarves)
 
 ---
 
 ## 🌟 Star History
 
-If JARVIS helped you, please ⭐ star this repo!
+If you find JARVIS useful, please ⭐ star the repository!
 
 ---
 
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/Aryankaushik541/Zarves/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Aryankaushik541/Zarves/discussions)
-- **Ollama Setup**: See [OLLAMA_SETUP.md](OLLAMA_SETUP.md)
-
----
-
-**Made with ❤️ by developers who believe AI should be FREE and LOCAL**
-
-**JARVIS - The AI that writes its own future, completely FREE!** 🚀
+**Made with ❤️ by developers who believe AI should be free, local, and autonomous.**

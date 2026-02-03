@@ -362,7 +362,15 @@ Available tools will be provided in the function calling format."""
         for tool_call in tool_calls:
             try:
                 function_name = tool_call['function']['name']
-                function_args = json.loads(tool_call['function']['arguments'])
+                
+                # Handle both dict and JSON string arguments from Ollama
+                arguments = tool_call['function']['arguments']
+                if isinstance(arguments, str):
+                    function_args = json.loads(arguments)
+                elif isinstance(arguments, dict):
+                    function_args = arguments
+                else:
+                    function_args = {}
                 
                 # Execute function
                 result = self.registry.execute_skill(function_name, function_args)

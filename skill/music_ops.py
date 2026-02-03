@@ -5,6 +5,7 @@ import random
 import requests
 import time
 import threading
+import atexit
 from typing import List, Dict, Any, Callable
 from core.skill import Skill
 
@@ -40,6 +41,11 @@ class MusicSkill(Skill):
         "Jhoome Jo Pathaan",
         "Naina Arijit Singh",
     ]
+    
+    def __init__(self):
+        super().__init__()
+        # Register cleanup on exit
+        atexit.register(self._cleanup_drivers)
     
     @property
     def name(self) -> str:
@@ -136,6 +142,17 @@ class MusicSkill(Skill):
             "play_playlist": self.play_playlist
         }
 
+    def _cleanup_drivers(self):
+        """
+        Cleanup function called on exit - does NOT close browsers
+        Just cleans up references
+        """
+        try:
+            print(f"🧹 Cleaning up {len(self.active_drivers)} driver references...")
+            self.active_drivers.clear()
+        except:
+            pass
+
     def _get_trending_songs(self, language="hindi", count=10):
         """
         Fetch trending songs from YouTube using web scraping
@@ -172,34 +189,10 @@ class MusicSkill(Skill):
             print(f"⚠️  Could not fetch trending songs: {e}")
             return None
 
-    def _keep_driver_alive(self, driver):
-        """
-        Keep the driver alive in a separate thread
-        This prevents the browser from closing automatically
-        """
-        try:
-            # Store driver reference
-            self.active_drivers.append(driver)
-            
-            # Keep checking if window is still open
-            while True:
-                try:
-                    # Check if window is still open
-                    _ = driver.current_url
-                    time.sleep(5)  # Check every 5 seconds
-                except:
-                    # Window closed by user
-                    print("🔴 Browser window closed by user")
-                    if driver in self.active_drivers:
-                        self.active_drivers.remove(driver)
-                    break
-        except Exception as e:
-            print(f"⚠️  Driver monitoring error: {e}")
-
     def _auto_play_with_selenium(self, query):
         """
         Use Selenium to automatically click and play the first video
-        Browser will stay open until user closes it
+        Browser will stay open PERMANENTLY using detach option
         """
         try:
             from selenium import webdriver
@@ -212,16 +205,26 @@ class MusicSkill(Skill):
             
             print("🎬 Opening YouTube with auto-play...")
             
-            # Setup Chrome options
+            # Setup Chrome options with DETACH to keep browser open
             chrome_options = Options()
             chrome_options.add_argument("--start-maximized")
             chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+            
+            # CRITICAL: This keeps Chrome open even after driver quits
+            chrome_options.add_experimental_option("detach", True)
+            
             chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
             chrome_options.add_experimental_option('useAutomationExtension', False)
+            
+            # Disable automation flags
+            chrome_options.add_argument("--disable-infobars")
             
             # Initialize driver
             service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=chrome_options)
+            
+            # Store driver reference
+            self.active_drivers.append(driver)
             
             # Search on YouTube
             search_query = query.replace(' ', '+')
@@ -230,9 +233,10 @@ class MusicSkill(Skill):
             
             # Wait for video thumbnails to load
             print("⏳ Waiting for videos to load...")
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 15)
             
             # Find and click first video
+            video_clicked = False
             try:
                 # Method 1: Try ytd-video-renderer
                 video = wait.until(EC.element_to_be_clickable(
@@ -240,6 +244,7 @@ class MusicSkill(Skill):
                 ))
                 print("✅ Found video, clicking to play...")
                 video.click()
+                video_clicked = True
                 
             except:
                 # Method 2: Try alternative selector
@@ -249,28 +254,35 @@ class MusicSkill(Skill):
                     ))
                     print("✅ Found video (alt method), clicking to play...")
                     video.click()
+                    video_clicked = True
                 except:
                     print("⚠️  Could not auto-click, but YouTube is open")
             
-            # Start background thread to keep driver alive
-            monitor_thread = threading.Thread(target=self._keep_driver_alive, args=(driver,), daemon=True)
-            monitor_thread.start()
+            # Wait a bit for video to start loading
+            if video_clicked:
+                time.sleep(3)
+                print("✅ Video is playing!")
             
-            print("✅ YouTube opened and playing! Browser will stay open until you close it.")
+            # IMPORTANT: Don't quit driver - let it detach
+            # The browser will stay open independently
+            print("🎵 Browser will stay open. Close it manually when done.")
             
             return json.dumps({
                 "status": "success",
                 "action": "auto_play_music",
                 "query": query,
-                "method": "selenium",
-                "note": "Browser will stay open. Close it manually when done."
+                "method": "selenium_detached",
+                "note": "Browser is now independent and will stay open until you close it manually."
             })
             
         except ImportError as ie:
             print(f"⚠️  Selenium not available: {ie}")
+            print("💡 Install with: pip install selenium webdriver-manager")
             return None
         except Exception as e:
             print(f"⚠️  Auto-play failed: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
     def play_trending_song(self, language="hindi"):

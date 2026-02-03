@@ -6,19 +6,53 @@ Aadhar ATM GUI Launcher
 Simple interface for automated Aadhar ATM withdrawal
 """
 
+import importlib.util
+import re
 import sys
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-try:
-    from skill.aadhar_atm_skill import AadharATMSkill
-    SKILL_AVAILABLE = True
-except ImportError:
-    SKILL_AVAILABLE = False
+from skill.aadhar_atm_skill import AadharATMSkill
+
+SKILL_AVAILABLE = True
+
+
+def _module_available(module_name: str) -> bool:
+    return importlib.util.find_spec(module_name) is not None
+
+
+def _speak_text(text: str) -> None:
+    if not _module_available("pyttsx3"):
+        return
+    import pyttsx3
+
+    try:
+        engine = pyttsx3.init()
+        engine.say(text)
+        engine.runAndWait()
+    except Exception:
+        return
+
+
+def _listen_once(prompt: str) -> str:
+    if not _module_available("speech_recognition"):
+        raise RuntimeError("SpeechRecognition not installed")
+    import speech_recognition as sr
+
+    recognizer = sr.Recognizer()
+    _speak_text(prompt)
+    with sr.Microphone() as source:
+        recognizer.adjust_for_ambient_noise(source, duration=0.6)
+        audio = recognizer.listen(source, timeout=8, phrase_time_limit=10)
+    return recognizer.recognize_google(audio, language="hi-IN")
+
+
+def _extract_digits(text: str) -> str:
+    return "".join(re.findall(r"\d+", text))
 
 
 class AadharATMGUI:
@@ -63,7 +97,7 @@ class AadharATMGUI:
         # Info label
         info = tk.Label(
             content,
-            text="AI agent jo screen dekh ke khud se form fill karega",
+            text="AI agent screen read karke khud form fill karega.\nAadhar bolkar bhi de sakte ho.",
             font=('Arial', 10),
             bg='#0d1117',
             fg='#8b949e'
@@ -145,6 +179,21 @@ class AadharATMGUI:
             )
             btn.pack(side=tk.LEFT, padx=2)
         
+        # Voice fill button
+        self.voice_btn = tk.Button(
+            content,
+            text="🎤 Aadhar + Amount बोलकर भरो",
+            font=('Arial', 11, 'bold'),
+            bg='#1f6feb',
+            fg='white',
+            bd=0,
+            padx=20,
+            pady=10,
+            cursor='hand2',
+            command=self._voice_fill
+        )
+        self.voice_btn.pack(pady=(5, 10))
+
         # Status label
         self.status_label = tk.Label(
             content,
@@ -176,9 +225,10 @@ class AadharATMGUI:
             content,
             text="📝 Instructions:\n"
                  "1. ATM screen khol lo\n"
-                 "2. Aadhar number aur amount enter karo\n"
-                 "3. 'Start' button dabao\n"
-                 "4. AI agent khud se sab kar dega!",
+                 "2. Aadhar number bolkar ya type karke भरो\n"
+                 "3. Amount बोलो / type karo\n"
+                 "4. 'Start' button dabao\n"
+                 "5. AI agent khud se sab kar dega!",
             font=('Arial', 9),
             bg='#0d1117',
             fg='#8b949e',
@@ -193,6 +243,29 @@ class AadharATMGUI:
                 fg='#f85149'
             )
             self.start_btn.config(state='disabled', bg='#6e7681')
+            self.voice_btn.config(state='disabled', bg='#6e7681')
+
+    def _voice_fill(self):
+        """Capture Aadhar + amount using voice."""
+        try:
+            aadhar_text = _listen_once("Apna Aadhar number boliye.")
+            digits = _extract_digits(aadhar_text)
+            if len(digits) < 12:
+                raise ValueError("Aadhar number sahi se sunai nahi diya.")
+            aadhar_number = digits[:12]
+            self.aadhar_entry.delete(0, tk.END)
+            self.aadhar_entry.insert(0, aadhar_number)
+
+            amount_text = _listen_once("Kitna paisa chahiye boliye.")
+            amount_digits = _extract_digits(amount_text)
+            if not amount_digits:
+                raise ValueError("Amount sahi se sunai nahi diya.")
+            self.amount_entry.delete(0, tk.END)
+            self.amount_entry.insert(0, amount_digits)
+            self.status_label.config(text="✅ Voice input captured", fg='#3fb950')
+        except Exception as exc:
+            messagebox.showerror("Voice Error", str(exc))
+            self.status_label.config(text="❌ Voice input failed", fg='#f85149')
     
     def _start_withdrawal(self):
         """Start automated withdrawal"""
@@ -203,8 +276,13 @@ class AadharATMGUI:
         
         # Validate
         if not aadhar:
-            messagebox.showerror("Error", "Aadhar number enter karo!")
-            return
+            try:
+                self._voice_fill()
+                aadhar = self.aadhar_entry.get().strip().replace(" ", "")
+                amount = self.amount_entry.get().strip()
+            except Exception:
+                messagebox.showerror("Error", "Aadhar number enter karo!")
+                return
         
         if len(aadhar) != 12 or not aadhar.isdigit():
             messagebox.showerror("Error", "Aadhar number 12 digits ka hona chahiye!")
@@ -282,24 +360,13 @@ def main():
     
     # Check dependencies
     missing = []
-    try:
-        import pyautogui
-    except ImportError:
+    if not _module_available("pyautogui"):
         missing.append("pyautogui")
-    
-    try:
-        import pytesseract
-    except ImportError:
+    if not _module_available("pytesseract"):
         missing.append("pytesseract")
-    
-    try:
-        import cv2
-    except ImportError:
+    if not _module_available("cv2"):
         missing.append("opencv-python")
-    
-    try:
-        from PIL import Image
-    except ImportError:
+    if not _module_available("PIL"):
         missing.append("pillow")
     
     if missing:

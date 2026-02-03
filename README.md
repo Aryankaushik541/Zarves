@@ -1,6 +1,6 @@
 # 🤖 JARVIS - Your Personal AI Assistant
 
-> **"Just Run main.py - Everything Auto-Installs!"**
+> **"Just Run `python main.py` - Everything Auto-Installs!"**
 
 Complete AI assistant with **automatic setup**, **browser auto-login**, **PC movie search**, **VLC auto-play**, and **local AI**!
 
@@ -40,9 +40,22 @@ The script automatically:
    ✅ All dependencies installed!
 
 🤖 Setting up AI Engine (Ollama)...
-   ✅ Ollama found!
-   ✅ Ollama server running!
-   ✅ AI model ready!
+   ⚠️  Ollama not found!
+
+   Install Ollama now? (y/n): y
+   
+   📥 Installing Ollama...
+   ✅ Ollama installed!
+   ⏳ Starting Ollama server...
+   ✅ Ollama server started!
+   
+   ⚠️  AI model (llama3.2) not found
+   
+   Download model now? (y/n): y
+   
+   📥 Downloading AI model (llama3.2)...
+   ⏳ This may take 2-5 minutes (~2GB download)...
+   ✅ Model downloaded successfully!
 
 ✅ AI Engine ready!
 
@@ -67,96 +80,51 @@ Then the beautiful GUI opens! 🎨
 
 ---
 
-## ⚡ First Time Setup
-
-### **If Ollama Not Installed:**
-
-When you run `python main.py`, it will ask:
-
-```
-⚠️  Ollama not found!
-
-Install Ollama now? (y/n): y
-```
-
-Type **y** and press Enter. It will:
-1. Install Ollama automatically (Mac/Linux)
-2. Or guide you to download (Windows)
-3. Start Ollama server
-4. Download AI model
-
-**Windows Users:**
-- Script will open download link
-- Install Ollama
-- Press Enter to continue
-- Script will handle the rest!
-
-### **If Model Not Downloaded:**
-
-```
-⚠️  AI model (llama3.2) not found
-
-Download model now? (y/n): y
-```
-
-Type **y** and press Enter. It will download the model (~2GB).
-
----
-
 ## ✨ Features
 
 ### 🤖 **Automatic Setup**
-```
-✅ One command to rule them all
-✅ Auto-installs everything
-✅ No manual configuration
-✅ Works on Windows, Mac, Linux
-```
+- One command to rule them all
+- Auto-installs everything
+- No manual configuration
+- Works on Windows, Mac, Linux
 
 ### 🧠 **Local AI Processing**
-```
-✅ Runs completely offline
-✅ No API keys needed
-✅ Fast and private
-✅ Uses Ollama + llama3.2
-
-Your data stays on your PC!
-```
+- Runs completely offline
+- No API keys needed
+- Fast and private
+- Uses Ollama + llama3.2
+- Your data stays on your PC!
 
 ### 🔐 **Browser Auto-Login**
-```
-✅ Opens browser automatically
-✅ Logs in with Google credentials
-✅ No manual typing needed!
-
-Supported:
-- Gmail (Auto-login)
-- YouTube (Auto-login)
-- Facebook (Auto-login)
-- Twitter (Auto-login)
-```
+- Opens browser automatically
+- Logs in with Google credentials
+- No manual typing needed!
+- Supported: Gmail, YouTube, Facebook, Twitter
 
 ### 🎬 **PC Movie Search**
-```
-✅ Searches entire PC storage
-✅ Finds movies by name
-✅ Supports all video formats
-✅ Shows results instantly
-
-Formats: MP4, MKV, AVI, MOV, WMV, FLV, WEBM
-```
+- Searches entire PC storage
+- Finds movies by name
+- Supports all video formats (MP4, MKV, AVI, MOV, WMV, FLV, WEBM)
+- Shows results instantly
 
 ### 🎥 **VLC Auto-Play**
-```
-✅ Searches movie on PC
-✅ Opens VLC automatically
-✅ Starts playing movie
-✅ Fully automatic!
+- Searches movie on PC
+- Opens VLC automatically
+- Starts playing movie
+- Fully automatic!
 
-Example:
-Say: "Avengers movie play karo VLC me"
-Result: Finds Avengers, opens VLC, plays automatically!
-```
+### 🎵 **YouTube Auto-Play**
+- Opens YouTube with Selenium
+- Auto-plays songs/videos
+- Trending music support
+- Natural language commands
+
+### 🎨 **Beautiful GUI**
+- Modern dark theme
+- Quick action buttons
+- Real-time chat
+- Voice input support
+- Status indicators
 
 ---
 
@@ -260,47 +228,6 @@ JARVIS will search these folders for movies!
 
 ---
 
-## 🎨 GUI Interface
-
-### **Beautiful Visual Interface:**
-```
-┌─────────────────────────────────────────────────────────────┐
-│  🤖 JARVIS | Auto-Login | Movie Search | VLC Play           │
-│                                    [⚙️ Settings] [● Ready]  │
-├──────────────────┬──────────────────────────────────────────┤
-│                  │                                          │
-│  Quick Actions   │         Chat with JARVIS                │
-│                  │                                          │
-│  🌐 Web          │  💬 Type or speak your commands         │
-│    • Gmail ✅    │                                          │
-│    • YouTube ✅  │  [08:58:46] 👤 YOU: hello jarvis        │
-│    • Facebook ✅ │  [08:58:47] 🤖 JARVIS: Hello! How can   │
-│                  │             I help you today? 😊         │
-│  🎬 Movies       │                                          │
-│    • Search ✅   │  [08:59:12] 👤 YOU: youtube kholo       │
-│    • Play VLC ✅ │  [08:59:13] 🤖 JARVIS: Opening YouTube  │
-│                  │             with trending music! 🎵      │
-│  📱 Apps         │                                          │
-│    • Chrome      │                                          │
-│    • VLC ✅      │  ┌────────────────────────────────────┐ │
-│    • Calculator  │  │ Type your message...               │ │
-│                  │  │                        [🎤] [Send] │ │
-│  🎵 Media        │  └────────────────────────────────────┘ │
-│    • Play ✅     │                                          │
-│    • Pause       │                                          │
-│                  │                                          │
-│  🔊 System       │                                          │
-│    • Volume      │                                          │
-│    • Mute        │                                          │
-│                  │                                          │
-│  ⚡ Power        │                                          │
-│    • Lock        │                                          │
-│    • Sleep       │                                          │
-└──────────────────┴──────────────────────────────────────────┘
-```
-
----
-
 ## 🔧 Troubleshooting
 
 ### **Problem: "Ollama installation failed"**
@@ -319,13 +246,14 @@ python main.py
 ### **Problem: "Model download failed"**
 
 ```bash
-# Open terminal and run:
+# Open terminal 1:
 ollama serve
 
-# In another terminal:
+# Open terminal 2:
 ollama pull llama3.2
 
-# Then run JARVIS:
+# Open terminal 3:
+cd Zarves
 python main.py
 ```
 
@@ -345,6 +273,155 @@ This means Ollama is not available. JARVIS will still work but with basic comman
 2. Run: `ollama serve`
 3. Run: `ollama pull llama3.2`
 4. Restart JARVIS: `python main.py`
+
+### **Problem: "Ollama server not starting"**
+
+```bash
+# Check if port 11434 is already in use:
+# Windows:
+netstat -ano | findstr :11434
+
+# Mac/Linux:
+lsof -i :11434
+
+# Kill the process if needed, then restart:
+python main.py
+```
+
+### **Problem: "GUI not opening"**
+
+```bash
+# Install PyQt5 manually:
+pip install PyQt5
+
+# If on Mac and fails:
+pip install PyQt5 --no-cache-dir
+
+# Then run:
+python main.py
+```
+
+---
+
+## 🎯 How It Works
+
+### **1. Automatic Setup:**
+```
+You run: python main.py
+
+JARVIS:
+1. Checks Python dependencies → Installs if missing
+2. Checks Ollama → Asks to install if missing
+3. Checks Ollama server → Starts if not running
+4. Checks AI model → Downloads if missing
+5. Launches beautiful GUI
+
+Result: Everything ready in 5 minutes!
+```
+
+### **2. Browser Auto-Login:**
+```
+You say: "gmail login karo"
+
+JARVIS:
+1. Opens Chrome with Selenium
+2. Goes to Gmail
+3. Enters your email (from settings)
+4. Enters your password (from settings)
+5. Clicks login automatically
+6. You're logged in!
+
+Result: ✅ Logged into Gmail!
+        🌐 Browser opened with auto-login
+```
+
+### **3. PC Movie Search:**
+```
+You say: "Avengers movie search karo"
+
+JARVIS:
+1. Searches all configured folders
+2. Looks for "Avengers" in filename
+3. Checks all video formats (MP4, MKV, etc.)
+4. Shows all matches
+
+Result: 🎬 Found 3 movie(s):
+        1. Avengers Endgame.mp4
+        2. Avengers Infinity War.mkv
+        3. The Avengers.avi
+```
+
+### **4. VLC Auto-Play:**
+```
+You say: "Avengers movie play karo VLC me"
+
+JARVIS:
+1. Searches PC for "Avengers"
+2. Finds movie file
+3. Locates VLC player
+4. Opens VLC with movie
+5. Movie starts playing!
+
+Result: 🎬 Playing in VLC:
+        Avengers Endgame.mp4
+        ✅ Movie started!
+```
+
+### **5. Local AI Processing:**
+```
+You say: "What's the weather like?"
+
+JARVIS:
+1. Processes query with Ollama (local AI)
+2. Understands intent
+3. Executes appropriate skill
+4. Responds naturally
+
+Result: All processing happens on your PC!
+        No data sent to cloud!
+```
+
+---
+
+## 🎨 GUI Interface
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🤖 JARVIS | Auto-Login | Movie Search | VLC Play           │
+│                                    [⚙️ Settings] [● Ready]  │
+├──────────────────┬──────────────────────────────────────────┤
+│                  │                                          │
+│  Quick Actions   │         Chat with JARVIS                │
+│                  │                                          │
+│  🌐 Web          │  💬 Type or speak your commands         │
+│    • Gmail ✅    │                                          │
+│    • YouTube ✅  │  [08:58:46] 👤 YOU: hello jarvis        │
+│    • Facebook ✅ │  [08:58:47] 🤖 JARVIS: Hello! How can   │
+│    • Twitter ✅  │             I help you today? 😊         │
+│                  │                                          │
+│  🎬 Movies       │  [08:59:12] 👤 YOU: youtube kholo       │
+│    • Search ✅   │  [08:59:13] 🤖 JARVIS: Opening YouTube  │
+│    • Play VLC ✅ │             with trending music! 🎵      │
+│                  │                                          │
+│  📱 Apps         │                                          │
+│    • Chrome      │  ┌────────────────────────────────────┐ │
+│    • Word        │  │ Type your message...               │ │
+│    • VLC ✅      │  │                        [🎤] [Send] │ │
+│    • Calculator  │  └────────────────────────────────────┘ │
+│                  │                                          │
+│  🎵 Media        │                                          │
+│    • Play ✅     │                                          │
+│    • Pause       │                                          │
+│                  │                                          │
+│  🔊 System       │                                          │
+│    • Volume      │                                          │
+│    • Mute        │                                          │
+│                  │                                          │
+│  ⚡ Power        │                                          │
+│    • Lock        │                                          │
+│    • Sleep       │                                          │
+└──────────────────┴──────────────────────────────────────────┘
+```
 
 ---
 
@@ -367,64 +444,16 @@ This means Ollama is not available. JARVIS will still work but with basic comman
 ## 🔒 Privacy & Security
 
 ### **Your Data is Safe:**
-```
-✅ All AI processing happens locally
-✅ No data sent to cloud
-✅ Credentials stored locally only
-✅ Open source - audit the code
-✅ No telemetry or tracking
-```
+- ✅ All AI processing happens locally
+- ✅ No data sent to cloud
+- ✅ Credentials stored locally only
+- ✅ Open source - audit the code
+- ✅ No telemetry or tracking
 
 ### **Credentials:**
 - Stored in `~/.jarvis_config.json`
 - Never shared or uploaded
 - You can delete anytime
-
----
-
-## 🎯 How It Works
-
-### **1. Automatic Setup:**
-```
-You run: python main.py
-
-JARVIS:
-1. Checks Python dependencies → Installs if missing
-2. Checks Ollama → Asks to install if missing
-3. Checks Ollama server → Starts if not running
-4. Checks AI model → Downloads if missing
-5. Launches beautiful GUI
-
-Result: Everything ready in 5 minutes!
-```
-
-### **2. Local AI Processing:**
-```
-You say: "What's the weather like?"
-
-JARVIS:
-1. Processes query with Ollama (local AI)
-2. Understands intent
-3. Executes appropriate skill
-4. Responds naturally
-
-Result: All processing happens on your PC!
-        No data sent to cloud!
-```
-
-### **3. Smart Task Execution:**
-```
-You say: "Avengers movie play karo VLC me"
-
-JARVIS:
-1. Understands: Search movie + Play in VLC
-2. Searches PC for "Avengers"
-3. Finds movie file
-4. Opens VLC with movie
-5. Movie starts playing!
-
-Result: Complex task done automatically!
-```
 
 ---
 
@@ -473,6 +502,44 @@ JARVIS automatically loads it!
 
 ---
 
+## 💡 Tips & Tricks
+
+### **Faster Commands:**
+```
+Instead of: "open youtube and play honey singh song"
+Just say: "honey singh ka gaana bajao"
+```
+
+### **Natural Language:**
+```
+✅ "youtube kholo" (works)
+✅ "open youtube" (works)
+✅ "youtube chalao" (works)
+✅ "yt kholo" (works)
+
+All variations work!
+```
+
+### **Quick Actions:**
+```
+Use GUI buttons for instant access:
+- Click "Gmail" → Opens Gmail
+- Click "Search Movie" → Opens search
+- Click "Volume Up" → Increases volume
+
+No typing needed!
+```
+
+### **Voice vs Text:**
+```
+Voice: Better for hands-free
+Text: Better for complex commands
+
+Use what's comfortable!
+```
+
+---
+
 ## 🤝 Contributing
 
 Contributions welcome! Please:
@@ -492,8 +559,7 @@ MIT License - See LICENSE file
 ## 🆘 Support
 
 - **Issues:** https://github.com/Aryankaushik541/Zarves/issues
-- **Detailed Fixes:** [FIXES.md](FIXES.md)
-- **Quick Start:** [QUICKSTART.md](QUICKSTART.md)
+- **Ollama Docs:** https://ollama.com/docs
 
 ---
 

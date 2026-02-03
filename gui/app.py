@@ -2,961 +2,600 @@
 # -*- coding: utf-8 -*-
 
 """
-JARVIS GUI - Modern Control Panel
-Features:
-- Real-time status updates
-- Voice visualization
-- Command history
-- System monitoring
-- Indian language support
-- Dark/Light theme
-- Animations and effects
+JARVIS GUI - Complete Visual Interface
+Beautiful window with all features
+No terminal needed!
 """
 
 import sys
 import os
+import webbrowser
+import subprocess
+import platform
 import time
-from datetime import datetime
-from collections import deque
+import threading
+from pathlib import Path
 
-# Suppress all Qt warnings before importing PyQt5
-os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false'
-os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '0'
-os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '0'
-os.environ['QT_SCALE_FACTOR'] = '1'
-os.environ['QT_DEVICE_PIXEL_RATIO'] = '0'
-
-# Suppress Python warnings
-import warnings
-warnings.filterwarnings("ignore")
+# Add parent directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 try:
-    from PyQt5.QtWidgets import (
-        QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout,
-        QWidget, QLabel, QTextEdit, QFrame, QScrollArea, QGridLayout,
-        QProgressBar, QTabWidget, QListWidget, QListWidgetItem, QGroupBox,
-        QSystemTrayIcon, QMenu, QAction, QSplitter
-    )
-    from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, pyqtSignal, QThread
-    from PyQt5.QtGui import QFont, QColor, QPalette, QIcon, QPixmap, QPainter, QLinearGradient
-    GUI_AVAILABLE = True
+    import tkinter as tk
+    from tkinter import ttk, scrolledtext, messagebox
+    import pyttsx3
+    import speech_recognition as sr
+    import pyautogui
+    import psutil
 except ImportError as e:
-    print(f"⚠️  GUI not available: {e}")
-    print("Running in terminal mode only.")
-    GUI_AVAILABLE = False
+    print(f"Installing missing packages...")
+    import subprocess
+    packages = ['pyttsx3', 'SpeechRecognition', 'pyautogui', 'psutil']
+    for pkg in packages:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", pkg, "-q"])
+    print("Please restart the application")
+    sys.exit(0)
+
+try:
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
+    SELENIUM_AVAILABLE = True
+except:
+    SELENIUM_AVAILABLE = False
 
 
-class StatusMonitor(QThread):
-    """Background thread for monitoring system status"""
-    status_update = pyqtSignal(dict)
+class JarvisGUI:
+    """Complete JARVIS GUI Application"""
     
-    def __init__(self):
-        super().__init__()
-        self.running = True
+    def __init__(self, root):
+        self.root = root
+        self.root.title("🤖 JARVIS - Your Personal AI Assistant")
+        self.root.geometry("1200x800")
+        self.root.configure(bg='#0a0a0a')
         
-    def run(self):
-        """Monitor system resources"""
-        while self.running:
-            try:
-                import psutil
-                cpu = psutil.cpu_percent(interval=1)
-                memory = psutil.virtual_memory().percent
-                
-                # Check GPU if available
-                gpu_usage = 0
-                try:
-                    import torch
-                    if torch.cuda.is_available():
-                        gpu_usage = torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated() * 100
-                except:
-                    pass
-                
-                self.status_update.emit({
-                    'cpu': cpu,
-                    'memory': memory,
-                    'gpu': gpu_usage,
-                    'timestamp': datetime.now().strftime("%H:%M:%S")
-                })
-            except:
-                pass
+        # Initialize components
+        self.os_type = platform.system()
+        self.voice_engine = None
+        self.recognizer = None
+        self.listening = False
+        self.driver = None
+        
+        # Initialize voice
+        self._init_voice()
+        
+        # Create GUI
+        self._create_gui()
+        
+        # Welcome message
+        self.add_message("JARVIS", "Hello! I'm JARVIS. How can I help you today?", "system")
+        self.speak("Hello! I'm JARVIS. How can I help you today?")
+    
+    def _init_voice(self):
+        """Initialize voice engine"""
+        try:
+            self.voice_engine = pyttsx3.init()
+            self.voice_engine.setProperty('rate', 180)
+            self.voice_engine.setProperty('volume', 1.0)
             
-            time.sleep(2)
+            voices = self.voice_engine.getProperty('voices')
+            for voice in voices:
+                if 'male' in voice.name.lower() or 'david' in voice.name.lower():
+                    self.voice_engine.setProperty('voice', voice.id)
+                    break
+            
+            self.recognizer = sr.Recognizer()
+            self.recognizer.energy_threshold = 4000
+        except Exception as e:
+            print(f"Voice init error: {e}")
     
-    def stop(self):
-        """Stop monitoring"""
-        self.running = False
-
-
-class JarvisGUI(QMainWindow):
-    """Modern JARVIS Control Panel with advanced features"""
-    
-    def __init__(self, pause_event):
-        super().__init__()
-        self.pause_event = pause_event
-        self.is_paused = False
-        self.dark_mode = True
-        self.command_history = deque(maxlen=50)
-        self.status_monitor = None
+    def _create_gui(self):
+        """Create complete GUI interface"""
         
-        # Initialize UI
-        self.init_ui()
-        self.setup_animations()
-        self.start_monitoring()
-        
-    def init_ui(self):
-        """Initialize the user interface"""
-        self.setWindowTitle("🤖 JARVIS - AI Assistant Control Panel")
-        self.setGeometry(100, 100, 1200, 800)
-        self.setMinimumSize(900, 600)
-        
-        # Apply theme
-        self.apply_theme()
-        
-        # Central widget with tabs
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        
-        # Main layout
-        main_layout = QVBoxLayout()
-        main_layout.setSpacing(0)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        
-        # Header
-        header = self.create_header()
-        main_layout.addWidget(header)
-        
-        # Tab widget
-        self.tabs = QTabWidget()
-        self.tabs.setStyleSheet("""
-            QTabWidget::pane {
-                border: none;
-                background: transparent;
-            }
-            QTabBar::tab {
-                background: #2d2d2d;
-                color: #00ff00;
-                padding: 12px 24px;
-                margin-right: 2px;
-                border-top-left-radius: 8px;
-                border-top-right-radius: 8px;
-                font-size: 13px;
-                font-weight: bold;
-            }
-            QTabBar::tab:selected {
-                background: #1e1e1e;
-                color: #00ff00;
-            }
-            QTabBar::tab:hover {
-                background: #3d3d3d;
-            }
-        """)
-        
-        # Create tabs
-        self.tabs.addTab(self.create_dashboard_tab(), "📊 Dashboard")
-        self.tabs.addTab(self.create_commands_tab(), "💬 Commands")
-        self.tabs.addTab(self.create_system_tab(), "⚙️ System")
-        self.tabs.addTab(self.create_settings_tab(), "🔧 Settings")
-        
-        main_layout.addWidget(self.tabs)
-        
-        # Footer
-        footer = self.create_footer()
-        main_layout.addWidget(footer)
-        
-        central_widget.setLayout(main_layout)
-        
-        # System tray
-        self.setup_system_tray()
-        
-    def create_header(self):
-        """Create header with logo and controls"""
-        header = QFrame()
-        header.setFixedHeight(80)
-        header.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #1a1a1a, stop:1 #2d2d2d);
-                border-bottom: 2px solid #00ff00;
-            }
-        """)
-        
-        layout = QHBoxLayout()
-        layout.setContentsMargins(20, 10, 20, 10)
+        # ============ TOP BAR ============
+        top_bar = tk.Frame(self.root, bg='#1a1a1a', height=80)
+        top_bar.pack(fill=tk.X, padx=0, pady=0)
         
         # Logo and title
-        title_layout = QVBoxLayout()
-        title = QLabel("🤖 JARVIS")
-        title.setFont(QFont("Arial", 24, QFont.Bold))
-        title.setStyleSheet("color: #00ff00; background: transparent;")
+        title_frame = tk.Frame(top_bar, bg='#1a1a1a')
+        title_frame.pack(side=tk.LEFT, padx=20, pady=15)
         
-        subtitle = QLabel("Autonomous AI Assistant")
-        subtitle.setFont(QFont("Arial", 10))
-        subtitle.setStyleSheet("color: #888888; background: transparent;")
-        
-        title_layout.addWidget(title)
-        title_layout.addWidget(subtitle)
-        layout.addLayout(title_layout)
-        
-        layout.addStretch()
+        tk.Label(title_frame, text="🤖 JARVIS", font=("Arial", 24, "bold"), 
+                bg='#1a1a1a', fg='#00d4ff').pack(side=tk.LEFT)
+        tk.Label(title_frame, text="Your Personal AI Assistant", font=("Arial", 12), 
+                bg='#1a1a1a', fg='#888888').pack(side=tk.LEFT, padx=10)
         
         # Status indicator
-        self.status_indicator = QLabel("● ACTIVE")
-        self.status_indicator.setFont(QFont("Arial", 12, QFont.Bold))
-        self.status_indicator.setStyleSheet("color: #00ff00; background: transparent;")
-        layout.addWidget(self.status_indicator)
+        self.status_frame = tk.Frame(top_bar, bg='#1a1a1a')
+        self.status_frame.pack(side=tk.RIGHT, padx=20, pady=15)
         
-        # Control buttons
-        self.pause_btn = QPushButton("⏸️ Pause")
-        self.pause_btn.setFixedSize(100, 40)
-        self.pause_btn.clicked.connect(self.toggle_pause)
-        self.pause_btn.setStyleSheet(self.get_button_style())
-        layout.addWidget(self.pause_btn)
+        self.status_dot = tk.Label(self.status_frame, text="●", font=("Arial", 20), 
+                                   bg='#1a1a1a', fg='#00ff88')
+        self.status_dot.pack(side=tk.LEFT)
         
-        theme_btn = QPushButton("🌓 Theme")
-        theme_btn.setFixedSize(100, 40)
-        theme_btn.clicked.connect(self.toggle_theme)
-        theme_btn.setStyleSheet(self.get_button_style())
-        layout.addWidget(theme_btn)
+        self.status_label = tk.Label(self.status_frame, text="Ready", font=("Arial", 12), 
+                                     bg='#1a1a1a', fg='#00ff88')
+        self.status_label.pack(side=tk.LEFT, padx=5)
         
-        header.setLayout(layout)
-        return header
+        # ============ MAIN CONTAINER ============
+        main_container = tk.Frame(self.root, bg='#0a0a0a')
+        main_container.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        
+        # ============ LEFT PANEL - QUICK ACTIONS ============
+        left_panel = tk.Frame(main_container, bg='#1a1a1a', width=300)
+        left_panel.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
+        left_panel.pack_propagate(False)
+        
+        # Quick Actions Title
+        tk.Label(left_panel, text="⚡ Quick Actions", font=("Arial", 14, "bold"), 
+                bg='#1a1a1a', fg='#00d4ff').pack(pady=15)
+        
+        # Scrollable frame for buttons
+        canvas = tk.Canvas(left_panel, bg='#1a1a1a', highlightthickness=0)
+        scrollbar = ttk.Scrollbar(left_panel, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg='#1a1a1a')
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Quick action buttons
+        actions = [
+            ("🌐 Web", [
+                ("Chrome", lambda: self.execute_command("chrome kholo")),
+                ("Gmail", lambda: self.open_website("https://gmail.com")),
+                ("Facebook", lambda: self.open_website("https://facebook.com")),
+                ("YouTube", lambda: self.open_website("https://youtube.com")),
+                ("Twitter", lambda: self.open_website("https://twitter.com")),
+                ("Instagram", lambda: self.open_website("https://instagram.com")),
+                ("WhatsApp Web", lambda: self.open_website("https://web.whatsapp.com")),
+                ("LinkedIn", lambda: self.open_website("https://linkedin.com")),
+            ]),
+            ("📱 Apps", [
+                ("Word", lambda: self.execute_command("word kholo")),
+                ("Excel", lambda: self.execute_command("excel kholo")),
+                ("PowerPoint", lambda: self.execute_command("powerpoint kholo")),
+                ("Notepad", lambda: self.execute_command("notepad kholo")),
+                ("Calculator", lambda: self.execute_command("calculator kholo")),
+                ("Paint", lambda: self.execute_command("paint kholo")),
+                ("VLC", lambda: self.execute_command("vlc kholo")),
+            ]),
+            ("🎵 Media", [
+                ("Play Music", lambda: self.execute_command("gaana bajao")),
+                ("Pause", lambda: self.media_control("pause")),
+                ("Next", lambda: self.media_control("next")),
+                ("Previous", lambda: self.media_control("previous")),
+            ]),
+            ("🔊 System", [
+                ("Volume Up", lambda: self.execute_command("volume badhao")),
+                ("Volume Down", lambda: self.execute_command("volume kam karo")),
+                ("Mute", lambda: self.execute_command("mute karo")),
+                ("Brightness Up", lambda: self.execute_command("brightness badhao")),
+                ("Brightness Down", lambda: self.execute_command("brightness kam karo")),
+            ]),
+            ("⚡ Power", [
+                ("Lock PC", lambda: self.execute_command("lock karo")),
+                ("Sleep", lambda: self.execute_command("sleep karo")),
+                ("Restart", lambda: self.execute_command("restart karo")),
+                ("Shutdown", lambda: self.execute_command("shutdown karo")),
+            ]),
+        ]
+        
+        for category, items in actions:
+            # Category label
+            tk.Label(scrollable_frame, text=category, font=("Arial", 11, "bold"), 
+                    bg='#1a1a1a', fg='#00d4ff', anchor='w').pack(fill=tk.X, padx=10, pady=(10, 5))
+            
+            # Category buttons
+            for name, command in items:
+                btn = tk.Button(scrollable_frame, text=name, font=("Arial", 10), 
+                              bg='#2a2a2a', fg='#ffffff', activebackground='#00d4ff',
+                              activeforeground='#000000', relief=tk.FLAT, cursor='hand2',
+                              command=command)
+                btn.pack(fill=tk.X, padx=15, pady=2)
+                
+                # Hover effect
+                btn.bind("<Enter>", lambda e, b=btn: b.config(bg='#3a3a3a'))
+                btn.bind("<Leave>", lambda e, b=btn: b.config(bg='#2a2a2a'))
+        
+        # ============ RIGHT PANEL - CHAT & CONTROLS ============
+        right_panel = tk.Frame(main_container, bg='#1a1a1a')
+        right_panel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        
+        # Chat display
+        chat_frame = tk.Frame(right_panel, bg='#1a1a1a')
+        chat_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        tk.Label(chat_frame, text="💬 Conversation", font=("Arial", 12, "bold"), 
+                bg='#1a1a1a', fg='#00d4ff').pack(anchor='w', pady=(0, 10))
+        
+        self.chat_display = scrolledtext.ScrolledText(
+            chat_frame, wrap=tk.WORD, font=("Consolas", 11),
+            bg='#0a0a0a', fg='#ffffff', insertbackground='#00d4ff',
+            relief=tk.FLAT, padx=15, pady=15
+        )
+        self.chat_display.pack(fill=tk.BOTH, expand=True)
+        self.chat_display.config(state=tk.DISABLED)
+        
+        # Configure tags for colored messages
+        self.chat_display.tag_config("user", foreground="#00d4ff", font=("Consolas", 11, "bold"))
+        self.chat_display.tag_config("jarvis", foreground="#00ff88", font=("Consolas", 11, "bold"))
+        self.chat_display.tag_config("system", foreground="#ffaa00", font=("Consolas", 11, "bold"))
+        self.chat_display.tag_config("error", foreground="#ff4444", font=("Consolas", 11, "bold"))
+        
+        # Input area
+        input_frame = tk.Frame(right_panel, bg='#1a1a1a')
+        input_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
+        
+        # Text input
+        self.input_field = tk.Entry(
+            input_frame, font=("Arial", 12), bg='#2a2a2a', fg='#ffffff',
+            insertbackground='#00d4ff', relief=tk.FLAT
+        )
+        self.input_field.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=10, padx=(0, 10))
+        self.input_field.bind("<Return>", lambda e: self.send_message())
+        
+        # Send button
+        self.send_btn = tk.Button(
+            input_frame, text="📤 Send", font=("Arial", 11, "bold"),
+            bg='#00d4ff', fg='#000000', activebackground='#00a8cc',
+            relief=tk.FLAT, cursor='hand2', command=self.send_message, width=10
+        )
+        self.send_btn.pack(side=tk.LEFT, ipady=8)
+        
+        # Voice button
+        self.voice_btn = tk.Button(
+            input_frame, text="🎤 Voice", font=("Arial", 11, "bold"),
+            bg='#2a2a2a', fg='#ffffff', activebackground='#00ff88',
+            relief=tk.FLAT, cursor='hand2', command=self.toggle_voice, width=10
+        )
+        self.voice_btn.pack(side=tk.LEFT, padx=(10, 0), ipady=8)
     
-    def create_dashboard_tab(self):
-        """Create main dashboard tab"""
-        widget = QWidget()
-        layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+    def add_message(self, sender, message, msg_type="user"):
+        """Add message to chat display"""
+        self.chat_display.config(state=tk.NORMAL)
         
-        # Top row - Quick stats
-        stats_layout = QHBoxLayout()
+        timestamp = time.strftime("%H:%M:%S")
         
-        # Active status card
-        self.active_card = self.create_stat_card("Status", "ACTIVE", "#00ff00")
-        stats_layout.addWidget(self.active_card)
+        if msg_type == "user":
+            self.chat_display.insert(tk.END, f"\n[{timestamp}] ", "system")
+            self.chat_display.insert(tk.END, f"👤 You: ", "user")
+            self.chat_display.insert(tk.END, f"{message}\n")
+        elif msg_type == "jarvis":
+            self.chat_display.insert(tk.END, f"\n[{timestamp}] ", "system")
+            self.chat_display.insert(tk.END, f"🤖 JARVIS: ", "jarvis")
+            self.chat_display.insert(tk.END, f"{message}\n")
+        elif msg_type == "system":
+            self.chat_display.insert(tk.END, f"\n[{timestamp}] ", "system")
+            self.chat_display.insert(tk.END, f"ℹ️  {sender}: ", "system")
+            self.chat_display.insert(tk.END, f"{message}\n")
+        elif msg_type == "error":
+            self.chat_display.insert(tk.END, f"\n[{timestamp}] ", "system")
+            self.chat_display.insert(tk.END, f"❌ Error: ", "error")
+            self.chat_display.insert(tk.END, f"{message}\n")
         
-        # Commands processed
-        self.commands_card = self.create_stat_card("Commands", "0", "#00aaff")
-        stats_layout.addWidget(self.commands_card)
-        
-        # Uptime
-        self.uptime_card = self.create_stat_card("Uptime", "00:00:00", "#ffaa00")
-        stats_layout.addWidget(self.uptime_card)
-        
-        # Mode
-        self.mode_card = self.create_stat_card("Mode", "Voice", "#ff00ff")
-        stats_layout.addWidget(self.mode_card)
-        
-        layout.addLayout(stats_layout)
-        
-        # Middle row - Voice visualization and recent commands
-        middle_layout = QHBoxLayout()
-        
-        # Voice visualization
-        voice_group = QGroupBox("🎤 Voice Activity")
-        voice_group.setStyleSheet(self.get_group_style())
-        voice_layout = QVBoxLayout()
-        
-        self.voice_level = QProgressBar()
-        self.voice_level.setRange(0, 100)
-        self.voice_level.setValue(0)
-        self.voice_level.setTextVisible(False)
-        self.voice_level.setStyleSheet("""
-            QProgressBar {
-                border: 2px solid #00ff00;
-                border-radius: 5px;
-                background: #1a1a1a;
-                height: 30px;
-            }
-            QProgressBar::chunk {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #00ff00, stop:1 #00aa00);
-                border-radius: 3px;
-            }
-        """)
-        voice_layout.addWidget(self.voice_level)
-        
-        self.voice_status = QLabel("🔇 Listening...")
-        self.voice_status.setAlignment(Qt.AlignCenter)
-        self.voice_status.setStyleSheet("color: #888888; font-size: 12px;")
-        voice_layout.addWidget(self.voice_status)
-        
-        voice_group.setLayout(voice_layout)
-        middle_layout.addWidget(voice_group, 1)
-        
-        # Recent commands
-        recent_group = QGroupBox("📝 Recent Commands")
-        recent_group.setStyleSheet(self.get_group_style())
-        recent_layout = QVBoxLayout()
-        
-        self.recent_list = QListWidget()
-        self.recent_list.setStyleSheet("""
-            QListWidget {
-                background: #1a1a1a;
-                border: 1px solid #333333;
-                border-radius: 5px;
-                color: #00ff00;
-                font-family: 'Courier New';
-                font-size: 11px;
-            }
-            QListWidget::item {
-                padding: 5px;
-                border-bottom: 1px solid #2a2a2a;
-            }
-            QListWidget::item:selected {
-                background: #2d2d2d;
-            }
-        """)
-        recent_layout.addWidget(self.recent_list)
-        
-        recent_group.setLayout(recent_layout)
-        middle_layout.addWidget(recent_group, 2)
-        
-        layout.addLayout(middle_layout)
-        
-        # Bottom row - System resources
-        resources_group = QGroupBox("💻 System Resources")
-        resources_group.setStyleSheet(self.get_group_style())
-        resources_layout = QGridLayout()
-        
-        # CPU
-        cpu_label = QLabel("CPU:")
-        cpu_label.setStyleSheet("color: #00ff00; font-weight: bold;")
-        self.cpu_bar = QProgressBar()
-        self.cpu_bar.setRange(0, 100)
-        self.cpu_bar.setStyleSheet(self.get_progress_style("#00aaff"))
-        resources_layout.addWidget(cpu_label, 0, 0)
-        resources_layout.addWidget(self.cpu_bar, 0, 1)
-        
-        # Memory
-        mem_label = QLabel("Memory:")
-        mem_label.setStyleSheet("color: #00ff00; font-weight: bold;")
-        self.mem_bar = QProgressBar()
-        self.mem_bar.setRange(0, 100)
-        self.mem_bar.setStyleSheet(self.get_progress_style("#ffaa00"))
-        resources_layout.addWidget(mem_label, 1, 0)
-        resources_layout.addWidget(self.mem_bar, 1, 1)
-        
-        # GPU
-        gpu_label = QLabel("GPU:")
-        gpu_label.setStyleSheet("color: #00ff00; font-weight: bold;")
-        self.gpu_bar = QProgressBar()
-        self.gpu_bar.setRange(0, 100)
-        self.gpu_bar.setStyleSheet(self.get_progress_style("#ff00ff"))
-        resources_layout.addWidget(gpu_label, 2, 0)
-        resources_layout.addWidget(self.gpu_bar, 2, 1)
-        
-        resources_group.setLayout(resources_layout)
-        layout.addWidget(resources_group)
-        
-        widget.setLayout(layout)
-        return widget
+        self.chat_display.see(tk.END)
+        self.chat_display.config(state=tk.DISABLED)
     
-    def create_commands_tab(self):
-        """Create commands history tab"""
-        widget = QWidget()
-        layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
-        
-        # Header
-        header = QLabel("💬 Command History & Logs")
-        header.setFont(QFont("Arial", 16, QFont.Bold))
-        header.setStyleSheet("color: #00ff00;")
-        layout.addWidget(header)
-        
-        # Command log
-        self.command_log = QTextEdit()
-        self.command_log.setReadOnly(True)
-        self.command_log.setStyleSheet("""
-            QTextEdit {
-                background: #1a1a1a;
-                border: 2px solid #00ff00;
-                border-radius: 8px;
-                color: #00ff00;
-                font-family: 'Courier New';
-                font-size: 12px;
-                padding: 10px;
-            }
-        """)
-        layout.addWidget(self.command_log)
-        
-        # Clear button
-        clear_btn = QPushButton("🗑️ Clear History")
-        clear_btn.setFixedHeight(40)
-        clear_btn.clicked.connect(self.clear_history)
-        clear_btn.setStyleSheet(self.get_button_style())
-        layout.addWidget(clear_btn)
-        
-        widget.setLayout(layout)
-        return widget
+    def update_status(self, status, color):
+        """Update status indicator"""
+        self.status_label.config(text=status, fg=color)
+        self.status_dot.config(fg=color)
     
-    def create_system_tab(self):
-        """Create system information tab"""
-        widget = QWidget()
-        layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
-        
-        # Header
-        header = QLabel("⚙️ System Information")
-        header.setFont(QFont("Arial", 16, QFont.Bold))
-        header.setStyleSheet("color: #00ff00;")
-        layout.addWidget(header)
-        
-        # System info
-        self.system_info = QTextEdit()
-        self.system_info.setReadOnly(True)
-        self.system_info.setStyleSheet("""
-            QTextEdit {
-                background: #1a1a1a;
-                border: 2px solid #00ff00;
-                border-radius: 8px;
-                color: #00ff00;
-                font-family: 'Courier New';
-                font-size: 11px;
-                padding: 15px;
-            }
-        """)
-        
-        # Populate system info
-        self.update_system_info()
-        layout.addWidget(self.system_info)
-        
-        # Refresh button
-        refresh_btn = QPushButton("🔄 Refresh Info")
-        refresh_btn.setFixedHeight(40)
-        refresh_btn.clicked.connect(self.update_system_info)
-        refresh_btn.setStyleSheet(self.get_button_style())
-        layout.addWidget(refresh_btn)
-        
-        widget.setLayout(layout)
-        return widget
+    def speak(self, text):
+        """Speak text"""
+        try:
+            if self.voice_engine:
+                self.voice_engine.say(text)
+                self.voice_engine.runAndWait()
+        except:
+            pass
     
-    def create_settings_tab(self):
-        """Create settings tab"""
-        widget = QWidget()
-        layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+    def send_message(self):
+        """Send text message"""
+        message = self.input_field.get().strip()
+        if not message:
+            return
         
-        # Header
-        header = QLabel("🔧 Settings & Controls")
-        header.setFont(QFont("Arial", 16, QFont.Bold))
-        header.setStyleSheet("color: #00ff00;")
-        layout.addWidget(header)
+        self.input_field.delete(0, tk.END)
+        self.add_message("You", message, "user")
         
-        # Control buttons
-        controls_group = QGroupBox("🎮 Controls")
-        controls_group.setStyleSheet(self.get_group_style())
-        controls_layout = QVBoxLayout()
-        
-        # Pause/Resume
-        pause_resume_btn = QPushButton("⏸️ Pause/Resume Listening")
-        pause_resume_btn.setFixedHeight(50)
-        pause_resume_btn.clicked.connect(self.toggle_pause)
-        pause_resume_btn.setStyleSheet(self.get_button_style())
-        controls_layout.addWidget(pause_resume_btn)
-        
-        # Theme toggle
-        theme_btn = QPushButton("🌓 Toggle Dark/Light Theme")
-        theme_btn.setFixedHeight(50)
-        theme_btn.clicked.connect(self.toggle_theme)
-        theme_btn.setStyleSheet(self.get_button_style())
-        controls_layout.addWidget(theme_btn)
-        
-        # Minimize to tray
-        tray_btn = QPushButton("📥 Minimize to System Tray")
-        tray_btn.setFixedHeight(50)
-        tray_btn.clicked.connect(self.hide)
-        tray_btn.setStyleSheet(self.get_button_style())
-        controls_layout.addWidget(tray_btn)
-        
-        controls_group.setLayout(controls_layout)
-        layout.addWidget(controls_group)
-        
-        layout.addStretch()
-        
-        # Exit button
-        exit_btn = QPushButton("❌ Exit JARVIS")
-        exit_btn.setFixedHeight(60)
-        exit_btn.clicked.connect(self.close_application)
-        exit_btn.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #ff0000, stop:1 #cc0000);
-                color: white;
-                border: none;
-                border-radius: 10px;
-                font-size: 16px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #ff3333, stop:1 #ff0000);
-            }
-            QPushButton:pressed {
-                background: #aa0000;
-            }
-        """)
-        layout.addWidget(exit_btn)
-        
-        widget.setLayout(layout)
-        return widget
+        # Process command
+        threading.Thread(target=self._process_command, args=(message,), daemon=True).start()
     
-    def create_footer(self):
-        """Create footer with status bar"""
-        footer = QFrame()
-        footer.setFixedHeight(40)
-        footer.setStyleSheet("""
-            QFrame {
-                background: #1a1a1a;
-                border-top: 1px solid #333333;
-            }
-        """)
-        
-        layout = QHBoxLayout()
-        layout.setContentsMargins(20, 5, 20, 5)
-        
-        # Version
-        version = QLabel("JARVIS v2.0 | NPU Accelerated")
-        version.setStyleSheet("color: #888888; font-size: 11px;")
-        layout.addWidget(version)
-        
-        layout.addStretch()
-        
-        # Time
-        self.time_label = QLabel()
-        self.time_label.setStyleSheet("color: #00ff00; font-size: 11px; font-weight: bold;")
-        self.update_time()
-        layout.addWidget(self.time_label)
-        
-        footer.setLayout(layout)
-        return footer
-    
-    def create_stat_card(self, title, value, color):
-        """Create a stat card widget"""
-        card = QFrame()
-        card.setStyleSheet(f"""
-            QFrame {{
-                background: #2d2d2d;
-                border: 2px solid {color};
-                border-radius: 10px;
-                padding: 10px;
-            }}
-        """)
-        
-        layout = QVBoxLayout()
-        
-        title_label = QLabel(title)
-        title_label.setAlignment(Qt.AlignCenter)
-        title_label.setStyleSheet(f"color: {color}; font-size: 12px; font-weight: bold;")
-        
-        value_label = QLabel(value)
-        value_label.setAlignment(Qt.AlignCenter)
-        value_label.setFont(QFont("Arial", 20, QFont.Bold))
-        value_label.setStyleSheet(f"color: {color};")
-        value_label.setObjectName("value")
-        
-        layout.addWidget(title_label)
-        layout.addWidget(value_label)
-        
-        card.setLayout(layout)
-        return card
-    
-    def get_button_style(self):
-        """Get button stylesheet"""
-        return """
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #2d2d2d, stop:1 #3d3d3d);
-                color: #00ff00;
-                border: 2px solid #00ff00;
-                border-radius: 8px;
-                padding: 10px;
-                font-size: 13px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #00ff00, stop:1 #00cc00);
-                color: #1e1e1e;
-            }
-            QPushButton:pressed {
-                background: #00aa00;
-            }
-        """
-    
-    def get_group_style(self):
-        """Get group box stylesheet"""
-        return """
-            QGroupBox {
-                background: #2d2d2d;
-                border: 2px solid #00ff00;
-                border-radius: 10px;
-                margin-top: 10px;
-                padding-top: 10px;
-                font-size: 13px;
-                font-weight: bold;
-                color: #00ff00;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px;
-            }
-        """
-    
-    def get_progress_style(self, color):
-        """Get progress bar stylesheet"""
-        return f"""
-            QProgressBar {{
-                border: 2px solid {color};
-                border-radius: 5px;
-                background: #1a1a1a;
-                text-align: center;
-                color: white;
-                font-weight: bold;
-            }}
-            QProgressBar::chunk {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 {color}, stop:1 {self.adjust_color(color, -30)});
-                border-radius: 3px;
-            }}
-        """
-    
-    def adjust_color(self, color, amount):
-        """Adjust color brightness"""
-        # Simple color adjustment
-        return color  # Simplified for now
-    
-    def apply_theme(self):
-        """Apply dark/light theme"""
-        if self.dark_mode:
-            self.setStyleSheet("""
-                QMainWindow {
-                    background-color: #1e1e1e;
-                }
-                QWidget {
-                    background-color: #1e1e1e;
-                    color: #00ff00;
-                }
-                QLabel {
-                    background: transparent;
-                }
-            """)
+    def toggle_voice(self):
+        """Toggle voice input"""
+        if self.listening:
+            self.listening = False
+            self.voice_btn.config(text="🎤 Voice", bg='#2a2a2a')
+            self.update_status("Ready", "#00ff88")
         else:
-            self.setStyleSheet("""
-                QMainWindow {
-                    background-color: #f0f0f0;
-                }
-                QWidget {
-                    background-color: #f0f0f0;
-                    color: #006600;
-                }
-                QLabel {
-                    background: transparent;
-                }
-            """)
+            self.listening = True
+            self.voice_btn.config(text="⏹️ Stop", bg='#ff4444')
+            threading.Thread(target=self._voice_loop, daemon=True).start()
     
-    def setup_animations(self):
-        """Setup UI animations"""
-        # Pulse animation for status indicator
-        self.pulse_timer = QTimer()
-        self.pulse_timer.timeout.connect(self.pulse_status)
-        self.pulse_timer.start(1000)
+    def _voice_loop(self):
+        """Voice input loop"""
+        while self.listening:
+            try:
+                self.update_status("Listening...", "#00d4ff")
+                
+                with sr.Microphone() as source:
+                    self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                    audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
+                
+                self.update_status("Processing...", "#ffaa00")
+                text = self.recognizer.recognize_google(audio)
+                
+                self.add_message("You", text, "user")
+                self._process_command(text)
+                
+            except sr.WaitTimeoutError:
+                continue
+            except sr.UnknownValueError:
+                continue
+            except Exception as e:
+                self.add_message("Error", str(e), "error")
+                break
         
-        # Update time
-        self.time_timer = QTimer()
-        self.time_timer.timeout.connect(self.update_time)
-        self.time_timer.start(1000)
-        
-        # Voice level animation
-        self.voice_timer = QTimer()
-        self.voice_timer.timeout.connect(self.update_voice_level)
-        self.voice_timer.start(100)
-        
-        # Uptime counter
-        self.start_time = time.time()
-        self.uptime_timer = QTimer()
-        self.uptime_timer.timeout.connect(self.update_uptime)
-        self.uptime_timer.start(1000)
+        self.update_status("Ready", "#00ff88")
     
-    def start_monitoring(self):
-        """Start system monitoring"""
+    def _process_command(self, command):
+        """Process user command"""
+        self.update_status("Processing...", "#ffaa00")
+        
         try:
-            self.status_monitor = StatusMonitor()
-            self.status_monitor.status_update.connect(self.update_system_stats)
-            self.status_monitor.start()
-        except:
-            pass
+            response = self.execute_command(command)
+            self.add_message("JARVIS", response, "jarvis")
+            self.speak(response)
+        except Exception as e:
+            self.add_message("Error", str(e), "error")
+        
+        self.update_status("Ready", "#00ff88")
     
-    def setup_system_tray(self):
-        """Setup system tray icon"""
+    def execute_command(self, query):
+        """Execute command"""
+        q = query.lower()
+        
         try:
-            self.tray_icon = QSystemTrayIcon(self)
-            self.tray_icon.setToolTip("JARVIS AI Assistant")
+            # Web URLs
+            if 'gmail' in q:
+                return self.open_website("https://gmail.com")
+            elif 'facebook' in q:
+                return self.open_website("https://facebook.com")
+            elif 'youtube' in q and 'bajao' not in q:
+                return self.open_website("https://youtube.com")
+            elif 'twitter' in q:
+                return self.open_website("https://twitter.com")
+            elif 'instagram' in q:
+                return self.open_website("https://instagram.com")
+            elif 'whatsapp' in q and 'web' in q:
+                return self.open_website("https://web.whatsapp.com")
+            elif 'linkedin' in q:
+                return self.open_website("https://linkedin.com")
             
-            # Create tray menu
-            tray_menu = QMenu()
+            # YouTube/Music
+            elif any(w in q for w in ['gaana', 'song', 'music', 'bajao']):
+                return self.play_youtube(query)
             
-            show_action = QAction("Show", self)
-            show_action.triggered.connect(self.show)
-            tray_menu.addAction(show_action)
+            # Open app
+            elif any(w in q for w in ['kholo', 'open', 'start', 'launch']):
+                return self.open_app(query)
             
-            pause_action = QAction("Pause/Resume", self)
-            pause_action.triggered.connect(self.toggle_pause)
-            tray_menu.addAction(pause_action)
+            # Close app
+            elif any(w in q for w in ['band', 'close', 'exit']):
+                return self.close_app(query)
             
-            tray_menu.addSeparator()
+            # Volume
+            elif 'volume' in q or 'awaaz' in q:
+                return self.control_volume(query)
             
-            quit_action = QAction("Exit", self)
-            quit_action.triggered.connect(self.close_application)
-            tray_menu.addAction(quit_action)
+            # Brightness
+            elif 'brightness' in q or 'chamak' in q:
+                return self.control_brightness(query)
             
-            self.tray_icon.setContextMenu(tray_menu)
-            self.tray_icon.activated.connect(self.tray_icon_activated)
-            self.tray_icon.show()
-        except:
-            pass
-    
-    def tray_icon_activated(self, reason):
-        """Handle tray icon activation"""
-        if reason == QSystemTrayIcon.DoubleClick:
-            self.show()
-    
-    def pulse_status(self):
-        """Pulse status indicator"""
-        if not self.is_paused:
-            current = self.status_indicator.styleSheet()
-            if "color: #00ff00" in current:
-                self.status_indicator.setStyleSheet("color: #00cc00; background: transparent;")
+            # Power
+            elif any(w in q for w in ['shutdown', 'restart', 'sleep', 'lock']):
+                return self.power_control(query)
+            
+            # Google search
+            elif 'google' in q or 'search' in q:
+                return self.google_search(query)
+            
             else:
-                self.status_indicator.setStyleSheet("color: #00ff00; background: transparent;")
-    
-    def update_time(self):
-        """Update time display"""
-        current_time = datetime.now().strftime("%H:%M:%S")
-        self.time_label.setText(f"🕐 {current_time}")
-    
-    def update_uptime(self):
-        """Update uptime display"""
-        uptime = int(time.time() - self.start_time)
-        hours = uptime // 3600
-        minutes = (uptime % 3600) // 60
-        seconds = uptime % 60
+                return "I can help with: web, apps, music, volume, brightness, power, search"
         
-        uptime_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-        value_label = self.uptime_card.findChild(QLabel, "value")
-        if value_label:
-            value_label.setText(uptime_str)
+        except Exception as e:
+            return f"Error: {str(e)}"
     
-    def update_voice_level(self):
-        """Update voice level visualization"""
-        import random
-        if not self.is_paused:
-            # Simulate voice activity
-            level = random.randint(20, 80)
-            self.voice_level.setValue(level)
+    def open_website(self, url):
+        """Open website in browser"""
+        try:
+            webbrowser.open(url)
+            site_name = url.split('//')[-1].split('/')[0].replace('www.', '').split('.')[0].title()
+            return f"Opening {site_name}..."
+        except Exception as e:
+            return f"Failed to open website: {str(e)}"
+    
+    def play_youtube(self, query):
+        """Play YouTube video"""
+        try:
+            words = query.lower().split()
+            remove = ['gaana', 'song', 'music', 'bajao', 'play', 'youtube', 'pe', 'par', 'karo']
+            song_words = [w for w in words if w not in remove]
             
-            if level > 60:
-                self.voice_status.setText("🎤 Speaking...")
-                self.voice_status.setStyleSheet("color: #00ff00; font-size: 12px; font-weight: bold;")
+            if song_words:
+                song = ' '.join(song_words)
             else:
-                self.voice_status.setText("🔇 Listening...")
-                self.voice_status.setStyleSheet("color: #888888; font-size: 12px;")
-        else:
-            self.voice_level.setValue(0)
-            self.voice_status.setText("⏸️ Paused")
-            self.voice_status.setStyleSheet("color: #ffaa00; font-size: 12px; font-weight: bold;")
-    
-    def update_system_stats(self, stats):
-        """Update system resource displays"""
-        self.cpu_bar.setValue(int(stats['cpu']))
-        self.cpu_bar.setFormat(f"{stats['cpu']:.1f}%")
-        
-        self.mem_bar.setValue(int(stats['memory']))
-        self.mem_bar.setFormat(f"{stats['memory']:.1f}%")
-        
-        self.gpu_bar.setValue(int(stats['gpu']))
-        self.gpu_bar.setFormat(f"{stats['gpu']:.1f}%")
-    
-    def update_system_info(self):
-        """Update system information display"""
-        info = []
-        info.append("=" * 60)
-        info.append("🖥️  SYSTEM INFORMATION")
-        info.append("=" * 60)
-        info.append("")
-        
-        # Python info
-        info.append(f"Python Version: {sys.version.split()[0]}")
-        info.append("")
-        
-        # Platform info
-        import platform
-        info.append(f"Platform: {platform.system()} {platform.release()}")
-        info.append(f"Machine: {platform.machine()}")
-        info.append(f"Processor: {platform.processor()}")
-        info.append("")
-        
-        # PyTorch info
-        try:
-            import torch
-            info.append(f"PyTorch Version: {torch.__version__}")
-            info.append(f"CUDA Available: {torch.cuda.is_available()}")
-            if torch.cuda.is_available():
-                info.append(f"CUDA Version: {torch.version.cuda}")
-                info.append(f"GPU: {torch.cuda.get_device_name(0)}")
-                info.append(f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
-        except:
-            info.append("PyTorch: Not installed")
-        info.append("")
-        
-        # NPU info
-        try:
-            from core.npu_accelerator import npu_accelerator
-            info.append("🚀 NPU Acceleration: Enabled")
-            info.append(f"   Device: {npu_accelerator.device}")
-        except:
-            info.append("NPU Acceleration: Not available")
-        info.append("")
-        
-        # Environment
-        info.append("🔑 Environment:")
-        groq_key = os.environ.get("GROQ_API_KEY")
-        info.append(f"   GROQ_API_KEY: {'✅ Set' if groq_key else '❌ Not set'}")
-        info.append("")
-        
-        info.append("=" * 60)
-        
-        self.system_info.setText("\n".join(info))
-    
-    def add_command(self, command, response):
-        """Add command to history"""
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        
-        # Add to recent list
-        item = QListWidgetItem(f"[{timestamp}] {command}")
-        self.recent_list.insertItem(0, item)
-        
-        # Keep only last 10
-        while self.recent_list.count() > 10:
-            self.recent_list.takeItem(self.recent_list.count() - 1)
-        
-        # Add to command log
-        log_entry = f"[{timestamp}] USER: {command}\n"
-        log_entry += f"[{timestamp}] JARVIS: {response}\n"
-        log_entry += "-" * 60 + "\n"
-        self.command_log.append(log_entry)
-        
-        # Update command counter
-        value_label = self.commands_card.findChild(QLabel, "value")
-        if value_label:
-            current = int(value_label.text())
-            value_label.setText(str(current + 1))
-    
-    def clear_history(self):
-        """Clear command history"""
-        self.command_log.clear()
-        self.recent_list.clear()
-        
-        # Reset counter
-        value_label = self.commands_card.findChild(QLabel, "value")
-        if value_label:
-            value_label.setText("0")
-    
-    def toggle_pause(self):
-        """Toggle pause/resume state"""
-        if self.is_paused:
-            # Resume
-            self.pause_event.clear()
-            self.is_paused = False
-            self.pause_btn.setText("⏸️ Pause")
-            self.status_indicator.setText("● ACTIVE")
-            self.status_indicator.setStyleSheet("color: #00ff00; background: transparent;")
+                song = "Tauba Tauba Bad Newz"
             
-            # Update status card
-            value_label = self.active_card.findChild(QLabel, "value")
-            if value_label:
-                value_label.setText("ACTIVE")
-        else:
-            # Pause
-            self.pause_event.set()
-            self.is_paused = True
-            self.pause_btn.setText("▶️ Resume")
-            self.status_indicator.setText("● PAUSED")
-            self.status_indicator.setStyleSheet("color: #ffaa00; background: transparent;")
+            # Open YouTube search
+            search_url = f"https://www.youtube.com/results?search_query={song.replace(' ', '+')}"
+            webbrowser.open(search_url)
             
-            # Update status card
-            value_label = self.active_card.findChild(QLabel, "value")
-            if value_label:
-                value_label.setText("PAUSED")
+            return f"Playing: {song}\n✅ YouTube opened!"
+        except Exception as e:
+            return f"YouTube error: {str(e)}"
     
-    def toggle_theme(self):
-        """Toggle dark/light theme"""
-        self.dark_mode = not self.dark_mode
-        self.apply_theme()
-    
-    def close_application(self):
-        """Close the application"""
-        self.status_indicator.setText("● SHUTTING DOWN")
-        self.status_indicator.setStyleSheet("color: #ff0000; background: transparent;")
-        
-        # Stop monitoring
-        if self.status_monitor:
-            self.status_monitor.stop()
-            self.status_monitor.wait()
-        
-        QTimer.singleShot(500, self.close)
-        QTimer.singleShot(1000, lambda: sys.exit(0))
-    
-    def closeEvent(self, event):
-        """Handle window close event"""
-        # Minimize to tray instead of closing
-        event.ignore()
-        self.hide()
+    def open_app(self, query):
+        """Open application"""
         try:
-            self.tray_icon.showMessage(
-                "JARVIS",
-                "JARVIS is still running in the background",
-                QSystemTrayIcon.Information,
-                2000
-            )
-        except:
-            pass
+            apps = {
+                'chrome': 'chrome', 'firefox': 'firefox', 'edge': 'msedge',
+                'word': 'winword', 'excel': 'excel', 'powerpoint': 'powerpnt',
+                'notepad': 'notepad', 'vlc': 'vlc', 'calculator': 'calc',
+                'paint': 'mspaint', 'cmd': 'cmd', 'powershell': 'powershell',
+                'task manager': 'taskmgr', 'control panel': 'control',
+            }
+            
+            words = query.lower().split()
+            remove = ['kholo', 'open', 'start', 'launch', 'karo']
+            app_words = [w for w in words if w not in remove]
+            app_name = ' '.join(app_words)
+            
+            app_cmd = None
+            for key, cmd in apps.items():
+                if key in app_name:
+                    app_cmd = cmd
+                    break
+            
+            if not app_cmd:
+                app_cmd = app_name
+            
+            if self.os_type == "Windows":
+                subprocess.Popen(app_cmd, shell=True)
+            else:
+                subprocess.Popen([app_cmd])
+            
+            return f"Opening {app_name}..."
+        except Exception as e:
+            return f"Failed to open app: {str(e)}"
+    
+    def close_app(self, query):
+        """Close application"""
+        try:
+            words = query.lower().split()
+            remove = ['band', 'close', 'exit', 'karo']
+            app_words = [w for w in words if w not in remove]
+            app_name = ' '.join(app_words)
+            
+            killed = False
+            for proc in psutil.process_iter(['name']):
+                try:
+                    if app_name in proc.info['name'].lower():
+                        proc.kill()
+                        killed = True
+                except:
+                    pass
+            
+            if killed:
+                return f"Closed {app_name}"
+            else:
+                return f"{app_name} is not running"
+        except Exception as e:
+            return f"Failed to close app: {str(e)}"
+    
+    def control_volume(self, query):
+        """Control volume"""
+        try:
+            if 'badhao' in query or 'increase' in query or 'up' in query:
+                for _ in range(5):
+                    pyautogui.press('volumeup')
+                return "Volume increased"
+            elif 'kam' in query or 'decrease' in query or 'down' in query:
+                for _ in range(5):
+                    pyautogui.press('volumedown')
+                return "Volume decreased"
+            elif 'mute' in query or 'chup' in query:
+                pyautogui.press('volumemute')
+                return "Volume muted"
+        except Exception as e:
+            return f"Volume control failed: {str(e)}"
+    
+    def control_brightness(self, query):
+        """Control brightness"""
+        try:
+            if 'badhao' in query or 'increase' in query:
+                if self.os_type == "Windows":
+                    subprocess.run(['powershell', '(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,100)'])
+                return "Brightness increased"
+            elif 'kam' in query or 'decrease' in query:
+                if self.os_type == "Windows":
+                    subprocess.run(['powershell', '(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,50)'])
+                return "Brightness decreased"
+        except Exception as e:
+            return f"Brightness control failed: {str(e)}"
+    
+    def power_control(self, query):
+        """Power control"""
+        try:
+            if 'shutdown' in query:
+                if messagebox.askyesno("Confirm", "Shutdown PC in 10 seconds?"):
+                    if self.os_type == "Windows":
+                        subprocess.run(['shutdown', '/s', '/t', '10'])
+                    return "Shutting down in 10 seconds..."
+            elif 'restart' in query:
+                if messagebox.askyesno("Confirm", "Restart PC in 10 seconds?"):
+                    if self.os_type == "Windows":
+                        subprocess.run(['shutdown', '/r', '/t', '10'])
+                    return "Restarting in 10 seconds..."
+            elif 'sleep' in query:
+                if self.os_type == "Windows":
+                    subprocess.run(['rundll32.exe', 'powrprof.dll,SetSuspendState', '0,1,0'])
+                return "Going to sleep..."
+            elif 'lock' in query:
+                if self.os_type == "Windows":
+                    subprocess.run(['rundll32.exe', 'user32.dll,LockWorkStation'])
+                return "Locking PC..."
+        except Exception as e:
+            return f"Power control failed: {str(e)}"
+    
+    def google_search(self, query):
+        """Google search"""
+        try:
+            words = query.lower().replace('google', '').replace('search', '').replace('pe', '').replace('karo', '').strip()
+            
+            if words:
+                webbrowser.open(f"https://www.google.com/search?q={words}")
+                return f"Searching Google for: {words}"
+            else:
+                webbrowser.open("https://www.google.com")
+                return "Opening Google..."
+        except Exception as e:
+            return f"Search failed: {str(e)}"
+    
+    def media_control(self, action):
+        """Media control"""
+        try:
+            if action == "pause":
+                pyautogui.press('playpause')
+                return "Media toggled"
+            elif action == "next":
+                pyautogui.press('nexttrack')
+                return "Next track"
+            elif action == "previous":
+                pyautogui.press('prevtrack')
+                return "Previous track"
+        except Exception as e:
+            return f"Media control failed: {str(e)}"
 
 
-def run_gui(pause_event):
-    """Run the GUI application with error handling"""
-    if not GUI_AVAILABLE:
-        print("❌ GUI dependencies not available. Install with: pip install PyQt5")
-        return False
-    
-    try:
-        # Check if QApplication already exists
-        app = QApplication.instance()
-        if app is None:
-            app = QApplication(sys.argv)
-        
-        # Set application attributes to suppress DPI warnings
-        try:
-            app.setAttribute(Qt.AA_DisableHighDpiScaling)
-            app.setAttribute(Qt.AA_Use96Dpi)
-        except:
-            pass  # Ignore if attributes not available
-        
-        # Create and show window
-        window = JarvisGUI(pause_event)
-        window.show()
-        
-        print("✅ GUI started successfully")
-        
-        # Run event loop
-        return app.exec_()
-        
-    except Exception as e:
-        print(f"❌ GUI Error: {e}")
-        print("Falling back to terminal mode...")
-        import traceback
-        traceback.print_exc()
-        return False
+def main():
+    """Main entry point"""
+    root = tk.Tk()
+    app = JarvisGUI(root)
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()

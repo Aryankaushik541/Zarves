@@ -77,15 +77,14 @@ class SkillRegistry:
         """List all tool names"""
         return [tool.get('function', {}).get('name', 'unknown') for tool in self.tools_schema]
     
-    def execute_skill(self, skill_name: str, *args, **kwargs):
+    def execute_skill(self, function_name: str, function_args: Dict[str, Any] = None):
         """
-        Execute a registered skill function by name.
-        This method is used by the self-healing system and other components.
+        Execute a registered skill function by name with arguments.
+        This method is used by the JarvisEngine and self-healing system.
         
         Args:
-            skill_name: Name of the function to execute (e.g., 'open_website', 'google_search')
-            *args: Positional arguments to pass to the function
-            **kwargs: Keyword arguments to pass to the function
+            function_name: Name of the function to execute (e.g., 'open_website', 'google_search')
+            function_args: Dictionary of arguments to pass to the function (e.g., {'url': 'https://youtube.com'})
             
         Returns:
             Result from the executed function
@@ -93,17 +92,23 @@ class SkillRegistry:
         Raises:
             ValueError: If the skill function is not found in registry
         """
-        if skill_name not in self.functions:
+        if function_name not in self.functions:
             available_functions = ', '.join(self.functions.keys())
             raise ValueError(
-                f"Skill function '{skill_name}' not found in registry. "
+                f"Skill function '{function_name}' not found in registry. "
                 f"Available functions: {available_functions}"
             )
         
         try:
-            function = self.functions[skill_name]
-            result = function(*args, **kwargs)
+            function = self.functions[function_name]
+            
+            # Handle arguments - if None, use empty dict
+            if function_args is None:
+                function_args = {}
+            
+            # Call function with unpacked keyword arguments
+            result = function(**function_args)
             return result
         except Exception as e:
-            print(f"❌ Error executing skill '{skill_name}': {e}")
+            print(f"❌ Error executing skill '{function_name}': {e}")
             raise

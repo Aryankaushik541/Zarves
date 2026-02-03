@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 """
-JARVIS - Autonomous AI Assistant with Self-Healing + Auto-Install + Voice Mode
+JARVIS - Autonomous AI Assistant with Self-Healing + Auto-Install + Voice Mode + GUI Mode
 Fully autonomous operation with auto-detection and error recovery
 Automatically installs missing dependencies on startup
 Natural Indian Language Support - Koi bhi admi bole, JARVIS samajh jayega!
 Voice Mode - Talk naturally, no typing needed!
-JARVIS ALWAYS SPEAKS - Both text and voice modes have voice output!
+GUI Mode - Beautiful graphical interface with chat and voice controls!
+JARVIS ALWAYS SPEAKS - All modes have voice output!
 """
 
 import sys
@@ -287,7 +288,7 @@ def run_startup_checks():
 
 
 def main():
-    """Main entry point with auto-install and voice mode"""
+    """Main entry point with auto-install, voice mode, and GUI mode"""
     
     # Run startup checks (auto-installs dependencies)
     run_startup_checks()
@@ -362,9 +363,27 @@ def main():
     print()
     print("1. 🎤 Voice Mode (Recommended) - Talk naturally")
     print("2. ⌨️  Text Mode - Type commands (JARVIS still speaks!)")
+    print("3. 🎨 GUI Mode - Beautiful graphical interface")
     print()
     
-    mode_choice = input("Enter choice (1 or 2, default=1): ").strip()
+    mode_choice = input("Enter choice (1, 2, or 3, default=1): ").strip()
+    
+    if mode_choice == "3":
+        # GUI mode
+        print()
+        print("="*70)
+        print("🎨 Launching GUI Mode...")
+        print("="*70)
+        print()
+        
+        try:
+            import gui_mode
+            gui_mode.main()
+        except Exception as e:
+            print(f"❌ GUI mode failed: {e}")
+            print()
+            print("💡 Falling back to text mode...")
+            mode_choice = "2"
     
     if mode_choice == "2":
         # Text mode (but JARVIS still speaks!)
@@ -387,7 +406,7 @@ def main():
         print("Type 'quit' or 'exit' to stop")
         print("="*70)
         print()
-    else:
+    elif mode_choice != "3":
         # Voice mode (default)
         use_voice_input = True
         print()
@@ -412,87 +431,88 @@ def main():
         # Initial greeting
         speak("Hello! I'm JARVIS. Say my name followed by your command.")
     
-    # Main conversation loop
-    while True:
-        try:
-            if use_voice_input:
-                # Voice mode - voice input + voice output
-                user_input = listen()
-                
-                if user_input == "none":
-                    continue
-                
-                # Check for exit commands
-                if user_input.lower() in ['quit', 'exit', 'bye', 'goodbye', 'alvida', 'stop listening']:
-                    speak("Goodbye! Have a great day!")
-                    break
-                
-                # Process query with personal assistant
-                response = engine.process_query(user_input)
-                speak(response)
-                
-            else:
-                # Text mode - text input + VOICE OUTPUT
-                user_input = input("\n👤 You: ").strip()
-                
-                if not user_input:
-                    continue
-                
-                # Check for exit commands
-                if user_input.lower() in ['quit', 'exit', 'bye', 'goodbye', 'alvida']:
-                    print("\n🤖 JARVIS: Goodbye! Have a great day! 👋")
-                    speak("Goodbye! Have a great day!")
-                    break
-                
-                # Process query with personal assistant
-                print("\n🤖 JARVIS: ", end="", flush=True)
-                response = engine.process_query(user_input)
-                print(response)
-                
-                # JARVIS SPEAKS THE RESPONSE!
-                speak(response)
-            
-        except KeyboardInterrupt:
-            if use_voice_input:
-                speak("Goodbye! Have a great day!")
-            else:
-                print("\n\n🤖 JARVIS: Goodbye! Have a great day! 👋")
-                speak("Goodbye! Have a great day!")
-            break
-        except Exception as e:
-            error_msg = f"Error: {e}"
-            if use_voice_input:
-                speak("Sorry, I encountered an error. Please try again.")
-            else:
-                print(f"\n⚠️  {error_msg}")
-                speak("Sorry, I encountered an error. Please try again.")
-            
-            # Try to auto-fix
-            if self_healing.auto_fix_error(e, f"Processing query: {user_input}"):
-                retry_msg = "Let me try that again..."
+    # Main conversation loop (only for voice/text modes)
+    if mode_choice != "3":
+        while True:
+            try:
                 if use_voice_input:
-                    speak(retry_msg)
-                else:
-                    print(f"🔄 {retry_msg}")
-                    speak(retry_msg)
-                
-                try:
+                    # Voice mode - voice input + voice output
+                    user_input = listen()
+                    
+                    if user_input == "none":
+                        continue
+                    
+                    # Check for exit commands
+                    if user_input.lower() in ['quit', 'exit', 'bye', 'goodbye', 'alvida', 'stop listening']:
+                        speak("Goodbye! Have a great day!")
+                        break
+                    
+                    # Process query with personal assistant
                     response = engine.process_query(user_input)
+                    speak(response)
+                    
+                else:
+                    # Text mode - text input + VOICE OUTPUT
+                    user_input = input("\n👤 You: ").strip()
+                    
+                    if not user_input:
+                        continue
+                    
+                    # Check for exit commands
+                    if user_input.lower() in ['quit', 'exit', 'bye', 'goodbye', 'alvida']:
+                        print("\n🤖 JARVIS: Goodbye! Have a great day! 👋")
+                        speak("Goodbye! Have a great day!")
+                        break
+                    
+                    # Process query with personal assistant
+                    print("\n🤖 JARVIS: ", end="", flush=True)
+                    response = engine.process_query(user_input)
+                    print(response)
+                    
+                    # JARVIS SPEAKS THE RESPONSE!
+                    speak(response)
+                
+            except KeyboardInterrupt:
+                if use_voice_input:
+                    speak("Goodbye! Have a great day!")
+                else:
+                    print("\n\n🤖 JARVIS: Goodbye! Have a great day! 👋")
+                    speak("Goodbye! Have a great day!")
+                break
+            except Exception as e:
+                error_msg = f"Error: {e}"
+                if use_voice_input:
+                    speak("Sorry, I encountered an error. Please try again.")
+                else:
+                    print(f"\n⚠️  {error_msg}")
+                    speak("Sorry, I encountered an error. Please try again.")
+                
+                # Try to auto-fix
+                if self_healing.auto_fix_error(e, f"Processing query: {user_input}"):
+                    retry_msg = "Let me try that again..."
                     if use_voice_input:
-                        speak(response)
+                        speak(retry_msg)
                     else:
-                        print(f"\n🤖 JARVIS: {response}")
-                        speak(response)
-                except:
-                    fail_msg = "Still having trouble. Please try rephrasing."
-                    if use_voice_input:
-                        speak(fail_msg)
-                    else:
-                        print(f"❌ {fail_msg}")
-                        speak(fail_msg)
-            else:
-                if not use_voice_input:
-                    print("💡 Please try rephrasing your request.")
+                        print(f"🔄 {retry_msg}")
+                        speak(retry_msg)
+                    
+                    try:
+                        response = engine.process_query(user_input)
+                        if use_voice_input:
+                            speak(response)
+                        else:
+                            print(f"\n🤖 JARVIS: {response}")
+                            speak(response)
+                    except:
+                        fail_msg = "Still having trouble. Please try rephrasing."
+                        if use_voice_input:
+                            speak(fail_msg)
+                        else:
+                            print(f"❌ {fail_msg}")
+                            speak(fail_msg)
+                else:
+                    if not use_voice_input:
+                        print("💡 Please try rephrasing your request.")
 
 
 if __name__ == "__main__":

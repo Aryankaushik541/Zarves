@@ -1,8 +1,8 @@
 # 🤖 JARVIS - Your Personal AI Assistant
 
-> **"Just Run `python main.py` - Everything Auto-Installs!"**
+> **"Just Run `python main.py` - GUI Window Opens Automatically!"**
 
-Complete AI assistant with **automatic setup**, **browser auto-login**, **PC movie search**, **VLC auto-play**, and **local AI**!
+Complete AI assistant with **automatic setup**, **GUI window**, **browser auto-login**, **PC movie search**, **VLC auto-play**, and **local AI**!
 
 ---
 
@@ -13,7 +13,7 @@ Complete AI assistant with **automatic setup**, **browser auto-login**, **PC mov
 git clone https://github.com/Aryankaushik541/Zarves.git
 cd Zarves
 
-# 2. Run (everything auto-installs!)
+# 2. Run (GUI window opens automatically!)
 python main.py
 ```
 
@@ -24,7 +24,7 @@ The script automatically:
 - ✅ Installs Ollama (if needed)
 - ✅ Starts Ollama server
 - ✅ Downloads AI model (llama3.2)
-- ✅ Launches beautiful GUI
+- ✅ **Opens beautiful GUI window**
 
 **No manual setup needed!**
 
@@ -40,22 +40,9 @@ The script automatically:
    ✅ All dependencies installed!
 
 🤖 Setting up AI Engine (Ollama)...
-   ⚠️  Ollama not found!
-
-   Install Ollama now? (y/n): y
-   
-   📥 Installing Ollama...
-   ✅ Ollama installed!
-   ⏳ Starting Ollama server...
-   ✅ Ollama server started!
-   
-   ⚠️  AI model (llama3.2) not found
-   
-   Download model now? (y/n): y
-   
-   📥 Downloading AI model (llama3.2)...
-   ⏳ This may take 2-5 minutes (~2GB download)...
-   ✅ Model downloaded successfully!
+   ✅ Ollama found!
+   ✅ Ollama server running!
+   ✅ AI model ready!
 
 ✅ AI Engine ready!
 
@@ -74,13 +61,55 @@ The script automatically:
    ✅ Voice & Text Control
 
 ======================================================================
+
+🚀 Launching JARVIS GUI...
+
+✅ GUI window opened!
+💡 If you don't see the window, check your taskbar
 ```
 
-Then the beautiful GUI opens! 🎨
+**Then a beautiful GUI window opens!** 🎨
+
+---
+
+## 🎨 GUI Interface
+
+The GUI window shows:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│         🤖 JARVIS - Personal AI Assistant               │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  [09:19:04] ⚙️ SYSTEM: 📦 Loading skills...           │
+│  [09:19:05] ⚙️ SYSTEM: 🧠 Initializing AI engine...   │
+│  [09:19:07] ⚙️ SYSTEM: 🎤 Voice assistant ready!      │
+│  [09:19:07] 🤖 JARVIS: ✅ JARVIS Ready!               │
+│                                                         │
+│             📊 Loaded 21 skills with 69 tools          │
+│                                                         │
+│             💬 How can I help you today?               │
+│                                                         │
+│  [09:20:15] 👤 You: youtube kholo                     │
+│  [09:20:16] 🤖 JARVIS: Opening YouTube! 🎵            │
+│                                                         │
+├─────────────────────────────────────────────────────────┤
+│  Type your message...              [Send] [🎤 Voice]   │
+├─────────────────────────────────────────────────────────┤
+│  ● Ready                                                │
+└─────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## ✨ Features
+
+### 🎨 **Beautiful GUI Window**
+- Modern dark theme interface
+- Real-time chat display
+- Text and voice input
+- Status indicators
+- Automatic window opening
 
 ### 🤖 **Automatic Setup**
 - One command to rule them all
@@ -118,13 +147,6 @@ Then the beautiful GUI opens! 🎨
 - Auto-plays songs/videos
 - Trending music support
 - Natural language commands
-
-### 🎨 **Beautiful GUI**
-- Modern dark theme
-- Quick action buttons
-- Real-time chat
-- Voice input support
-- Status indicators
 
 ---
 
@@ -199,36 +221,32 @@ Then the beautiful GUI opens! 🎨
 
 ---
 
-## ⚙️ Configuration (Optional)
-
-### **1. Configure Auto-Login:**
-```
-1. Click "⚙️ Settings" button (top-right in GUI)
-2. Enter Google Email
-3. Enter Google Password
-4. Click "Save Settings"
-
-Now JARVIS can auto-login to Gmail, YouTube, Facebook!
-```
-
-### **2. Add Movie Folders:**
-```
-1. Click "⚙️ Settings" button
-2. Scroll to "Movie Search Paths"
-3. Click "Add Folder"
-4. Select your movie folders
-5. Click "Save Settings"
-
-JARVIS will search these folders for movies!
-```
-
-**Default Paths (Auto-detected):**
-- Windows: C:\Users\YourName\Videos, Downloads, Movies
-- All Drives: D:\Movies, E:\Videos, etc.
-
----
-
 ## 🔧 Troubleshooting
+
+### **Problem: GUI window not opening**
+
+**Solution 1 - Check taskbar:**
+```
+The window might be minimized or behind other windows.
+Check your taskbar for "JARVIS" window.
+```
+
+**Solution 2 - Install tkinter:**
+```bash
+# Linux:
+sudo apt-get install python3-tk
+
+# Mac:
+brew install python-tk
+
+# Windows:
+# Reinstall Python with tkinter support from python.org
+```
+
+**Solution 3 - Run directly:**
+```bash
+python jarvis_gui.py
+```
 
 ### **Problem: "Ollama installation failed"**
 
@@ -264,164 +282,39 @@ pip install -r requirements.txt
 python main.py
 ```
 
-### **Problem: "JARVIS running in limited mode"**
-
-This means Ollama is not available. JARVIS will still work but with basic commands only.
-
-**To enable full mode:**
-1. Install Ollama: https://ollama.com/download
-2. Run: `ollama serve`
-3. Run: `ollama pull llama3.2`
-4. Restart JARVIS: `python main.py`
-
-### **Problem: "Ollama server not starting"**
-
-```bash
-# Check if port 11434 is already in use:
-# Windows:
-netstat -ano | findstr :11434
-
-# Mac/Linux:
-lsof -i :11434
-
-# Kill the process if needed, then restart:
-python main.py
-```
-
-### **Problem: "GUI not opening"**
-
-```bash
-# Install PyQt5 manually:
-pip install PyQt5
-
-# If on Mac and fails:
-pip install PyQt5 --no-cache-dir
-
-# Then run:
-python main.py
-```
-
 ---
 
-## 🎯 How It Works
+## ⚙️ Configuration (Optional)
 
-### **1. Automatic Setup:**
+### **1. Configure Auto-Login:**
+
+In the GUI window:
 ```
-You run: python main.py
-
-JARVIS:
-1. Checks Python dependencies → Installs if missing
-2. Checks Ollama → Asks to install if missing
-3. Checks Ollama server → Starts if not running
-4. Checks AI model → Downloads if missing
-5. Launches beautiful GUI
-
-Result: Everything ready in 5 minutes!
-```
-
-### **2. Browser Auto-Login:**
-```
-You say: "gmail login karo"
-
-JARVIS:
-1. Opens Chrome with Selenium
-2. Goes to Gmail
-3. Enters your email (from settings)
-4. Enters your password (from settings)
-5. Clicks login automatically
-6. You're logged in!
-
-Result: ✅ Logged into Gmail!
-        🌐 Browser opened with auto-login
+1. Type: "settings" or click Settings button (if available)
+2. Or manually edit: ~/.jarvis_config.json
+3. Add your Google credentials:
+   {
+     "google_email": "your@gmail.com",
+     "google_password": "yourpassword"
+   }
 ```
 
-### **3. PC Movie Search:**
-```
-You say: "Avengers movie search karo"
+### **2. Add Movie Folders:**
 
-JARVIS:
-1. Searches all configured folders
-2. Looks for "Avengers" in filename
-3. Checks all video formats (MP4, MKV, etc.)
-4. Shows all matches
-
-Result: 🎬 Found 3 movie(s):
-        1. Avengers Endgame.mp4
-        2. Avengers Infinity War.mkv
-        3. The Avengers.avi
+Edit `~/.jarvis_config.json`:
+```json
+{
+  "movie_paths": [
+    "D:\\Movies",
+    "E:\\Videos",
+    "C:\\Users\\YourName\\Downloads"
+  ]
+}
 ```
 
-### **4. VLC Auto-Play:**
-```
-You say: "Avengers movie play karo VLC me"
-
-JARVIS:
-1. Searches PC for "Avengers"
-2. Finds movie file
-3. Locates VLC player
-4. Opens VLC with movie
-5. Movie starts playing!
-
-Result: 🎬 Playing in VLC:
-        Avengers Endgame.mp4
-        ✅ Movie started!
-```
-
-### **5. Local AI Processing:**
-```
-You say: "What's the weather like?"
-
-JARVIS:
-1. Processes query with Ollama (local AI)
-2. Understands intent
-3. Executes appropriate skill
-4. Responds naturally
-
-Result: All processing happens on your PC!
-        No data sent to cloud!
-```
-
----
-
-## 🎨 GUI Interface
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  🤖 JARVIS | Auto-Login | Movie Search | VLC Play           │
-│                                    [⚙️ Settings] [● Ready]  │
-├──────────────────┬──────────────────────────────────────────┤
-│                  │                                          │
-│  Quick Actions   │         Chat with JARVIS                │
-│                  │                                          │
-│  🌐 Web          │  💬 Type or speak your commands         │
-│    • Gmail ✅    │                                          │
-│    • YouTube ✅  │  [08:58:46] 👤 YOU: hello jarvis        │
-│    • Facebook ✅ │  [08:58:47] 🤖 JARVIS: Hello! How can   │
-│    • Twitter ✅  │             I help you today? 😊         │
-│                  │                                          │
-│  🎬 Movies       │  [08:59:12] 👤 YOU: youtube kholo       │
-│    • Search ✅   │  [08:59:13] 🤖 JARVIS: Opening YouTube  │
-│    • Play VLC ✅ │             with trending music! 🎵      │
-│                  │                                          │
-│  📱 Apps         │                                          │
-│    • Chrome      │  ┌────────────────────────────────────┐ │
-│    • Word        │  │ Type your message...               │ │
-│    • VLC ✅      │  │                        [🎤] [Send] │ │
-│    • Calculator  │  └────────────────────────────────────┘ │
-│                  │                                          │
-│  🎵 Media        │                                          │
-│    • Play ✅     │                                          │
-│    • Pause       │                                          │
-│                  │                                          │
-│  🔊 System       │                                          │
-│    • Volume      │                                          │
-│    • Mute        │                                          │
-│                  │                                          │
-│  ⚡ Power        │                                          │
-│    • Lock        │                                          │
-│    • Sleep       │                                          │
-└──────────────────┴──────────────────────────────────────────┘
-```
+**Default Paths (Auto-detected):**
+- Windows: C:\Users\YourName\Videos, Downloads, Movies
+- All Drives: D:\Movies, E:\Videos, etc.
 
 ---
 
@@ -463,13 +356,14 @@ Result: All processing happens on your PC!
 ```
 Zarves/
 ├── main.py              # Entry point (auto-setup + launch)
+├── jarvis_gui.py        # Simple GUI (guaranteed to work)
 ├── core/                # Core engine
 │   ├── engine.py        # AI engine
 │   ├── registry.py      # Skill registry
 │   ├── voice.py         # Voice assistant
 │   └── ...
-├── gui/                 # GUI interface
-│   └── app.py           # Main GUI
+├── gui/                 # Advanced GUI (optional)
+│   └── app.py           # Full-featured GUI
 ├── skill/               # Skills (plugins)
 │   ├── web_skills.py
 │   ├── media_skills.py
@@ -477,28 +371,18 @@ Zarves/
 └── requirements.txt     # Dependencies
 ```
 
-### **Add Custom Skills:**
+### **Run Different GUIs:**
 
-Create a new file in `skill/` folder:
+```bash
+# Simple GUI (recommended):
+python main.py
 
-```python
-# skill/my_custom_skill.py
+# Or directly:
+python jarvis_gui.py
 
-def my_function(param1: str) -> dict:
-    """
-    Description of what this does
-    
-    Args:
-        param1: Description of parameter
-    
-    Returns:
-        dict: Result
-    """
-    # Your code here
-    return {"status": "success", "message": "Done!"}
+# Advanced GUI (if you prefer):
+python gui/app.py
 ```
-
-JARVIS automatically loads it!
 
 ---
 
@@ -520,20 +404,10 @@ Just say: "honey singh ka gaana bajao"
 All variations work!
 ```
 
-### **Quick Actions:**
-```
-Use GUI buttons for instant access:
-- Click "Gmail" → Opens Gmail
-- Click "Search Movie" → Opens search
-- Click "Volume Up" → Increases volume
-
-No typing needed!
-```
-
 ### **Voice vs Text:**
 ```
-Voice: Better for hands-free
-Text: Better for complex commands
+Voice: Click 🎤 Voice button
+Text: Type in input box and press Enter
 
 Use what's comfortable!
 ```
@@ -568,7 +442,7 @@ MIT License - See LICENSE file
 Built with:
 - Ollama (Local AI)
 - llama3.2 (AI Model)
-- PyQt5 (GUI)
+- Tkinter (GUI)
 - Selenium (Browser automation)
 - pyttsx3 (Voice)
 
@@ -584,4 +458,4 @@ It helps others discover this project!
 
 **Made with ❤️ by Aryan Kaushik**
 
-**Just run `python main.py` and enjoy! 🚀**
+**Just run `python main.py` and the GUI window opens! 🚀**

@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 """
-Autonomous AI Coder - CLI Interface
+Autonomous AI Coder - CLI Interface V2
 Generate full-stack projects with AI assistance
+✅ Improved timeout handling
+✅ Fallback templates
+✅ Faster generation
 """
 
 import sys
@@ -13,25 +16,26 @@ from pathlib import Path
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from core.autonomous_coder import AutonomousCoder
+from core.autonomous_coder_v2 import AutonomousCoderV2
 
 
 def print_banner():
     """Print welcome banner"""
     print("\n" + "="*70)
-    print("🤖 JARVIS Autonomous AI Coder")
+    print("🤖 JARVIS Autonomous AI Coder V2")
     print("="*70)
-    print("Generate full-stack projects with AI and auto-debugging")
+    print("Generate full-stack projects with AI and fallback templates")
+    print("✅ Faster generation | ✅ Better timeout handling | ✅ More reliable")
     print("="*70 + "\n")
 
 
 def print_menu():
     """Print main menu"""
     print("\n📋 Select Project Type:")
-    print("1. React Application")
-    print("2. Django Application")
-    print("3. MERN Stack Application")
-    print("4. Android Application")
+    print("1. React Application (2-3 min)")
+    print("2. Django Application (3-4 min)")
+    print("3. MERN Stack Application (4-5 min)")
+    print("4. Android Application (5-6 min)")
     print("5. Exit")
     print()
 
@@ -72,15 +76,16 @@ def main():
         import requests
         response = requests.get('http://localhost:11434/api/tags', timeout=2)
         if response.status_code == 200:
-            print("✅ Ollama is running!\n")
+            print("✅ Ollama is running!")
+            print("ℹ️  Note: If Ollama is slow, fallback templates will be used\n")
         else:
-            print("⚠️ Ollama not responding. Make sure it's running: ollama serve\n")
+            print("⚠️ Ollama not responding. Using fallback templates only.\n")
     except:
-        print("❌ Ollama not found! Please start Ollama: ollama serve\n")
-        sys.exit(1)
+        print("⚠️ Ollama not found. Using fallback templates only.")
+        print("ℹ️  Projects will still be generated successfully!\n")
     
     # Create coder instance
-    coder = AutonomousCoder()
+    coder = AutonomousCoderV2()
     
     while True:
         print_menu()
@@ -140,8 +145,6 @@ def main():
                 print("="*70)
                 print(f"✅ Project generated: {result['output_dir']}")
                 print(f"📄 Files created: {result['files_generated']}")
-                print(f"🔧 Debug attempts: {result['debug_result']['attempts']}")
-                print(f"✅ Errors fixed: {len(result['debug_result']['errors_fixed'])}")
                 print("="*70)
                 
                 # Show next steps
@@ -150,13 +153,26 @@ def main():
                 print(f"1. cd {result['output_dir']}")
                 
                 if project_type == 'react':
-                    print("2. npm start")
+                    print("2. npm install")
+                    print("3. npm start")
+                    print("\n🌐 App will open at: http://localhost:3000")
                 elif project_type == 'django':
-                    print("2. python manage.py runserver")
+                    print("2. pip install -r requirements.txt")
+                    print("3. python manage.py migrate")
+                    print("4. python manage.py createsuperuser")
+                    print("5. python manage.py runserver")
+                    print("\n🌐 API will run at: http://localhost:8000")
                 elif project_type == 'mern':
-                    print("2. npm run dev")
+                    print("2. npm install")
+                    print("3. cd client && npm install")
+                    print("4. cd ../server && npm install")
+                    print("5. cd .. && npm run dev")
+                    print("\n🌐 Client: http://localhost:3000")
+                    print("🌐 Server: http://localhost:5000")
                 elif project_type == 'android':
                     print("2. Open in Android Studio")
+                    print("3. Sync Gradle")
+                    print("4. Run on emulator or device")
                 
                 print("-" * 70 + "\n")
             else:
@@ -164,6 +180,7 @@ def main():
         
         except Exception as e:
             print(f"\n❌ Error: {str(e)}")
+            print("\nℹ️  Tip: Make sure Ollama is running or fallback templates will be used")
         
         input("\nPress Enter to continue...")
 

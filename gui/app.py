@@ -3,8 +3,10 @@
 
 """
 JARVIS GUI - Complete Visual Interface
-Beautiful window with all features
-YouTube Auto-Play Support!
+✅ YouTube Auto-Play
+✅ Browser Auto-Login (Google)
+✅ PC Movie Search
+✅ VLC Auto-Play
 """
 
 import sys
@@ -14,6 +16,8 @@ import subprocess
 import platform
 import time
 import threading
+import json
+import glob
 from pathlib import Path
 
 # Add parent directory to path
@@ -21,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 try:
     import tkinter as tk
-    from tkinter import ttk, scrolledtext, messagebox
+    from tkinter import ttk, scrolledtext, messagebox, filedialog
     import pyttsx3
     import speech_recognition as sr
     import pyautogui
@@ -65,6 +69,13 @@ class JarvisGUI:
         self.listening = False
         self.driver = None
         
+        # Config file for credentials
+        self.config_file = Path.home() / ".jarvis_config.json"
+        self.config = self._load_config()
+        
+        # Movie search paths
+        self.movie_paths = self._get_default_movie_paths()
+        
         # Initialize voice
         self._init_voice()
         
@@ -72,8 +83,65 @@ class JarvisGUI:
         self._create_gui()
         
         # Welcome message
-        self.add_message("JARVIS", "Hello! I'm JARVIS. How can I help you today?", "system")
-        self.speak("Hello! I'm JARVIS. How can I help you today?")
+        welcome = "Hello! I'm JARVIS. I can auto-login browsers, search movies on PC, and play them in VLC!"
+        self.add_message("JARVIS", welcome, "system")
+        self.speak("Hello! I'm JARVIS.")
+    
+    def _load_config(self):
+        """Load saved configuration"""
+        try:
+            if self.config_file.exists():
+                with open(self.config_file, 'r') as f:
+                    return json.load(f)
+        except:
+            pass
+        return {
+            'google_email': '',
+            'google_password': '',
+            'movie_paths': []
+        }
+    
+    def _save_config(self):
+        """Save configuration"""
+        try:
+            with open(self.config_file, 'w') as f:
+                json.dump(self.config, f, indent=2)
+        except Exception as e:
+            print(f"Config save error: {e}")
+    
+    def _get_default_movie_paths(self):
+        """Get default movie search paths"""
+        paths = []
+        
+        if self.os_type == "Windows":
+            # Common Windows paths
+            drives = ['C:', 'D:', 'E:', 'F:']
+            folders = ['Movies', 'Videos', 'Downloads', 'Desktop']
+            
+            for drive in drives:
+                for folder in folders:
+                    path = Path(f"{drive}\\Users\\{os.getlogin()}\\{folder}")
+                    if path.exists():
+                        paths.append(str(path))
+                    
+                    # Root folders
+                    path = Path(f"{drive}\\{folder}")
+                    if path.exists():
+                        paths.append(str(path))
+        else:
+            # Linux/Mac paths
+            home = Path.home()
+            folders = ['Movies', 'Videos', 'Downloads', 'Desktop']
+            for folder in folders:
+                path = home / folder
+                if path.exists():
+                    paths.append(str(path))
+        
+        # Add custom paths from config
+        if self.config.get('movie_paths'):
+            paths.extend(self.config['movie_paths'])
+        
+        return list(set(paths))  # Remove duplicates
     
     def _init_voice(self):
         """Initialize voice engine"""
@@ -105,9 +173,23 @@ class JarvisGUI:
                         bg='#1a1a1a', fg='#00ff00')
         title.pack(side=tk.LEFT, padx=20, pady=20)
         
-        subtitle = tk.Label(top_bar, text="Your Personal AI Assistant",
+        subtitle = tk.Label(top_bar, text="Auto-Login | Movie Search | VLC Play",
                            font=('Arial', 12), bg='#1a1a1a', fg='#888888')
         subtitle.pack(side=tk.LEFT, padx=0, pady=20)
+        
+        # Settings button
+        settings_btn = tk.Button(
+            top_bar,
+            text="⚙️ Settings",
+            font=('Arial', 10, 'bold'),
+            bg='#2a2a2a',
+            fg='#ffffff',
+            activebackground='#3a3a3a',
+            relief=tk.FLAT,
+            cursor='hand2',
+            command=self.open_settings
+        )
+        settings_btn.pack(side=tk.RIGHT, padx=20, pady=20, ipadx=10, ipady=5)
         
         # Status indicator
         self.status_frame = tk.Frame(top_bar, bg='#1a1a1a')
@@ -152,25 +234,25 @@ class JarvisGUI:
         scrollbar.pack(side="right", fill="y")
         
         # Button categories
-        self._create_button_category(scrollable_frame, "🌐 Web", [
-            ("Chrome", "chrome kholo"),
-            ("Gmail", "gmail kholo"),
-            ("Facebook", "facebook kholo"),
-            ("YouTube", "youtube kholo"),
-            ("Twitter", "twitter kholo"),
-            ("Instagram", "instagram kholo"),
-            ("WhatsApp Web", "whatsapp web kholo"),
-            ("LinkedIn", "linkedin kholo"),
+        self._create_button_category(scrollable_frame, "🌐 Web (Auto-Login)", [
+            ("Gmail (Login)", "gmail login karo"),
+            ("Facebook (Login)", "facebook login karo"),
+            ("YouTube (Login)", "youtube login karo"),
+            ("Twitter (Login)", "twitter login karo"),
+        ])
+        
+        self._create_button_category(scrollable_frame, "🎬 Movies", [
+            ("Search Movie", "movie search karo"),
+            ("Play in VLC", "movie play karo vlc me"),
         ])
         
         self._create_button_category(scrollable_frame, "📱 Apps", [
+            ("Chrome", "chrome kholo"),
             ("Word", "word kholo"),
             ("Excel", "excel kholo"),
-            ("PowerPoint", "powerpoint kholo"),
+            ("VLC", "vlc kholo"),
             ("Notepad", "notepad kholo"),
             ("Calculator", "calculator kholo"),
-            ("Paint", "paint kholo"),
-            ("VLC", "vlc kholo"),
         ])
         
         self._create_button_category(scrollable_frame, "🎵 Media", [
@@ -184,15 +266,11 @@ class JarvisGUI:
             ("Volume Up", "volume badhao"),
             ("Volume Down", "volume kam karo"),
             ("Mute", "mute karo"),
-            ("Brightness Up", "brightness badhao"),
-            ("Brightness Down", "brightness kam karo"),
         ])
         
         self._create_button_category(scrollable_frame, "⚡ Power", [
             ("Lock PC", "lock karo"),
             ("Sleep", "sleep karo"),
-            ("Restart", "restart karo"),
-            ("Shutdown", "shutdown karo"),
         ])
         
         # Right panel - Chat
@@ -290,6 +368,76 @@ class JarvisGUI:
             )
             btn.pack(fill=tk.X, padx=15, pady=3)
     
+    def open_settings(self):
+        """Open settings window"""
+        settings_win = tk.Toplevel(self.root)
+        settings_win.title("⚙️ JARVIS Settings")
+        settings_win.geometry("600x500")
+        settings_win.configure(bg='#1a1a1a')
+        
+        # Title
+        title = tk.Label(settings_win, text="⚙️ Settings", font=('Arial', 18, 'bold'),
+                        bg='#1a1a1a', fg='#00ff00')
+        title.pack(pady=20)
+        
+        # Google Credentials
+        cred_frame = tk.LabelFrame(settings_win, text="Google Auto-Login", font=('Arial', 12, 'bold'),
+                                   bg='#1a1a1a', fg='#ffffff', padx=20, pady=20)
+        cred_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        tk.Label(cred_frame, text="Email:", bg='#1a1a1a', fg='#ffffff').grid(row=0, column=0, sticky='w', pady=5)
+        email_entry = tk.Entry(cred_frame, width=40, bg='#2a2a2a', fg='#ffffff')
+        email_entry.grid(row=0, column=1, pady=5, padx=10)
+        email_entry.insert(0, self.config.get('google_email', ''))
+        
+        tk.Label(cred_frame, text="Password:", bg='#1a1a1a', fg='#ffffff').grid(row=1, column=0, sticky='w', pady=5)
+        pass_entry = tk.Entry(cred_frame, width=40, show='*', bg='#2a2a2a', fg='#ffffff')
+        pass_entry.grid(row=1, column=1, pady=5, padx=10)
+        pass_entry.insert(0, self.config.get('google_password', ''))
+        
+        # Movie Paths
+        path_frame = tk.LabelFrame(settings_win, text="Movie Search Paths", font=('Arial', 12, 'bold'),
+                                   bg='#1a1a1a', fg='#ffffff', padx=20, pady=20)
+        path_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        
+        path_list = tk.Listbox(path_frame, bg='#2a2a2a', fg='#ffffff', height=6)
+        path_list.pack(fill=tk.BOTH, expand=True, pady=5)
+        
+        for path in self.movie_paths:
+            path_list.insert(tk.END, path)
+        
+        path_btn_frame = tk.Frame(path_frame, bg='#1a1a1a')
+        path_btn_frame.pack(fill=tk.X, pady=5)
+        
+        def add_path():
+            path = filedialog.askdirectory(title="Select Movie Folder")
+            if path:
+                path_list.insert(tk.END, path)
+        
+        def remove_path():
+            selection = path_list.curselection()
+            if selection:
+                path_list.delete(selection)
+        
+        tk.Button(path_btn_frame, text="Add Folder", command=add_path,
+                 bg='#00ff00', fg='#000000').pack(side=tk.LEFT, padx=5)
+        tk.Button(path_btn_frame, text="Remove", command=remove_path,
+                 bg='#ff4444', fg='#ffffff').pack(side=tk.LEFT, padx=5)
+        
+        # Save button
+        def save_settings():
+            self.config['google_email'] = email_entry.get()
+            self.config['google_password'] = pass_entry.get()
+            self.config['movie_paths'] = list(path_list.get(0, tk.END))
+            self._save_config()
+            self.movie_paths = self._get_default_movie_paths()
+            messagebox.showinfo("Success", "Settings saved!")
+            settings_win.destroy()
+        
+        save_btn = tk.Button(settings_win, text="💾 Save Settings", font=('Arial', 12, 'bold'),
+                            bg='#00ff00', fg='#000000', command=save_settings)
+        save_btn.pack(pady=20, ipadx=20, ipady=10)
+    
     def add_message(self, sender, message, msg_type="user"):
         """Add message to chat display"""
         timestamp = time.strftime("%H:%M:%S")
@@ -383,28 +531,48 @@ class JarvisGUI:
         try:
             q = query.lower()
             
-            # Web
-            if 'gmail' in q:
+            # Auto-Login Web
+            if 'login' in q:
+                if 'gmail' in q:
+                    return self.auto_login_website('gmail')
+                elif 'facebook' in q:
+                    return self.auto_login_website('facebook')
+                elif 'youtube' in q:
+                    return self.auto_login_website('youtube')
+                elif 'twitter' in q:
+                    return self.auto_login_website('twitter')
+            
+            # Movie commands
+            elif any(w in q for w in ['movie', 'film', 'video']):
+                if 'search' in q or 'dhundo' in q or 'find' in q:
+                    # Extract movie name
+                    words = q.split()
+                    remove = ['movie', 'film', 'video', 'search', 'dhundo', 'find', 'karo', 'kar']
+                    movie_words = [w for w in words if w not in remove]
+                    movie_name = ' '.join(movie_words) if movie_words else None
+                    return self.search_movie(movie_name)
+                elif 'play' in q or 'chalao' in q or 'bajao' in q:
+                    # Extract movie name and play
+                    words = q.split()
+                    remove = ['movie', 'film', 'video', 'play', 'chalao', 'bajao', 'karo', 'kar', 'vlc', 'me', 'pe']
+                    movie_words = [w for w in words if w not in remove]
+                    movie_name = ' '.join(movie_words) if movie_words else None
+                    return self.play_movie_vlc(movie_name)
+            
+            # Web (without login)
+            elif 'gmail' in q and 'login' not in q:
                 return self.open_website('https://mail.google.com')
-            elif 'facebook' in q:
+            elif 'facebook' in q and 'login' not in q:
                 return self.open_website('https://www.facebook.com')
             elif 'youtube' in q and ('kholo' in q or 'open' in q):
                 return self.open_website('https://www.youtube.com')
-            elif 'twitter' in q:
-                return self.open_website('https://www.twitter.com')
-            elif 'instagram' in q:
-                return self.open_website('https://www.instagram.com')
-            elif 'whatsapp' in q:
-                return self.open_website('https://web.whatsapp.com')
-            elif 'linkedin' in q:
-                return self.open_website('https://www.linkedin.com')
             
             # YouTube Music (with auto-play)
-            elif any(w in q for w in ['gaana', 'song', 'music', 'bajao', 'play']) and 'youtube' not in q:
+            elif any(w in q for w in ['gaana', 'song', 'music', 'bajao', 'play']) and 'movie' not in q:
                 return self.play_youtube_auto(query)
             
             # Apps
-            elif any(w in q for w in ['kholo', 'open', 'start', 'launch']):
+            elif any(w in q for w in ['kholo', 'open', 'start', 'launch']) and 'movie' not in q:
                 return self.open_app(query)
             
             # Close apps
@@ -419,23 +587,190 @@ class JarvisGUI:
             elif 'volume' in q or 'awaaz' in q:
                 return self.control_volume(query)
             
-            # Brightness
-            elif 'brightness' in q or 'chamak' in q:
-                return self.control_brightness(query)
-            
             # Power
             elif any(w in q for w in ['shutdown', 'restart', 'sleep', 'lock']):
                 return self.power_control(query)
             
-            # Google search
-            elif 'google' in q or 'search' in q:
-                return self.google_search(query)
-            
             else:
-                return "I can help with: web, apps, music, volume, brightness, power, search"
+                return "I can help with: auto-login, movie search, VLC play, web, apps, music, volume, power"
         
         except Exception as e:
             return f"Error: {str(e)}"
+    
+    def auto_login_website(self, site):
+        """Auto-login to website using Selenium"""
+        if not SELENIUM_AVAILABLE:
+            return "Selenium not available. Install: pip install selenium webdriver-manager"
+        
+        email = self.config.get('google_email')
+        password = self.config.get('google_password')
+        
+        if not email or not password:
+            return "⚠️ Please set Google credentials in Settings first!"
+        
+        try:
+            # Setup Chrome
+            chrome_options = Options()
+            chrome_options.add_argument('--start-maximized')
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+            
+            # Site URLs
+            urls = {
+                'gmail': 'https://mail.google.com',
+                'youtube': 'https://www.youtube.com',
+                'facebook': 'https://www.facebook.com',
+                'twitter': 'https://www.twitter.com'
+            }
+            
+            url = urls.get(site, 'https://www.google.com')
+            driver.get(url)
+            
+            # Wait for page load
+            time.sleep(2)
+            
+            # Google login (for Gmail/YouTube)
+            if site in ['gmail', 'youtube']:
+                try:
+                    # Email
+                    email_field = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.NAME, "identifier"))
+                    )
+                    email_field.send_keys(email)
+                    email_field.send_keys(Keys.RETURN)
+                    
+                    time.sleep(2)
+                    
+                    # Password
+                    pass_field = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.NAME, "password"))
+                    )
+                    pass_field.send_keys(password)
+                    pass_field.send_keys(Keys.RETURN)
+                    
+                    return f"✅ Logged into {site.title()}!\n🌐 Browser opened with auto-login"
+                except:
+                    return f"⚠️ {site.title()} opened, but auto-login failed. Please login manually."
+            
+            # Facebook login
+            elif site == 'facebook':
+                try:
+                    email_field = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "email"))
+                    )
+                    email_field.send_keys(email)
+                    
+                    pass_field = driver.find_element(By.ID, "pass")
+                    pass_field.send_keys(password)
+                    pass_field.send_keys(Keys.RETURN)
+                    
+                    return f"✅ Logged into Facebook!\n🌐 Browser opened with auto-login"
+                except:
+                    return "⚠️ Facebook opened, but auto-login failed. Please login manually."
+            
+            else:
+                return f"✅ {site.title()} opened!"
+        
+        except Exception as e:
+            return f"Login error: {str(e)}"
+    
+    def search_movie(self, movie_name=None):
+        """Search for movie in PC storage"""
+        if not movie_name:
+            return "Please specify movie name. Example: 'search movie Avengers'"
+        
+        self.update_status("Searching PC...", "#ff8800")
+        
+        found_movies = []
+        video_extensions = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm']
+        
+        # Search in all paths
+        for base_path in self.movie_paths:
+            try:
+                for ext in video_extensions:
+                    pattern = f"{base_path}/**/*{movie_name}*{ext}"
+                    matches = glob.glob(pattern, recursive=True)
+                    found_movies.extend(matches)
+            except Exception as e:
+                print(f"Search error in {base_path}: {e}")
+        
+        if found_movies:
+            result = f"🎬 Found {len(found_movies)} movie(s):\n\n"
+            for i, movie in enumerate(found_movies[:5], 1):  # Show max 5
+                movie_file = Path(movie).name
+                result += f"{i}. {movie_file}\n"
+            
+            if len(found_movies) > 5:
+                result += f"\n... and {len(found_movies) - 5} more"
+            
+            # Store for later play
+            self.last_search_results = found_movies
+            
+            return result
+        else:
+            return f"❌ No movies found with name: {movie_name}\n💡 Try: Settings → Add movie folders"
+    
+    def play_movie_vlc(self, movie_name=None):
+        """Search and play movie in VLC"""
+        if not movie_name:
+            # Try to play first from last search
+            if hasattr(self, 'last_search_results') and self.last_search_results:
+                movie_path = self.last_search_results[0]
+            else:
+                return "Please specify movie name. Example: 'play movie Avengers in VLC'"
+        else:
+            # Search for movie
+            self.update_status("Searching movie...", "#ff8800")
+            
+            found_movies = []
+            video_extensions = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm']
+            
+            for base_path in self.movie_paths:
+                try:
+                    for ext in video_extensions:
+                        pattern = f"{base_path}/**/*{movie_name}*{ext}"
+                        matches = glob.glob(pattern, recursive=True)
+                        found_movies.extend(matches)
+                except:
+                    pass
+            
+            if not found_movies:
+                return f"❌ Movie not found: {movie_name}\n💡 Try: Settings → Add movie folders"
+            
+            movie_path = found_movies[0]
+        
+        # Play in VLC
+        try:
+            movie_file = Path(movie_path).name
+            
+            if self.os_type == "Windows":
+                # Try common VLC paths
+                vlc_paths = [
+                    r"C:\Program Files\VideoLAN\VLC\vlc.exe",
+                    r"C:\Program Files (x86)\VideoLAN\VLC\vlc.exe",
+                ]
+                
+                vlc_exe = None
+                for path in vlc_paths:
+                    if Path(path).exists():
+                        vlc_exe = path
+                        break
+                
+                if vlc_exe:
+                    subprocess.Popen([vlc_exe, movie_path])
+                else:
+                    # Try default
+                    os.startfile(movie_path)
+            else:
+                # Linux/Mac
+                subprocess.Popen(['vlc', movie_path])
+            
+            return f"🎬 Playing in VLC:\n{movie_file}\n✅ Movie started!"
+        
+        except Exception as e:
+            return f"VLC error: {str(e)}\n💡 Make sure VLC is installed"
     
     def open_website(self, url):
         """Open website in browser"""
@@ -464,10 +799,8 @@ class JarvisGUI:
                 try:
                     return self._play_with_selenium(song)
                 except:
-                    # Fallback to browser
                     return self._play_with_browser(song)
             else:
-                # Fallback to browser
                 return self._play_with_browser(song)
         
         except Exception as e:
@@ -476,27 +809,21 @@ class JarvisGUI:
     def _play_with_selenium(self, song):
         """Play YouTube with Selenium (auto-clicks play)"""
         try:
-            # Setup Chrome options
             chrome_options = Options()
             chrome_options.add_argument('--start-maximized')
             chrome_options.add_argument('--disable-blink-features=AutomationControlled')
             chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-            chrome_options.add_experimental_option('useAutomationExtension', False)
             
-            # Create driver
             service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=chrome_options)
             
-            # Open YouTube search
             search_url = f"https://www.youtube.com/results?search_query={song.replace(' ', '+')}"
             driver.get(search_url)
             
-            # Wait and click first video
             wait = WebDriverWait(driver, 10)
             video = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'a#video-title')))
             video.click()
             
-            # Wait for video to load and auto-play
             time.sleep(2)
             
             return f"🎵 Playing: {song}\n✅ YouTube opened and playing!"
@@ -518,7 +845,6 @@ class JarvisGUI:
                 'word': 'winword', 'excel': 'excel', 'powerpoint': 'powerpnt',
                 'notepad': 'notepad', 'vlc': 'vlc', 'calculator': 'calc',
                 'paint': 'mspaint', 'cmd': 'cmd', 'powershell': 'powershell',
-                'task manager': 'taskmgr', 'control panel': 'control',
             }
             
             words = query.lower().split()
@@ -608,24 +934,6 @@ class JarvisGUI:
         except Exception as e:
             return f"Volume control error: {str(e)}"
     
-    def control_brightness(self, query):
-        """Control screen brightness"""
-        try:
-            q = query.lower()
-            
-            if 'badhao' in q or 'up' in q or 'increase' in q:
-                if self.os_type == "Windows":
-                    subprocess.run(['powershell', '(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,100)'], shell=True)
-                return "Brightness increased"
-            elif 'kam' in q or 'down' in q or 'decrease' in q:
-                if self.os_type == "Windows":
-                    subprocess.run(['powershell', '(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,50)'], shell=True)
-                return "Brightness decreased"
-            else:
-                return "Brightness control: up, down"
-        except Exception as e:
-            return f"Brightness control error: {str(e)}"
-    
     def power_control(self, query):
         """Power management"""
         try:
@@ -669,23 +977,6 @@ class JarvisGUI:
                 return "Power control: shutdown, restart, sleep, lock"
         except Exception as e:
             return f"Power control error: {str(e)}"
-    
-    def google_search(self, query):
-        """Google search"""
-        try:
-            words = query.lower().split()
-            remove = ['google', 'search', 'pe', 'par', 'karo', 'kar']
-            search_words = [w for w in words if w not in remove]
-            search_query = ' '.join(search_words)
-            
-            if search_query:
-                url = f"https://www.google.com/search?q={search_query.replace(' ', '+')}"
-                webbrowser.open(url)
-                return f"Searching Google for: {search_query}"
-            else:
-                return "What do you want to search?"
-        except Exception as e:
-            return f"Search error: {str(e)}"
 
 
 def main():

@@ -51,7 +51,7 @@ class JarvisEngine:
         """Ensure the model is pulled and available"""
         try:
             models = self.client.list()
-            model_names = [m['name'] for m in models.get('models', [])]
+            model_names = [m.get('name', '') for m in models.get('models', [])]
             
             if not any(self.model in name for name in model_names):
                 print(f"📥 Pulling model {self.model}... (this may take a few minutes)")
@@ -98,51 +98,38 @@ class JarvisEngine:
                 
                 if retry_count < max_retries:
                     print(f"🔄 Retrying... ({retry_count}/{max_retries})")
-                    continue
+                    time.sleep(1)
                 else:
-                    return "System update in progress. Please restart JARVIS."
-            
+                    return self._fallback_simple_conversation(user_query)
+                    
             except Exception as e:
-                error_str = str(e)
+                error_msg = str(e)
+                print(f"⚠️  Conversation error: {error_msg}")
                 
-                # Handle Ollama connection errors
-                if "connection" in error_str.lower() or "refused" in error_str.lower():
-                    print(f"\n⚠️  Ollama connection failed!")
-                    print(f"💡 Start Ollama server: ollama serve")
-                    return "Ollama server nahi chal raha. Please start karo: ollama serve"
-                
-                # Handle model not found errors
-                if "model" in error_str.lower() and "not found" in error_str.lower():
-                    print(f"\n⚠️  Model {self.model} not found!")
-                    print(f"💡 Pull model: ollama pull {self.model}")
-                    return f"Model {self.model} available nahi hai. Please pull karo: ollama pull {self.model}"
-                
-                retry_count += 1
-                
-                # Try to auto-fix the error
-                if self_healing.auto_fix_error(e, f"Conversation execution (query: {user_query})"):
-                    print("✅ Error fixed! Retrying...\n")
-                    continue
-                else:
+                # Try to auto-fix
+                if self_healing.auto_fix_error(e, f"Conversation: {user_query}"):
+                    retry_count += 1
                     if retry_count < max_retries:
-                        print(f"🔄 Retrying... ({retry_count}/{max_retries})\n")
-                        time.sleep(1)  # Brief delay before retry
-                        continue
+                        print(f"🔄 Retrying... ({retry_count}/{max_retries})")
+                        time.sleep(1)
                     else:
                         print(f"❌ Maximum retries reached.")
-                        return f"Sorry, couldn't process your request. Please try again."
+                        return "Sorry, couldn't process your request. Please try again."
+                else:
+                    return self._fallback_simple_conversation(user_query)
         
-        return "Sorry, technical issue hai. Please try again."
+        return "Sorry, couldn't process your request. Please try again."
 
-    def _execute_simple_conversation(self, user_query: str) -> str:
-        """Execute conversation without tools - fallback for errors"""
+    def _fallback_simple_conversation(self, user_query: str) -> str:
+        """Fallback to simple conversation without tools when errors occur"""
         try:
+            print("🔄 Using simple conversation mode (no tools)...")
             response = self.client.chat(
                 model=self.model,
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are JARVIS, a helpful AI assistant. Respond concisely and helpfully."
+                        "content": "You are JARVIS, a helpful AI assistant. Answer the user's question directly and concisely."
                     },
                     {
                         "role": "user",
@@ -280,17 +267,32 @@ class JarvisEngine:
     def _execute_tool_calls_with_healing(self, tool_calls):
         """Execute tool calls with automatic error recovery"""
         for tool_call in tool_calls:
+            tool_call_id = "unknown"  # Initialize with default value
+            function_name = "unknown"
+            
             try:
                 # Extract tool info - Ollama format
                 if isinstance(tool_call, dict):
-                    function_name = tool_call.get('function', {}).get('name')
-                    function_args = tool_call.get('function', {}).get('arguments', {})
+                    function_name = tool_call.get('function', {}).get('name', 'unknown')
+                    function_args_raw = tool_call.get('function', {}).get('arguments', {})
                     tool_call_id = tool_call.get('id', 'unknown')
+                    
+                    # Parse arguments if they're a string
+                    if isinstance(function_args_raw, str):
+                        try:
+                            function_args = json.loads(function_args_raw)
+                        except json.JSONDecodeError:
+                            function_args = {}
+                    elif isinstance(function_args_raw, dict):
+                        function_args = function_args_raw
+                    else:
+                        function_args = {}
                 else:
                     # Fallback for object format
-                    function_name = tool_call.function.name
-                    function_args = json.loads(tool_call.function.arguments)
-                    tool_call_id = tool_call.id
+                    function_name = getattr(tool_call.function, 'name', 'unknown')
+                    args_str = getattr(tool_call.function, 'arguments', '{}')
+                    function_args = json.loads(args_str) if isinstance(args_str, str) else args_str
+                    tool_call_id = getattr(tool_call, 'id', 'unknown')
 
                 # Execute skill
                 result = self.registry.execute_skill(function_name, function_args)

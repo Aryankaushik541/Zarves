@@ -76,3 +76,34 @@ class SkillRegistry:
     def list_tools(self) -> List[str]:
         """List all tool names"""
         return [tool.get('function', {}).get('name', 'unknown') for tool in self.tools_schema]
+    
+    def execute_skill(self, skill_name: str, *args, **kwargs):
+        """
+        Execute a registered skill function by name.
+        This method is used by the self-healing system and other components.
+        
+        Args:
+            skill_name: Name of the function to execute (e.g., 'open_website', 'google_search')
+            *args: Positional arguments to pass to the function
+            **kwargs: Keyword arguments to pass to the function
+            
+        Returns:
+            Result from the executed function
+            
+        Raises:
+            ValueError: If the skill function is not found in registry
+        """
+        if skill_name not in self.functions:
+            available_functions = ', '.join(self.functions.keys())
+            raise ValueError(
+                f"Skill function '{skill_name}' not found in registry. "
+                f"Available functions: {available_functions}"
+            )
+        
+        try:
+            function = self.functions[skill_name]
+            result = function(*args, **kwargs)
+            return result
+        except Exception as e:
+            print(f"❌ Error executing skill '{skill_name}': {e}")
+            raise

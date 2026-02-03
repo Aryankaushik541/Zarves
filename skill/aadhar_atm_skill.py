@@ -9,21 +9,35 @@ AI Agent that reads screen and fills forms automatically
 import sys
 import time
 import re
+import importlib.util
 from pathlib import Path
-from typing import List, Dict, Any, Callable
+from typing import List, Dict, Any, Callable, Optional, Tuple, Iterable
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-try:
+pyautogui = None
+pytesseract = None
+cv2 = None
+np = None
+ImageGrab = None
+ollama = None
+requests = None
+
+if importlib.util.find_spec("pyautogui"):
     import pyautogui
+if importlib.util.find_spec("pytesseract"):
     import pytesseract
+if importlib.util.find_spec("PIL"):
     from PIL import Image, ImageGrab
+if importlib.util.find_spec("cv2"):
     import cv2
+if importlib.util.find_spec("numpy"):
     import numpy as np
-except ImportError:
-    pyautogui = None
-    pytesseract = None
+if importlib.util.find_spec("ollama"):
+    import ollama
+if importlib.util.find_spec("requests"):
+    import requests
 
 from core.skill import Skill
 
@@ -34,6 +48,7 @@ class AadharATMSkill(Skill):
     def __init__(self):
         self.aadhar_number = None
         self.withdrawal_amount = None
+        self._ollama_ready = None
         
         # Configure pyautogui
         if pyautogui:
@@ -93,6 +108,113 @@ class AadharATMSkill(Skill):
             "aadhar_withdraw_money": self.aadhar_withdraw_money,
             "read_screen_text": self.read_screen_text
         }
+
+    def _ollama_available(self) -> bool:
+        """Check if Ollama server is available for AI screen parsing."""
+        if self._ollama_ready is not None:
+            return self._ollama_ready
+        if not ollama:
+            self._ollama_ready = False
+            return False
+        if not requests:
+            self._ollama_ready = False
+            return False
+        try:
+            response = requests.get("http://localhost:11434/api/tags", timeout=2)
+            self._ollama_ready = response.status_code == 200
+        except Exception:
+            self._ollama_ready = False
+        return self._ollama_ready
+
+    @staticmethod
+    def _normalize_text(text: str) -> str:
+        """Normalize OCR text for matching."""
+        return re.sub(r"[^a-z0-9]", "", text.lower())
+
+    def _get_ocr_data(self):
+        """Capture screen and return OCR data with bounding boxes."""
+        if not pytesseract or not cv2 or not np:
+            return None, []
+        screenshot = self.capture_screen()
+        if not screenshot:
+            return None, []
+        screenshot_np = np.array(screenshot)
+        gray = cv2.cvtColor(screenshot_np, cv2.COLOR_BGR2GRAY)
+        data = pytesseract.image_to_data(gray, output_type=pytesseract.Output.DICT)
+        entries = []
+        for i, text in enumerate(data.get("text", [])):
+            text = text.strip()
+            if not text:
+                continue
+            entries.append({
+                "text": text,
+                "left": data["left"][i],
+                "top": data["top"][i],
+                "width": data["width"][i],
+                "height": data["height"][i],
+            })
+        return screenshot, entries
+
+    def _ai_pick_label(self, entries: List[Dict[str, Any]], target: str, candidates: Iterable[str]) -> Optional[str]:
+        """Use Ollama (if available) to select the best label from OCR text."""
+        if not self._ollama_available():
+            return None
+        try:
+            unique_texts = list({entry["text"] for entry in entries})
+            prompt = (
+                "You are helping an automation agent. "
+                "From the OCR words below, pick the BEST label for the target field. "
+                "Return only the exact label text.\n\n"
+                f"Target: {target}\n"
+                f"Candidates: {', '.join(candidates)}\n"
+                f"OCR Words: {', '.join(unique_texts)}"
+            )
+            response = ollama.generate(model="llama3.2", prompt=prompt)
+            label = (response.get("response") or "").strip().splitlines()[0]
+            return label or None
+        except Exception:
+            return None
+
+    def _find_text_position(self, search_text: str, entries: Optional[List[Dict[str, Any]]] = None) -> Optional[Tuple[int, int]]:
+        """Find text on screen and return its center position."""
+        if not entries:
+            _, entries = self._get_ocr_data()
+        if not entries:
+            return None
+        search_norm = self._normalize_text(search_text)
+        for entry in entries:
+            if search_norm in self._normalize_text(entry["text"]):
+                x = entry["left"] + entry["width"] // 2
+                y = entry["top"] + entry["height"] // 2
+                return (x, y)
+        return None
+
+    def _find_input_field(self, label_texts: Iterable[str], entries: Optional[List[Dict[str, Any]]] = None):
+        """Find input field near any of the label texts."""
+        if isinstance(label_texts, str):
+            label_texts = [label_texts]
+        if not entries:
+            _, entries = self._get_ocr_data()
+        for label in label_texts:
+            label_pos = self._find_text_position(label, entries)
+            if label_pos:
+                x, y = label_pos
+                return (x + 200, y)
+        return None
+
+    def _wait_for_screen_text(self, phrases: Iterable[str], timeout: int = 30, poll_interval: float = 2.0) -> Optional[str]:
+        """Wait until any phrase appears on screen."""
+        end_time = time.time() + timeout
+        phrases_norm = [self._normalize_text(p) for p in phrases]
+        while time.time() < end_time:
+            _, entries = self._get_ocr_data()
+            text_blob = " ".join(entry["text"] for entry in entries)
+            text_norm = self._normalize_text(text_blob)
+            for phrase, phrase_norm in zip(phrases, phrases_norm):
+                if phrase_norm in text_norm:
+                    return phrase
+            time.sleep(poll_interval)
+        return None
     
     def capture_screen(self, region=None):
         """Capture screenshot of screen or region"""
@@ -143,31 +265,10 @@ class AadharATMSkill(Skill):
         except Exception as e:
             return f"❌ OCR Error: {str(e)}"
     
-    def find_text_on_screen(self, search_text):
+    def find_text_on_screen(self, search_text, entries=None):
         """Find text on screen and return its position"""
         try:
-            screenshot = self.capture_screen()
-            if not screenshot:
-                return None
-            
-            # Convert to OpenCV format
-            screenshot_np = np.array(screenshot)
-            gray = cv2.cvtColor(screenshot_np, cv2.COLOR_BGR2GRAY)
-            
-            # Get text with bounding boxes
-            data = pytesseract.image_to_data(gray, output_type=pytesseract.Output.DICT)
-            
-            # Search for text
-            for i, text in enumerate(data['text']):
-                if search_text.lower() in text.lower():
-                    x = data['left'][i]
-                    y = data['top'][i]
-                    w = data['width'][i]
-                    h = data['height'][i]
-                    return (x + w // 2, y + h // 2)
-            
-            return None
-            
+            return self._find_text_position(search_text, entries)
         except Exception as e:
             print(f"Text search error: {e}")
             return None
@@ -175,13 +276,7 @@ class AadharATMSkill(Skill):
     def find_input_field(self, label_text):
         """Find input field near a label"""
         try:
-            label_pos = self.find_text_on_screen(label_text)
-            if label_pos:
-                # Input field is usually to the right or below the label
-                x, y = label_pos
-                # Try right first
-                return (x + 200, y)
-            return None
+            return self._find_input_field([label_text])
         except Exception as e:
             print(f"Input field search error: {e}")
             return None
@@ -250,6 +345,31 @@ class AadharATMSkill(Skill):
         except Exception as e:
             print(f"Amount extraction error: {e}")
             return None
+
+    def extract_balance_from_screen(self):
+        """Extract remaining balance from screen text"""
+        try:
+            screenshot = self.capture_screen()
+            if not screenshot:
+                return None
+            screenshot_np = np.array(screenshot)
+            gray = cv2.cvtColor(screenshot_np, cv2.COLOR_BGR2GRAY)
+            text = pytesseract.image_to_string(gray)
+            patterns = [
+                r'Balance:?\s*(\d+)',
+                r'Bal(?:ance)?\s*Rs\.?\s*(\d+)',
+                r'Remaining:?\s*(\d+)',
+                r'Available:?\s*(\d+)',
+                r'₹\s*(\d+)\s*balance',
+            ]
+            for pattern in patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    return match.group(1)
+            return None
+        except Exception as e:
+            print(f"Balance extraction error: {e}")
+            return None
     
     def aadhar_withdraw_money(self, aadhar_number: str, amount: str) -> str:
         """
@@ -257,7 +377,7 @@ class AadharATMSkill(Skill):
         Reads screen, fills form, clicks buttons, and confirms withdrawal
         """
         
-        if not pyautogui or not pytesseract:
+        if not pyautogui or not pytesseract or not cv2 or not np:
             return """❌ Required libraries not installed!
 
 Install with:
@@ -285,17 +405,25 @@ Also install Tesseract OCR:
             # Step 1: Wait for screen to be ready
             steps_log.append("⏳ Waiting for ATM screen...")
             time.sleep(1)
+
+            _, ocr_entries = self._get_ocr_data()
+            aadhar_labels = ["Aadhar", "Aadhaar", "UID", "Aadhaar Number", "Card Number", "Number"]
+            amount_labels = ["Amount", "Withdraw", "Enter Amount", "Money", "Rs", "₹"]
+            submit_labels = ["Submit", "OK", "Confirm", "Proceed", "Next"]
+            print_labels = ["Print", "Receipt", "Print Receipt"]
+            fingerprint_phrases = [
+                "fingerprint", "finger print", "place finger", "scan finger",
+                "biometric", "morpho", "thumb", "finger"
+            ]
+
+            aadhar_label = self._ai_pick_label(ocr_entries, "aadhar number", aadhar_labels) or aadhar_labels[0]
+            amount_label = self._ai_pick_label(ocr_entries, "withdrawal amount", amount_labels) or amount_labels[0]
+            submit_label = self._ai_pick_label(ocr_entries, "submit button", submit_labels) or submit_labels[0]
+            print_label = self._ai_pick_label(ocr_entries, "print button", print_labels) or print_labels[0]
             
             # Step 2: Find and fill Aadhar number field
             steps_log.append("🔍 Looking for Aadhar number field...")
-            aadhar_field = self.find_input_field("Aadhar")
-            
-            if not aadhar_field:
-                # Try alternative labels
-                for label in ["Aadhaar", "Card Number", "Number"]:
-                    aadhar_field = self.find_input_field(label)
-                    if aadhar_field:
-                        break
+            aadhar_field = self._find_input_field([aadhar_label] + aadhar_labels, ocr_entries)
             
             if aadhar_field:
                 steps_log.append(f"✅ Found Aadhar field at {aadhar_field}")
@@ -312,14 +440,8 @@ Also install Tesseract OCR:
             
             # Step 3: Find and fill amount field
             steps_log.append("🔍 Looking for amount field...")
-            amount_field = self.find_input_field("Amount")
-            
-            if not amount_field:
-                # Try alternative labels
-                for label in ["Withdraw", "Enter Amount", "Money"]:
-                    amount_field = self.find_input_field(label)
-                    if amount_field:
-                        break
+            _, ocr_entries = self._get_ocr_data()
+            amount_field = self._find_input_field([amount_label] + amount_labels, ocr_entries)
             
             if amount_field:
                 steps_log.append(f"✅ Found amount field at {amount_field}")
@@ -338,7 +460,7 @@ Also install Tesseract OCR:
             time.sleep(0.5)
             
             submit_clicked = False
-            for button_text in ["Submit", "OK", "Confirm", "Proceed", "Next"]:
+            for button_text in [submit_label] + submit_labels:
                 if self.click_button(button_text):
                     steps_log.append(f"✅ Clicked {button_text} button")
                     submit_clicked = True
@@ -350,42 +472,53 @@ Also install Tesseract OCR:
             
             # Wait for processing
             time.sleep(2)
+
+            # Step 5: Wait for fingerprint prompt and user action
+            steps_log.append("🧬 Waiting for fingerprint prompt...")
+            fingerprint_prompt = self._wait_for_screen_text(fingerprint_phrases, timeout=20)
+            if fingerprint_prompt:
+                steps_log.append(f"✅ Fingerprint prompt detected ({fingerprint_prompt})")
+                try:
+                    from core.voice import speak
+                    speak("Kripya morpho par ungli lagaiye.")
+                except Exception:
+                    pass
+                self._wait_for_screen_text(["success", "approved", "balance", "transaction", "done"], timeout=30)
+            else:
+                steps_log.append("⚠️  Fingerprint prompt not detected, continuing...")
+
+            # Step 6: Read screen for confirmation and balance
+            time.sleep(1)
+            steps_log.append("📖 Reading screen for confirmation...")
             
-            # Step 5: Click Print button
+            extracted_amount = self.extract_amount_from_screen()
+            remaining_balance = self.extract_balance_from_screen()
+
+            # Step 7: Click Print button
             steps_log.append("🔍 Looking for Print button...")
-            
             print_clicked = False
-            for button_text in ["Print", "Receipt", "Print Receipt"]:
+            for button_text in [print_label] + print_labels:
                 if self.click_button(button_text):
                     steps_log.append(f"✅ Clicked {button_text} button")
                     print_clicked = True
                     break
-            
             if not print_clicked:
                 steps_log.append("⚠️  Print button not found")
-            
+
             # Wait for print dialog
             time.sleep(1)
-            
-            # Step 6: Click OK on print dialog
+
+            # Step 8: Click OK on print dialog
             steps_log.append("🔍 Looking for OK button...")
-            
             ok_clicked = False
             for button_text in ["OK", "Ok", "Close", "Done"]:
                 if self.click_button(button_text):
                     steps_log.append(f"✅ Clicked {button_text} button")
                     ok_clicked = True
                     break
-            
             if not ok_clicked:
                 steps_log.append("⚠️  OK button not found, pressing Enter...")
                 pyautogui.press('enter')
-            
-            # Step 7: Read screen for confirmation
-            time.sleep(1)
-            steps_log.append("📖 Reading screen for confirmation...")
-            
-            extracted_amount = self.extract_amount_from_screen()
             
             # Build final response
             response = "🏧 Aadhar ATM Withdrawal Complete!\n\n"
@@ -399,6 +532,9 @@ Also install Tesseract OCR:
             else:
                 response += f"💰 Requested Amount: ₹{amount}\n"
                 response += f"✅ Aapka ₹{amount} nikalne ki request submit ho gayi hai!\n"
+
+            if remaining_balance:
+                response += f"\n🏦 Remaining Balance: ₹{remaining_balance}\n"
             
             response += f"\n📝 Aadhar: {aadhar_number[:4]}****{aadhar_number[-4:]}"
             
@@ -409,6 +545,8 @@ Also install Tesseract OCR:
                     speak(f"Aapka {extracted_amount} rupaye nikla hai")
                 else:
                     speak(f"Aapka {amount} rupaye nikalne ki request submit ho gayi hai")
+                if remaining_balance:
+                    speak(f"Aapka baki balance {remaining_balance} rupaye hai")
             except:
                 pass
             

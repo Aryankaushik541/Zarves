@@ -531,17 +531,6 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("\n\n👋 Goodbye!")
-    except Exception as e:
-        print(f"\n❌ Fatal Error: {e}")
-        print()
-        print("💡 Auto-recovery failed. Please report at:")
-        print("   https://github.com/Aryankaushik541/Zarves/issues")
-        print()
-        print("🔧 Quick fixes to try:")
-        print("   1. pip install --upgrade pip")
-        print("   2. pip install -r requirements.txt")
-        print("   3. python -m pip install --force-reinstall pyttsx3")
+    from launch_aadhar_atm import main as aadhar_main
+
+    aadhar_main()

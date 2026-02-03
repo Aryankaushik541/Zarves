@@ -4,6 +4,7 @@
 """
 JARVIS - Complete AI Assistant
 Beautiful GUI Interface - Auto-Launch
+YouTube Auto-Play Support!
 Just run: python main.py
 """
 
@@ -27,6 +28,8 @@ def auto_install_dependencies():
         'speech_recognition': 'SpeechRecognition',
         'pyautogui': 'pyautogui',
         'psutil': 'psutil',
+        'selenium': 'selenium',
+        'webdriver_manager': 'webdriver-manager',
     }
     
     missing = []
@@ -71,6 +74,11 @@ def main():
     print("   ✅ Voice & text input")
     print("   ✅ Full PC control")
     print("   ✅ Real-time status")
+    print("   ✅ YouTube Auto-Play (Selenium)")
+    print()
+    print("🎵 YouTube Auto-Play:")
+    print("   Say: 'honey singh ka gaana bajao'")
+    print("   Result: YouTube opens and plays automatically!")
     print()
     print("="*70)
     print()
@@ -91,7 +99,7 @@ def main():
         print(f"❌ Error: {e}")
         print()
         print("💡 Try installing dependencies manually:")
-        print("   pip install pyttsx3 SpeechRecognition pyautogui psutil")
+        print("   pip install pyttsx3 SpeechRecognition pyautogui psutil selenium webdriver-manager")
         print()
 
 

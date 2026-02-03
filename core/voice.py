@@ -269,3 +269,37 @@ def reset_continuous_mode():
     continuous_mode = False
     last_command_time = 0
     print("✅ Continuous mode reset")
+
+
+# ============================================================================
+# VoiceAssistant Class - Wrapper for GUI compatibility
+# ============================================================================
+
+class VoiceAssistant:
+    """
+    Voice Assistant wrapper class for GUI compatibility
+    Provides object-oriented interface to voice functions
+    """
+    
+    def __init__(self):
+        """Initialize voice assistant"""
+        self.engine = engine
+        self.recognizer = sr.Recognizer()
+        self.microphone = sr.Microphone()
+        
+    def speak(self, text):
+        """Speak text using TTS"""
+        speak(text)
+    
+    def listen(self):
+        """Listen for voice input"""
+        return listen()
+    
+    def reset_continuous_mode(self):
+        """Reset continuous listening mode"""
+        reset_continuous_mode()
+    
+    @property
+    def is_continuous_mode(self):
+        """Check if in continuous mode"""
+        return continuous_mode

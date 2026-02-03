@@ -1,6 +1,6 @@
 # 🤖 JARVIS - Your Personal AI Assistant
 
-> **"Beautiful GUI - No Terminal Needed!"**
+> **"Beautiful GUI - Just Run main.py!"**
 
 Complete AI assistant with stunning visual interface, full PC control, and web support.
 
@@ -45,16 +45,14 @@ Result: YouTube opens and plays!
 
 ## 🚀 Quick Start
 
-### **Method 1: Auto-Launch GUI (Recommended)**
+### **Super Simple - Just 2 Steps:**
 ```bash
+# Step 1: Clone
 git clone https://github.com/Aryankaushik541/Zarves.git
 cd Zarves
-python main.py
-```
 
-### **Method 2: Direct GUI Launch**
-```bash
-python run_gui.py
+# Step 2: Run
+python main.py
 ```
 
 **That's it!** Beautiful GUI window opens automatically! 🎉
@@ -198,8 +196,7 @@ python run_gui.py
 ### **Files:**
 ```
 Zarves/
-├── main.py              ✅ Auto-launcher
-├── run_gui.py           ✅ Direct GUI launcher
+├── main.py              ✅ Single entry point (auto-launches GUI)
 ├── gui/
 │   ├── __init__.py
 │   └── app.py           ✅ Complete GUI interface
@@ -217,6 +214,7 @@ Zarves/
 - ✅ Auto-install dependencies
 - ✅ Real-time status
 - ✅ Color-coded chat
+- ✅ Single entry point (main.py)
 
 ---
 
@@ -228,10 +226,8 @@ Zarves/
 - SpeechRecognition (Voice input)
 - pyautogui (System control)
 - psutil (Process management)
-- selenium (Web automation)
-- webdriver-manager (ChromeDriver)
 
-**JARVIS installs everything automatically!**
+**JARVIS installs everything automatically when you run main.py!**
 
 ---
 
@@ -408,4 +404,4 @@ python main.py
 
 **Beautiful GUI opens automatically!** 🎉
 
-**No terminal, no commands - just click and go!** ✨
+**Just one command - python main.py - that's it!** ✨

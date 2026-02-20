@@ -1,57 +1,64 @@
-# Core dependencies
-ollama
-pyttsx3
-SpeechRecognition
-python-dotenv
-PyQt5
-pywhatkit
-pyaudio
+# ========================================
+# ZARVES AI AGENT - Core Dependencies
+# ========================================
 
-# Web scraping and internet search
+# Voice Recognition & Speech
+pyttsx3>=2.90
+SpeechRecognition>=3.10.0
+
+# Web Browser Automation
+selenium>=4.15.0
+webdriver-manager>=4.0.0
+
+# System Control
+psutil>=5.9.0
+pyautogui>=0.9.54
+
+# Web Scraping (for search features)
 requests>=2.31.0
 beautifulsoup4>=4.12.0
 lxml>=4.9.0
 
-# Web automation (for movie downloader)
-selenium>=4.15.0
-webdriver-manager>=4.0.0
+# Utilities
+python-dotenv>=1.0.0
 
-# Platform-specific dependencies
-pyobjc-core; sys_platform == 'darwin'
-pyobjc-framework-Cocoa; sys_platform == 'darwin'
-pywin32; sys_platform == 'win32'
-pycaw; sys_platform == 'win32'
-comtypes; sys_platform == 'win32'
+# ========================================
+# Platform-Specific Dependencies
+# ========================================
 
-# AI Game Playing Dependencies
-opencv-python>=4.8.0
-pyautogui>=0.9.54
-keyboard>=0.13.5
-mouse>=0.7.1
-Pillow>=10.0.0
-numpy>=1.24.0
-
-# System Control Dependencies
-psutil>=5.9.0
+# Windows Only
+pywin32>=306; sys_platform == 'win32'
+comtypes>=1.2.0; sys_platform == 'win32'
 pygetwindow>=0.0.9; sys_platform == 'win32'
 wmi>=1.5.1; sys_platform == 'win32'
 
-# NPU Acceleration (Optional - for Omen PC optimization)
-# Intel NPU support via OpenVINO
-openvino>=2024.0.0; sys_platform == 'win32'
-openvino-dev>=2024.0.0; sys_platform == 'win32'
+# macOS Only
+pyobjc-core>=9.0; sys_platform == 'darwin'
+pyobjc-framework-Cocoa>=9.0; sys_platform == 'darwin'
 
-# ONNX Runtime with DirectML (Windows GPU/NPU)
-onnxruntime-directml>=1.17.0; sys_platform == 'win32'
+# ========================================
+# Optional Dependencies
+# ========================================
 
-# AMD NPU support (Ryzen AI)
-# onnxruntime-vitisai; sys_platform == 'win32'  # Uncomment if you have AMD Ryzen AI
+# Audio Input (Optional - for better voice recognition)
+# PyAudio>=0.2.13
+# Note: PyAudio can be tricky to install
+# Windows: pip install pipwin && pipwin install pyaudio
+# Linux: sudo apt-get install python3-pyaudio
+# macOS: brew install portaudio && pip install pyaudio
 
-# Optional: PyTorch with CUDA (if NVIDIA GPU available)
-# torch>=2.0.0
-# torchvision>=0.15.0
-# torchaudio>=2.0.0
+# Advanced Features (Uncomment if needed)
+# opencv-python>=4.8.0  # For computer vision
+# keyboard>=0.13.5      # For keyboard control
+# mouse>=0.7.1          # For mouse control
+# Pillow>=10.0.0        # For image processing
+# numpy>=1.24.0         # For numerical operations
 
-# Optional: Advanced AI for game playing
-# tensorflow>=2.13.0  # For deep learning models
-# ultralytics>=8.0.0  # For YOLO object detection
+# Local AI (Optional)
+# ollama>=0.1.0         # For local LLM support
+
+# GUI (Optional)
+# PyQt5>=5.15.0         # For GUI interface
+
+# Automation Tools (Optional)
+# pywhatkit>=5.4        # For WhatsApp automation

@@ -1,0 +1,120 @@
+# 🎬 ZARVES DEMO COMMANDS
+# Copy-paste these commands to test Zarves
+
+# ========================================
+# BASIC GREETINGS
+# ========================================
+Hello Zarves
+How are you?
+What's your name?
+
+# ========================================
+# TIME & DATE
+# ========================================
+What's the time?
+What's the date?
+Tell me the time
+
+# ========================================
+# BROWSER - OPEN WEBSITES
+# ========================================
+Open Google
+Open YouTube
+Open Facebook
+Open Instagram
+Open Twitter
+Open Gmail
+Open WhatsApp
+Open Netflix
+Open Amazon
+
+# ========================================
+# SEARCH COMMANDS
+# ========================================
+Search for Python tutorials
+Search for best restaurants near me
+Search for latest news
+YouTube search funny videos
+YouTube search music
+Find AI courses
+
+# ========================================
+# BROWSER NAVIGATION
+# ========================================
+Scroll down
+Scroll up
+Go back
+Go forward
+Refresh page
+Close browser
+
+# ========================================
+# SYSTEM COMMANDS (Use with caution!)
+# ========================================
+# Close browser
+# Shutdown (will shutdown your PC!)
+# Restart (will restart your PC!)
+# Sleep (will put PC to sleep!)
+
+# ========================================
+# EXIT COMMANDS
+# ========================================
+Exit
+Quit
+Bye
+Band karo
+
+# ========================================
+# HINDI COMMANDS
+# ========================================
+Google kholo
+YouTube kholo
+Python tutorials search karo
+Time kya hai?
+Date kya hai?
+Browser band karo
+Alvida
+
+# ========================================
+# MIXED COMMANDS (Hindi + English)
+# ========================================
+Zarves open Google
+Zarves YouTube kholo
+Zarves search karo Python
+Zarves time batao
+Zarves browser close karo
+
+# ========================================
+# ADVANCED COMMANDS
+# ========================================
+Open google.com
+Search for machine learning courses
+Find best pizza places
+YouTube search Bollywood songs
+Open amazon.in
+
+# ========================================
+# TESTING SEQUENCE (Run in order)
+# ========================================
+# 1. Hello Zarves
+# 2. What's the time?
+# 3. Open Google
+# 4. Search for Python programming
+# 5. Scroll down
+# 6. Go back
+# 7. Open YouTube
+# 8. YouTube search funny cats
+# 9. Close browser
+# 10. Thank you
+# 11. Exit
+
+# ========================================
+# NOTES
+# ========================================
+# - Speak clearly and wait for response
+# - One command at a time
+# - Background noise should be minimal
+# - Microphone should be working properly
+# - Commands are case-insensitive
+# - Both Hindi and English work
+# - Mix of Hindi-English also works
